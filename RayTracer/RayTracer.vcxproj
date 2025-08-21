@@ -104,10 +104,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\devin\Desktop\raylibs\include;C:\Users\devin\Desktop\raylibs\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\devin\Desktop\raylibs\freeglut\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -127,7 +129,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="RayTracer.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="raytracer.cpp" />
+    <ClCompile Include="objects.cpp" />
+    <ClCompile Include="tinyxml2.cpp" />
+    <ClCompile Include="viewport.cpp" />
+    <ClCompile Include="xmlload.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="raytracer.h" />
+    <ClInclude Include="viewport.h" />
+    <ClInclude Include="xmlload.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="project_1_scene.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
