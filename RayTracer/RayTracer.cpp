@@ -10,11 +10,9 @@ Color24 ray_color(const Ray& r) {
 	return Color24(0, 0, 0);
 }
 
-bool TraverseTree(const Ray& ray, Node* node)
+bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 {
 	if (!node) return false;
-
-	HitInfo hitInfo;
 	bool hit = false;
 	Ray transformedRay = node->ToNodeCoords(ray);
 
@@ -31,7 +29,7 @@ bool TraverseTree(const Ray& ray, Node* node)
 	// Traverse children
 	for (int i = 0; i < node->GetNumChild(); i++)
 	{
-		if (TraverseTree(transformedRay, node->GetChild(i)))
+		if (TraverseTree(transformedRay, node->GetChild(i), hitInfo))
 			hit = true;
 	}
 
@@ -82,20 +80,25 @@ void BeginRender(RenderScene* scene)
 		ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 1));
 		ray.p = cyVec3f(cam2Wrld * cyVec4f(ray.p, 1));
 
-		ray.Normalize();
+		HitInfo hit;
+		hit.Init();
 
-
-		if (TraverseTree(ray, &scene->rootNode))
+		if (TraverseTree(ray, &scene->rootNode, hit ))
 		{
 			pixels[pixel] = Color24(255, 255, 255);
 		}
 		else
 		{
 			pixels[pixel] = Color24(0, 0, 0);
-		}														    //z
+		}
 
+		scene->renderImage.GetZBuffer()[pixel] = hit.z;
 		scene->renderImage.IncrementNumRenderPixel(1);
 	}
+
+	scene->renderImage.ComputeZBufferImage();
+	scene->renderImage.SaveZImage("projectOneZ.png");
+	scene->renderImage.SaveImage("projectOne.png");
 }
 
 void StopRender()
