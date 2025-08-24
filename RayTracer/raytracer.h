@@ -1,7 +1,3 @@
 ﻿#pragma once
-
-class raytracer
-{
-public:
-	
-};
+#include <scene.h>
+bool TraverseTree(const Ray& ray, Node* node);
