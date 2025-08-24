@@ -49,5 +49,8 @@
     <Xml Include="project_1_scene.xml">
       <Filter>Resource Files</Filter>
     </Xml>
+    <Xml Include="simple_scene.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
 </Project>
