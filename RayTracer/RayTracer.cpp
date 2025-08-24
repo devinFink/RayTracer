@@ -1,10 +1,11 @@
-﻿#include "raytracer.h"
+﻿#define _USE_MATH_DEFINES
+#include "raytracer.h"
 #include <cmath>
 #include <iostream>
 #include <scene.h>
 #include "viewport.h"
 
-#define DEG2RAD(degrees) ((degrees) * 3.14 / 180.0)
+#define DEG2RAD(degrees) ((degrees) * M_PI / 180.0)
 
 Color24 ray_color(const Ray& r) {
 	return Color24(0, 0, 0);
@@ -36,6 +37,15 @@ bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 	return hit;
 }
 
+cyMatrix4f CreateCam2Wrld(RenderScene* scene)
+{
+	cyVec3f cam2WrldZ = scene->camera.dir;
+	cyVec3f cam2WrldY = scene->camera.up;
+	cyVec3f cam2WrldX = cam2WrldZ.Cross(cam2WrldY);
+
+	cyMatrix4f cam2Wrld = cyMatrix4f(cyVec4f(cam2WrldX, 0), cyVec4f(cam2WrldY, 0), cyVec4f(cam2WrldZ, 0), cyVec4f(scene->camera.pos, 1));
+	return cam2Wrld.GetTranspose();
+}
 
 void BeginRender(RenderScene* scene)
 {
@@ -52,16 +62,7 @@ void BeginRender(RenderScene* scene)
 
 	const int scrSize = scrHeight * scrWidth;
 
-	// Camera To World Transformation Matrix Creation ----------
-	cyVec3f cam2WrldZ = scene->camera.dir;
-	cyVec3f cam2WrldY = scene->camera.up;
-	cyVec3f cam2WrldX = cam2WrldZ.Cross(cam2WrldY);
-
-	cyMatrix4f cam2Wrld = cyMatrix4f(cyVec4f(cam2WrldX, 0), cyVec4f(cam2WrldY, 0), cyVec4f(cam2WrldZ, 0), cyVec4f(scene->camera.pos, 1));
-	cam2Wrld = cam2Wrld.GetTranspose();
-	cam2Wrld.Transpose();
-	// ----------------------------------------------------------
-
+	cyMatrix4f cam2Wrld = CreateCam2Wrld(scene);
 
 	Color24* pixels = scene->renderImage.GetPixels();
 
@@ -70,11 +71,12 @@ void BeginRender(RenderScene* scene)
 		int i = pixel % scrWidth;
 		int j = pixel / scrWidth;
 
+		//Pixel Vector Calculatiion
 		cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (i + (1.0f / 2.0f))),    //x
 									((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (j + (1.0f / 2.0f))), //y
-								(l));																             //z
+								  (l));																             //z
 
-
+		//Ray Generation
 		cyVec3f rayDir = pixelPos - scene->camera.pos;
 		Ray ray = Ray(scene->camera.pos, rayDir);
 		ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 1));
@@ -83,7 +85,7 @@ void BeginRender(RenderScene* scene)
 		HitInfo hit;
 		hit.Init();
 
-		if (TraverseTree(ray, &scene->rootNode, hit ))
+		if (TraverseTree(ray, &scene->rootNode, hit))
 		{
 			pixels[pixel] = Color24(255, 255, 255);
 		}
