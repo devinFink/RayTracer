@@ -2,52 +2,48 @@
 #include <scene.h>
 #include "viewport.h"
 
+
+Color24 ray_color(const Ray& r) {
+	return Color24(0, 0, 0);
+}
+
+
 void BeginRender(RenderScene* scene)
 {
 	scene->renderImage.ResetNumRenderedPixels();
-	int scrHeight = scene->renderImage.GetHeight();
-	int scrWidth = scene->renderImage.GetWidth();
+	const int scrHeight = scene->renderImage.GetHeight();
+	const int scrWidth = scene->renderImage.GetWidth();
+	const int camWidthRes = scene->camera.imgWidth;
+	const int camHeightRes = scene->camera.imgHeight;
+
+	int l = 1;
+
+	float wrldImgHeight = 2 * l * tan(scene->camera.fov / 2);
+	float wrldImgWidth = wrldImgHeight * (camHeightRes / camWidthRes);
+
 	int scrSize = scrHeight * scrWidth;
 
-	Color24* initialPixel = scene->renderImage.GetPixels();
+	// Camera To World Transformation Matrix Creation ----------
+	cyVec3f cam2WrldZ = cyVec3f(0, 0, scene->camera.dir.y);
+	cyVec3f cam2WrldY = cyVec3f(0, scene->camera.up.z, 0);
+	cyVec3f cam2WrldX = cam2WrldZ.Cross(cam2WrldY);
+
+	cyMatrix4f cam2Wrld = cyMatrix4f(cam2WrldX, cam2WrldY, cam2WrldZ, scene->camera.pos);
+	cam2Wrld.Transpose();
+	// ----------------------------------------------------------
+
+
+	Color24* pixels = scene->renderImage.GetPixels();
 
 	for(int pixel = 0; pixel < scrSize; pixel++)
 	{
-		int x = pixel % scrWidth;     // column
-		int y = pixel / scrWidth;     // row
+		int i = pixel % scrWidth;
+		int j = pixel / scrWidth;
 
+		cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2) + (wrldImgWidth / camWidthRes) * (i + (1 / 2))),    //x
+									((wrldImgHeight / 2) - (wrldImgHeight / camHeightRes) * (j + (1 / 2))), //y
+								  (-l));																    //z
 
-        /*
-		float u = float(x) / float(scrWidth - 1);
-		float v = float(y) / float(scrHeight - 1);
-
-        // Corner colors (R,G,B) in [0,1]
-        float topLeft[3] = { 0.0f, 0.0f, 1.0f }; // blue
-        float topRight[3] = { 1.0f, 0.0f, 1.0f }; // magenta
-        float bottomLeft[3] = { 0.0f, 1.0f, 1.0f }; // cyan
-        float bottomRight[3] = { 1.0f, 1.0f, 1.0f }; // white
-
-        // bilinear interpolation
-        float top[3] = {
-            (1 - u) * topLeft[0] + u * topRight[0],
-            (1 - u) * topLeft[1] + u * topRight[1],
-            (1 - u) * topLeft[2] + u * topRight[2]
-        };
-
-        float bottom[3] = {
-            (1 - u) * bottomLeft[0] + u * bottomRight[0],
-            (1 - u) * bottomLeft[1] + u * bottomRight[1],
-            (1 - u) * bottomLeft[2] + u * bottomRight[2]
-        };
-
-        float color[3] = {
-            (1 - v) * top[0] + v * bottom[0],
-            (1 - v) * top[1] + v * bottom[1],
-            (1 - v) * top[2] + v * bottom[2]
-        };
-        */
-
-		initialPixel[pixel] = Color24(color[0] * 255, color[1] * 255, color[2] * 255);
 		scene->renderImage.IncrementNumRenderPixel(1);
 	}
 }
