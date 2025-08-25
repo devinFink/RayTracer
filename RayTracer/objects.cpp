@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include<objects.h>
+#include <iostream>
 
 Sphere theSphere;
 

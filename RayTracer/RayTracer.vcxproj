@@ -129,6 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="raytracer.cpp" />
     <ClCompile Include="objects.cpp" />
@@ -137,6 +138,7 @@
     <ClCompile Include="xmlload.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lodepng.h" />
     <ClInclude Include="raytracer.h" />
     <ClInclude Include="viewport.h" />
     <ClInclude Include="xmlload.h" />

@@ -14,72 +14,9 @@ Color24 RayColor(const Ray& r) {
 	return color;
 }
 
-
-void BeginRender(RenderScene* scene)
-{
-	scene->renderImage.ResetNumRenderedPixels();
-	const int scrHeight = scene->renderImage.GetHeight();
-	const int scrWidth = scene->renderImage.GetWidth();
-	const float camWidthRes = scene->camera.imgWidth;
-	const float camHeightRes = scene->camera.imgHeight;
-
-	int l = 1;
-
-	float wrldImgHeight = 2.0f * l * tan((DEG2RAD(scene->camera.fov)) / 2.0f);
-	float wrldImgWidth = wrldImgHeight * (camWidthRes / camHeightRes);
-
-	const int scrSize = scrHeight * scrWidth;
-
-	// Camera To World Transformation Matrix Creation ----------
-	cyVec3f cam2WrldZ = scene->camera.dir;
-	cyVec3f cam2WrldY = scene->camera.up;
-	cyVec3f cam2WrldX = cam2WrldZ.Cross(cam2WrldY);
-
-	cyMatrix4f cam2Wrld = cyMatrix4f(cyVec4f(cam2WrldX, 0), cyVec4f(cam2WrldY, 0), cyVec4f(cam2WrldZ, 0), cyVec4f(scene->camera.pos, 1));
-	cam2Wrld = cam2Wrld.GetTranspose();
-
-	// ----------------------------------------------------------
-
-
-	Color24* pixels = scene->renderImage.GetPixels();
-
-	for(int pixel = 0; pixel < scrSize; pixel++)
-	{
-		int i = pixel % scrWidth;
-		int j = pixel / scrWidth;
-
-
-		cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (i + (1.0f / 2.0f))),    //x
-									((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (j + (1.0f / 2.0f))), //y
-								  (l));																             //z
-
-
-		cyVec3f rayDir = pixelPos - scene->camera.pos;
-		Ray ray = Ray(scene->camera.pos, rayDir);
-		ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 1));
-		ray.p = cyVec3f(cam2Wrld * cyVec4f(ray.p, 1));
-
-		ray.Normalize();
-
-
-		if(TraverseTree(ray, &scene->rootNode))
-		{
-			pixels[pixel] = Color24(255, 255, 255);
-		}
-		else
-		{
-			pixels[pixel] = Color24(0, 0, 0);
-		}
-
-		scene->renderImage.IncrementNumRenderPixel(1);
-	}
-}
-
-bool TraverseTree(const Ray &ray, Node* node)
+bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 {
 	if (!node) return false;
-
-	HitInfo hitInfo;
 	bool hit = false;
 	Ray transformedRay = node->ToNodeCoords(ray);
 
@@ -96,11 +33,76 @@ bool TraverseTree(const Ray &ray, Node* node)
 	// Traverse children
 	for (int i = 0; i < node->GetNumChild(); i++)
 	{
-		if (TraverseTree(transformedRay, node->GetChild(i)))
+		if (TraverseTree(transformedRay, node->GetChild(i), hitInfo))
 			hit = true;
 	}
 
 	return hit;
+}
+
+cyMatrix4f CreateCam2Wrld(RenderScene* scene)
+{
+	cyVec3f cam2WrldZ = scene->camera.dir;
+	cyVec3f cam2WrldY = scene->camera.up;
+	cyVec3f cam2WrldX = cam2WrldZ.Cross(cam2WrldY);
+
+	cyMatrix4f cam2Wrld = cyMatrix4f(cyVec4f(cam2WrldX, 0), cyVec4f(cam2WrldY, 0), cyVec4f(cam2WrldZ, 0), cyVec4f(scene->camera.pos, 1));
+	return cam2Wrld.GetTranspose();
+}
+
+void BeginRender(RenderScene* scene)
+{
+	scene->renderImage.ResetNumRenderedPixels();
+	const int scrHeight = scene->renderImage.GetHeight();
+	const int scrWidth = scene->renderImage.GetWidth();
+	const float camWidthRes = scene->camera.imgWidth;
+	const float camHeightRes = scene->camera.imgHeight;
+	const int scrSize = scrHeight * scrWidth;
+
+	int l = 1;
+
+	float wrldImgHeight = 2.0f * l * tan((DEG2RAD(scene->camera.fov)) / 2.0f);
+	float wrldImgWidth = wrldImgHeight * (camWidthRes / camHeightRes);
+
+	cyMatrix4f cam2Wrld = CreateCam2Wrld(scene);
+
+	Color24* pixels = scene->renderImage.GetPixels();
+
+	for(int pixel = 0; pixel < scrSize; pixel++)
+	{
+		int i = pixel % scrWidth;
+		int j = pixel / scrWidth;
+
+		//Pixel Vector Calculatiion
+		cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (i + (1.0f / 2.0f))),    //x
+									((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (j + (1.0f / 2.0f))), //y
+								  (l));																             //z
+
+		//Ray Generation
+		cyVec3f rayDir = pixelPos - scene->camera.pos;
+		Ray ray = Ray(scene->camera.pos, rayDir);
+		ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 1));
+		ray.p = cyVec3f(cam2Wrld * cyVec4f(ray.p, 1));
+
+		HitInfo hit;
+		hit.Init();
+
+		if (TraverseTree(ray, &scene->rootNode, hit))
+		{
+			pixels[pixel] = Color24(255, 255, 255);
+		}
+		else
+		{
+			pixels[pixel] = Color24(0, 0, 0);
+		}
+
+		scene->renderImage.GetZBuffer()[pixel] = hit.z;
+		scene->renderImage.IncrementNumRenderPixel(1);
+	}
+
+	scene->renderImage.ComputeZBufferImage();
+	scene->renderImage.SaveZImage("projectOneZ.png");
+	scene->renderImage.SaveImage("projectOne.png");
 }
 
 void StopRender()
