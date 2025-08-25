@@ -54,13 +54,12 @@ void BeginRender(RenderScene* scene)
 	const int scrWidth = scene->renderImage.GetWidth();
 	const float camWidthRes = scene->camera.imgWidth;
 	const float camHeightRes = scene->camera.imgHeight;
+	const int scrSize = scrHeight * scrWidth;
 
 	int l = 1;
 
 	float wrldImgHeight = 2.0f * l * tan((DEG2RAD(scene->camera.fov)) / 2.0f);
 	float wrldImgWidth = wrldImgHeight * (camWidthRes / camHeightRes);
-
-	const int scrSize = scrHeight * scrWidth;
 
 	cyMatrix4f cam2Wrld = CreateCam2Wrld(scene);
 
