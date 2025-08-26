@@ -51,7 +51,7 @@ cyMatrix4f CreateCam2Wrld(RenderScene* scene)
 	return cam2Wrld.GetTranspose();
 }
 
-void trace_ray(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixelPos)
+void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixelPos)
 {
 	//Ray Generation
 	cyVec3f rayDir = pixelPos - scene->camera.pos;
@@ -92,38 +92,49 @@ void BeginRender(RenderScene* scene)
 	cyMatrix4f cam2Wrld = CreateCam2Wrld(scene);
 
 	//Multithreading
-	uint32_t num_threads = std::thread::hardware_concurrency();
+	const int numThreads = std::thread::hardware_concurrency();
 	std::vector<std::thread> threads;
-	threads.reserve(num_threads);
-	int chunk = 128;
-	std::atomic<int> nextPixel{ 0 };
+	threads.reserve(numThreads);
+	constexpr int tileSize = 16;
+	const int tilesX = (camWidthRes + tileSize - 1) / tileSize;
+	const int tilesY = (camHeightRes + tileSize - 1) / tileSize;
+	const int totalTiles = tilesX * tilesY;
+	std::atomic<int> nextTile{ 0 };
 
 
 	//runThread Lambda
-	auto runThread = [&]()
+	auto runThread = [&]
 	{
 		for (;;)
 		{
-			int begin = nextPixel.fetch_add(chunk, std::memory_order_relaxed);
-			if (begin >= scrSize) break;
-			int end = std::min<int>(begin + chunk, scrSize);
+			const int tileIndex = nextTile.fetch_add(1, std::memory_order_relaxed);
+			if (tileIndex >= totalTiles) break;
 
-			for (int i = begin; i < end; i++)
-			{
-				int x = i % scrWidth;
-				int y = i / scrWidth;
+			const int tileY = tileIndex / tilesX;
+			const int tileX = tileIndex % tilesX;
 
-				//Pixel Vector Calculatiion
-				cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (x + (1.0f / 2.0f))),    //x
-										    ((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (y + (1.0f / 2.0f))), //y
-										  (l));																			 //z
+			//Calculate tile coords
+			const int x0 = tileX * tileSize;
+			const int y0 = tileY * tileSize;
+			const int x1 = std::min(x0 + tileSize, scrWidth);
+			const int y1 = std::min(y0 + tileSize, scrHeight);
 
-				trace_ray(scene, i, cam2Wrld, pixelPos);
+			for (int y = y0; y < y1; ++y) {
+				for (int x = x0; x < x1; ++x) {
+
+					int i = y * scrWidth + x;
+
+					cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (x + (1.0f / 2.0f))),        //x
+													((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (y + (1.0f / 2.0f))), //y
+												  (l));                                                                           //z
+
+					TraceRay(scene, i, cam2Wrld, pixelPos);
+				}
 			}
 		}
 	};
 
-	for (int t = 0; t < num_threads; t++)
+	for (int t = 0; t < numThreads; t++)
 		threads.emplace_back(runThread);
 	for (auto& th : threads) th.join();
 
