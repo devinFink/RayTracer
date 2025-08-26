@@ -91,8 +91,6 @@ void BeginRender(RenderScene* scene)
 
 	cyMatrix4f cam2Wrld = CreateCam2Wrld(scene);
 
-	Color24* pixels = scene->renderImage.GetPixels();
-
 	//Multithreading
 	uint32_t num_threads = std::thread::hardware_concurrency();
 	std::vector<std::thread> threads;
