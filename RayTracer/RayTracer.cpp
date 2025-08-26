@@ -4,6 +4,7 @@
 #include <iostream>
 #include <scene.h>
 #include "viewport.h"
+#include <thread>
 
 #define DEG2RAD(degrees) ((degrees) * M_PI / 180.0)
 
@@ -50,6 +51,30 @@ cyMatrix4f CreateCam2Wrld(RenderScene* scene)
 	return cam2Wrld.GetTranspose();
 }
 
+void trace_ray(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixelPos)
+{
+	//Ray Generation
+	cyVec3f rayDir = pixelPos - scene->camera.pos;
+	Ray ray = Ray(scene->camera.pos, rayDir);
+	ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 1));
+	ray.p = cyVec3f(cam2Wrld * cyVec4f(ray.p, 1));
+
+	HitInfo hit;
+	hit.Init();
+
+	if (TraverseTree(ray, &scene->rootNode, hit))
+	{
+		scene->renderImage.GetPixels()[pixel] = Color24(255, 255, 255);
+	}
+	else
+	{
+		scene->renderImage.GetPixels()[pixel] = Color24(0, 0, 0);
+	}
+
+	scene->renderImage.IncrementNumRenderPixel(1);
+	scene->renderImage.GetZBuffer()[pixel] = hit.z;
+}
+
 void BeginRender(RenderScene* scene)
 {
 	scene->renderImage.ResetNumRenderedPixels();
@@ -68,37 +93,41 @@ void BeginRender(RenderScene* scene)
 
 	Color24* pixels = scene->renderImage.GetPixels();
 
-	for(int pixel = 0; pixel < scrSize; pixel++)
+	//Multithreading
+	uint32_t num_threads = std::thread::hardware_concurrency();
+	std::vector<std::thread> threads;
+	threads.reserve(num_threads);
+	int chunk = 128;
+	std::atomic<int> nextPixel{ 0 };
+
+
+	//runThread Lambda
+	auto runThread = [&]()
 	{
-		int i = pixel % scrWidth;
-		int j = pixel / scrWidth;
-
-		//Pixel Vector Calculatiion
-		cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (i + (1.0f / 2.0f))),    //x
-									((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (j + (1.0f / 2.0f))), //y
-								  (l));																             //z
-
-		//Ray Generation
-		cyVec3f rayDir = pixelPos - scene->camera.pos;
-		Ray ray = Ray(scene->camera.pos, rayDir);
-		ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 1));
-		ray.p = cyVec3f(cam2Wrld * cyVec4f(ray.p, 1));
-
-		HitInfo hit;
-		hit.Init();
-
-		if (TraverseTree(ray, &scene->rootNode, hit))
+		for (;;)
 		{
-			pixels[pixel] = Color24(255, 255, 255);
-		}
-		else
-		{
-			pixels[pixel] = Color24(0, 0, 0);
-		}
+			int begin = nextPixel.fetch_add(chunk, std::memory_order_relaxed);
+			if (begin >= scrSize) break;
+			int end = std::min<int>(begin + chunk, scrSize);
 
-		scene->renderImage.GetZBuffer()[pixel] = hit.z;
-		scene->renderImage.IncrementNumRenderPixel(1);
-	}
+			for (int i = begin; i < end; i++)
+			{
+				int x = i % scrWidth;
+				int y = i / scrWidth;
+
+				//Pixel Vector Calculatiion
+				cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (x + (1.0f / 2.0f))),    //x
+										    ((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (y + (1.0f / 2.0f))), //y
+										  (l));																			 //z
+
+				trace_ray(scene, i, cam2Wrld, pixelPos);
+			}
+		}
+	};
+
+	for (int t = 0; t < num_threads; t++)
+		threads.emplace_back(runThread);
+	for (auto& th : threads) th.join();
 
 	scene->renderImage.ComputeZBufferImage();
 	scene->renderImage.SaveZImage("projectOneZ.png");
