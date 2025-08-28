@@ -1,5 +1,5 @@
 #pragma once
-#include <scene.h>
+#include "scene.h"
 
 void ShowViewport(RenderScene* scene);
 void PrintPixelData(int x, int y);

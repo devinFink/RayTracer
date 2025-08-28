@@ -1,8 +1,5 @@
 ﻿#include <iostream>
-#include<objects.h>
-#include <iostream>
-
-Sphere theSphere;
+#include <objects.h>
 
 bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
 {

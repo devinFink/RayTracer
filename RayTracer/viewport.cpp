@@ -2,8 +2,8 @@
 ///
 /// \file       viewport.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    1.0
-/// \date       August 20, 2025
+/// \version    2.2
+/// \date       August 27, 2025
 ///
 /// \brief Example source for CS 6620 - University of Utah.
 ///
@@ -19,20 +19,44 @@
 #endif
 
 #include "scene.h"
-#include "objects.h"
+#include <objects.h>
+#include "lights.h"
+#include "materials.h"
 #include <stdlib.h>
 #include <time.h>
 
 #include <GL/freeglut.h>
 
 //-------------------------------------------------------------------------------
+// How to use:
+
+// Call this function to open a window that shows the scene to be renderered.
+// The window also handles mouse and keyboard input:
+// 1 - Shows OpenGL view
+// 2 - Shows the rendered image
+// 3 - Shows the z (depth) image
+// Space - Starts/stops rendering. BeginRender and StopRender functions must be implemented.
+// Esc - Terminates software
+// Mouse left click - Writes the pixel information to the console
+void ShowViewport( RenderScene *scene );
+
+//-------------------------------------------------------------------------------
+// To be implemented:
 
 void BeginRender( RenderScene *scene );	// Called to start rendering (renderer must run in a separate thread)
 void StopRender ();	// Called to end rendering (if it is not already finished)
 
+//-------------------------------------------------------------------------------
+
 RenderScene *theScene = nullptr;
+MtlBlinn defaultMaterial;
 
 //-------------------------------------------------------------------------------
+
+#define WINDOW_TITLE        "Ray Tracer - CS 6620"
+#define WINDOW_TITLE_OPENGL WINDOW_TITLE " - OpenGL"
+#define WINDOW_TITLE_IMAGE  WINDOW_TITLE " - Rendered Image"
+#define WINDOW_TITLE_Z      WINDOW_TITLE " - Z (Depth) Image"
 
 enum Mode {
 	MODE_READY,			// Ready to render
@@ -50,16 +74,13 @@ enum ViewMode
 enum MouseMode {
 	MOUSEMODE_NONE,
 	MOUSEMODE_DEBUG,
-	MOUSEMODE_ROTATE,
 };
 
-static Mode		mode		= MODE_READY;		// Rendering mode
-static ViewMode	viewMode	= VIEWMODE_OPENGL;	// Display mode
-static MouseMode mouseMode	= MOUSEMODE_NONE;	// Mouse mode
-static int		startTime;						// Start time of rendering
-static int mouseX=0, mouseY=0;
-static float viewAngle1=0, viewAngle2=0;
-static GLuint viewTexture;
+static Mode      mode      = MODE_READY;		// Rendering mode
+static ViewMode	 viewMode  = VIEWMODE_OPENGL;	// Display mode
+static MouseMode mouseMode = MOUSEMODE_NONE;	// Mouse mode
+static int       startTime;						// Start time of rendering
+static GLuint    viewTexture;
 
 //-------------------------------------------------------------------------------
 
@@ -91,7 +112,7 @@ void ShowViewport( RenderScene *scene )
 	else glutInitWindowPosition( 50, 50 );
 	glutInitWindowSize(theScene->camera.imgWidth, theScene->camera.imgHeight);
 
-	glutCreateWindow("Ray Tracer - CS 6620");
+	glutCreateWindow(WINDOW_TITLE_OPENGL);
 	glutDisplayFunc(GlutDisplay);
 	glutReshapeFunc(GlutReshape);
 	glutIdleFunc(GlutIdle);
@@ -104,15 +125,9 @@ void ShowViewport( RenderScene *scene )
 	glPointSize(3.0);
 	glEnable( GL_CULL_FACE );
 
-	#define LIGHTAMBIENT 0.1f
-	glEnable( GL_LIGHT0 );
-	float lightamb[4] =  { LIGHTAMBIENT, LIGHTAMBIENT, LIGHTAMBIENT, 1.0f };
-	glLightfv( GL_LIGHT0, GL_AMBIENT, lightamb );
-
-	#define LIGHTDIF0 1.0f
-	float lightdif0[4] = { LIGHTDIF0, LIGHTDIF0, LIGHTDIF0, 1.0f };
-	glLightfv( GL_LIGHT0, GL_DIFFUSE, lightdif0 );
-	glLightfv( GL_LIGHT0, GL_SPECULAR, lightdif0 );
+	float zero[] = {0,0,0,0};
+	glLightModelfv( GL_LIGHT_MODEL_AMBIENT, zero );
+	glLightModeli( GL_LIGHT_MODEL_LOCAL_VIEWER, 1 );
 
 	glEnable(GL_NORMALIZE);
 
@@ -147,9 +162,13 @@ void GlutReshape( int w, int h )
 
 //-------------------------------------------------------------------------------
 
-void DrawNode( const Node *node )
+void DrawNode( Node const *node )
 {
 	glPushMatrix();
+
+	const Material *mtl = node->GetMaterial();
+	if ( !mtl ) mtl = &defaultMaterial;
+	mtl->SetViewportMaterial();
 
 	Matrix3f tm = node->GetTransform();
 	Vec3f p = node->GetPosition();
@@ -157,7 +176,7 @@ void DrawNode( const Node *node )
 	glMultMatrixf( m );
 
 	const Object *obj = node->GetNodeObj();
-	if ( obj ) obj->ViewportDisplay();
+	if ( obj ) obj->ViewportDisplay(mtl);
 
 	for ( int i=0; i<node->GetNumChild(); i++ ) {
 		DrawNode( node->GetChild(i) );
@@ -181,8 +200,21 @@ void DrawScene()
 	Vec3f u = theScene->camera.up;
 	gluLookAt( p.x, p.y, p.z,  t.x, t.y, t.z,  u.x, u.y, u.z );
 
-	glRotatef( viewAngle1, 1, 0, 0 );
-	glRotatef( viewAngle2, 0, 0, 1 );
+	if ( theScene->lights.size() > 0 ) {
+		for ( unsigned int i=0; i<theScene->lights.size(); i++ ) {
+			theScene->lights[i]->SetViewportLight(i);
+		}
+	} else {
+		// Default lighting for scenes without a light
+		float white[] = {1,1,1,1};
+		float black[] = {0,0,0,0};
+		Vec4f p(theScene->camera.pos, 1);
+		glEnable ( GL_LIGHT0 );
+		glLightfv( GL_LIGHT0, GL_AMBIENT,  black );
+		glLightfv( GL_LIGHT0, GL_DIFFUSE,  white );
+		glLightfv( GL_LIGHT0, GL_SPECULAR, white );
+		glLightfv( GL_LIGHT0, GL_POSITION, &p.x );
+	}
 
 	DrawNode( &theScene->rootNode );
 
@@ -194,28 +226,7 @@ void DrawScene()
 
 //-------------------------------------------------------------------------------
 
-void DrawProgressBar(float done)
-{
-	glMatrixMode( GL_PROJECTION );
-	glPushMatrix();
-	glLoadIdentity();
-
-	glBegin(GL_LINES);
-	glColor3f(1,1,1);
-	glVertex2f(-1,-1);
-	glVertex2f(done*2-1,-1);
-	glColor3f(0,0,0);
-	glVertex2f(done*2-1,-1);
-	glVertex2f(1,-1);
-	glEnd();
-
-	glPopMatrix();
-	glMatrixMode( GL_MODELVIEW );
-}
-
-//-------------------------------------------------------------------------------
-
-void DrawImage( const void *data, GLenum type, GLenum format )
+void DrawImage( void const *data, GLenum type, GLenum format )
 {
 	glBindTexture(GL_TEXTURE_2D, viewTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, theScene->renderImage.GetWidth(), theScene->renderImage.GetHeight(), 0, format, type, data); 
@@ -248,6 +259,27 @@ void DrawImage( const void *data, GLenum type, GLenum format )
 
 //-------------------------------------------------------------------------------
 
+void DrawProgressBar(float done)
+{
+	glMatrixMode( GL_PROJECTION );
+	glPushMatrix();
+	glLoadIdentity();
+
+	glBegin(GL_LINES);
+	glColor3f(1,1,1);
+	glVertex2f(-1,-1);
+	glVertex2f(done*2-1,-1);
+	glColor3f(0,0,0);
+	glVertex2f(done*2-1,-1);
+	glVertex2f(1,-1);
+	glEnd();
+
+	glPopMatrix();
+	glMatrixMode( GL_MODELVIEW );
+}
+
+//-------------------------------------------------------------------------------
+
 void DrawRenderProgressBar()
 {
 	int rp = theScene->renderImage.GetNumRenderedPixels();
@@ -266,15 +298,12 @@ void GlutDisplay()
 		DrawScene();
 		break;
 	case VIEWMODE_IMAGE:
-		//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-		//glDrawPixels( renderImage.GetWidth(), renderImage.GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, renderImage.GetPixels() );
 		DrawImage( theScene->renderImage.GetPixels(), GL_UNSIGNED_BYTE, GL_RGB );
 		DrawRenderProgressBar();
 		break;
 	case VIEWMODE_Z:
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 		if ( ! theScene->renderImage.GetZBufferImage() ) theScene->renderImage.ComputeZBufferImage();
-		//glDrawPixels( renderImage.GetWidth(), renderImage.GetHeight(), GL_LUMINANCE, GL_UNSIGNED_BYTE, renderImage.GetZBufferImage() );
 		DrawImage( theScene->renderImage.GetZBufferImage(), GL_UNSIGNED_BYTE, GL_LUMINANCE );
 		break;
 	}
@@ -318,6 +347,7 @@ void GlutKeyboard(unsigned char key, int x, int y)
 		case MODE_READY: 
 			mode = MODE_RENDERING;
 			viewMode = VIEWMODE_IMAGE;
+			glutSetWindowTitle(WINDOW_TITLE_IMAGE);
 			DrawScene();
 			glReadPixels( 0, 0, theScene->renderImage.GetWidth(), theScene->renderImage.GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, theScene->renderImage.GetPixels() );
 			{
@@ -341,21 +371,24 @@ void GlutKeyboard(unsigned char key, int x, int y)
 		case MODE_RENDER_DONE: 
 			mode = MODE_READY;
 			viewMode = VIEWMODE_OPENGL;
+			glutSetWindowTitle(WINDOW_TITLE_OPENGL);
 			glutPostRedisplay();
 			break;
 		}
 		break;
 	case '1':
-		viewAngle1 = viewAngle2 = 0;
 		viewMode = VIEWMODE_OPENGL;
+		glutSetWindowTitle(WINDOW_TITLE_OPENGL);
 		glutPostRedisplay();
 		break;
 	case '2':
 		viewMode = VIEWMODE_IMAGE;
+		glutSetWindowTitle(WINDOW_TITLE_IMAGE);
 		glutPostRedisplay();
 		break;
 	case '3':
 		viewMode = VIEWMODE_Z;
+		glutSetWindowTitle(WINDOW_TITLE_Z);
 		glutPostRedisplay();
 		break;
 	}
@@ -365,13 +398,11 @@ void GlutKeyboard(unsigned char key, int x, int y)
 
 void PrintPixelData(int x, int y)
 {
-	if ( x < theScene->renderImage.GetWidth() && y < theScene->renderImage.GetHeight() ) {
+	if ( x >= 0 && y >= 0 && x < theScene->renderImage.GetWidth() && y < theScene->renderImage.GetHeight() ) {
 		Color24 *colors = theScene->renderImage.GetPixels();
 		float *zbuffer = theScene->renderImage.GetZBuffer();
-		int i = (theScene->renderImage.GetHeight() - y - 1 ) *theScene->renderImage.GetWidth() + x;
+		int i = y*theScene->renderImage.GetWidth() + x;
 		printf("Pixel [ %d, %d ] Color24: %d, %d, %d   Z: %f\n", x, y, colors[i].r, colors[i].g, colors[i].b, zbuffer[i] );
-	} else {
-		printf("-- Invalid pixel (%d,%d) --\n",x,y);
 	}
 }
 
@@ -387,11 +418,6 @@ void GlutMouse(int button, int state, int x, int y)
 				mouseMode = MOUSEMODE_DEBUG;
 				PrintPixelData(x,y);
 				break;
-			case GLUT_RIGHT_BUTTON:
-				mouseMode = MOUSEMODE_ROTATE;
-				mouseX = x;
-				mouseY = y;
-				break;
 		}
 	}
 }
@@ -404,26 +430,58 @@ void GlutMotion(int x, int y)
 		case MOUSEMODE_DEBUG:
 			PrintPixelData(x,y);
 			break;
-		case GLUT_RIGHT_BUTTON:
-			viewAngle1 -= 0.2f * ( mouseY - y );
-			viewAngle2 -= 0.2f * ( mouseX - x );
-			mouseX = x;
-			mouseY = y;
-			glutPostRedisplay();
-			break;
 	}
 }
 
 //-------------------------------------------------------------------------------
 // Viewport Methods for various classes
 //-------------------------------------------------------------------------------
-void Sphere::ViewportDisplay() const
+void Sphere::ViewportDisplay( Material const *mtl ) const
 {
 	static GLUquadric *q = nullptr;
 	if ( q == nullptr ) {
 		q = gluNewQuadric();
 	}
 	gluSphere(q,1,50,50);
+}
+void GenLight::SetViewportParam( int lightID, ColorA ambient, ColorA intensity, Vec4f pos ) const
+{
+	glEnable ( GL_LIGHT0 + lightID );
+	glLightfv( GL_LIGHT0 + lightID, GL_AMBIENT,  &ambient.r );
+	glLightfv( GL_LIGHT0 + lightID, GL_DIFFUSE,  &intensity.r );
+	glLightfv( GL_LIGHT0 + lightID, GL_SPECULAR, &intensity.r );
+	glLightfv( GL_LIGHT0 + lightID, GL_POSITION, &pos.x );
+}
+void MtlPhong::SetViewportMaterial( int subMtlID ) const
+{
+	ColorA d(diffuse);
+	ColorA s(specular);
+	glMaterialfv( GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &d.r );
+	glMaterialfv( GL_FRONT, GL_SPECULAR, &s.r );
+	glMaterialf( GL_FRONT, GL_SHININESS, glossiness*2 );
+}
+void MtlBlinn::SetViewportMaterial( int subMtlID ) const
+{
+	ColorA d(diffuse);
+	ColorA s(specular);
+	glMaterialfv( GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &d.r );
+	glMaterialfv( GL_FRONT, GL_SPECULAR, &s.r );
+	glMaterialf( GL_FRONT, GL_SHININESS, glossiness );
+}
+void MtlMicrofacet::SetViewportMaterial( int subMtlID ) const
+{
+	float ff = (ior-1)/(ior+1);
+	float f0d = ff*ff;
+	Color f0 = (1 - metallic)*f0d + metallic*baseColor;
+	float a = roughness * roughness;
+	float k = a / 2;
+	float D = 1 / ( Pi<float>() * a*a );
+	float t = roughness*roughness*(3 - 2*roughness);
+	ColorA d( baseColor*( (1-metallic)*(1-f0) + metallic*t*0.25f )/Pi<float>() );
+	ColorA s( f0*D/4 );
+	glMaterialfv( GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &d.r );
+	glMaterialfv( GL_FRONT, GL_SPECULAR, &s.r );
+	glMaterialf( GL_FRONT, GL_SHININESS, (1-roughness)*128 );
 }
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------

@@ -2,8 +2,8 @@
 ///
 /// \file       xmlload.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    1.0
-/// \date       August 20, 2025
+/// \version    2.1
+/// \date       August 27, 2025
 ///
 /// \brief Example source for CS 6620 - University of Utah.
 ///
@@ -15,21 +15,41 @@
 //-------------------------------------------------------------------------------
 
 #include "scene.h"
-#include "objects.h"
+#include <objects.h>
+#include "materials.h"
+#include "lights.h"
 #include "tinyxml2.h"
 
 //-------------------------------------------------------------------------------
+// How to use:
 
-void LoadScene    ( Node *rootNode, tinyxml2::XMLElement *element );
-void LoadNode     ( Node *node, tinyxml2::XMLElement *element, int level );
-void LoadTransform( Transformation *trans, tinyxml2::XMLElement *element, int level );
-void ReadVector   ( tinyxml2::XMLElement *element, Vec3f &v );
-void ReadFloat    ( tinyxml2::XMLElement *element, float  &f, char const *name="value" );
+// Call this function to load a scene from an xml file.
+int LoadScene( RenderScene &scene, char const *filename );
+
+//-------------------------------------------------------------------------------
+
+Sphere theSphere;
+
+//-------------------------------------------------------------------------------
+
+using namespace tinyxml2;
+
+//-------------------------------------------------------------------------------
+
+void LoadScene    ( RenderScene    &scene,     XMLElement *element );
+void LoadNode     ( Node           &parent,    XMLElement *element, int level );
+void LoadTransform( Transformation &trans,     XMLElement *element, int level );
+void LoadMaterial ( MaterialList   &materials, XMLElement *element );
+void LoadLight    ( LightList      &lights,    XMLElement *element );
+void ReadVector   ( XMLElement *element, Vec3f &v );
+void ReadColor    ( XMLElement *element, Color &c );
+void ReadFloat    ( XMLElement *element, float &f, char const *name="value" );
+void SetNodeMaterials( Node *node, MaterialList const &materials );
 
 //-------------------------------------------------------------------------------
 
 // Compares null terminated ('\0') strings.
-bool StrICmp( const char *a, const char *b )
+bool StrICmp( char const *a, char const *b )
 {
 	if ( a == b ) return true;
 	if ( !a || !b ) return false;
@@ -45,46 +65,51 @@ bool StrICmp( const char *a, const char *b )
 
 int LoadScene( RenderScene &scene, char const *filename )
 {
-	tinyxml2::XMLDocument doc;
-	tinyxml2::XMLError e = doc.LoadFile(filename);
+	XMLDocument doc;
+	XMLError e = doc.LoadFile(filename);
 
-	if ( e != tinyxml2::XML_SUCCESS ) {
+	if ( e != XML_SUCCESS ) {
 		printf("Failed to load the file \"%s\"\n", filename);
 		return 0;
 	}
 
-	tinyxml2::XMLElement *xml = doc.FirstChildElement("xml");
+	XMLElement *xml = doc.FirstChildElement("xml");
 	if ( ! xml ) {
 		printf("No \"xml\" tag found.\n");
 		return 0;
 	}
 
-	tinyxml2::XMLElement *xscene = xml->FirstChildElement("scene");
+	XMLElement *xscene = xml->FirstChildElement("scene");
 	if ( ! xscene ) {
 		printf("No \"scene\" tag found.\n");
 		return 0;
 	}
 
-	tinyxml2::XMLElement *cam = xml->FirstChildElement("camera");
+	XMLElement *cam = xml->FirstChildElement("camera");
 	if ( ! cam ) {
 		printf("No \"camera\" tag found.\n");
 		return 0;
 	}
 
 	scene.rootNode.Init();
-	LoadScene( &scene.rootNode, xscene );
+	scene.materials.DeleteAll();
+	scene.lights.DeleteAll();
+	LoadScene( scene, xscene );
+
+	// Assign materials
+	SetNodeMaterials( &scene.rootNode, scene.materials );
 
 	// Load Camera
 	scene.camera.Init();
 	scene.camera.dir += scene.camera.pos;
-	tinyxml2::XMLElement *camChild = cam->FirstChildElement();
+	XMLElement *camChild = cam->FirstChildElement();
 	while ( camChild ) {
-		if      ( StrICmp( camChild->Value(), "position"  ) ) ReadVector(camChild,scene.camera.pos);
-		else if ( StrICmp( camChild->Value(), "target"    ) ) ReadVector(camChild,scene.camera.dir);
-		else if ( StrICmp( camChild->Value(), "up"        ) ) ReadVector(camChild,scene.camera.up);
-		else if ( StrICmp( camChild->Value(), "fov"       ) ) ReadFloat (camChild,scene.camera.fov);
-		else if ( StrICmp( camChild->Value(), "width"     ) ) camChild->QueryIntAttribute("value", &scene.camera.imgWidth);
-		else if ( StrICmp( camChild->Value(), "height"    ) ) camChild->QueryIntAttribute("value", &scene.camera.imgHeight);
+		if      ( StrICmp( camChild->Value(), "position" ) ) ReadVector(camChild,scene.camera.pos);
+		else if ( StrICmp( camChild->Value(), "target"   ) ) ReadVector(camChild,scene.camera.dir);
+		else if ( StrICmp( camChild->Value(), "up"       ) ) ReadVector(camChild,scene.camera.up);
+		else if ( StrICmp( camChild->Value(), "fov"      ) ) ReadFloat (camChild,scene.camera.fov);
+		else if ( StrICmp( camChild->Value(), "width"    ) ) camChild->QueryIntAttribute("value", &scene.camera.imgWidth);
+		else if ( StrICmp( camChild->Value(), "height"   ) ) camChild->QueryIntAttribute("value", &scene.camera.imgHeight);
 		camChild = camChild->NextSiblingElement();
 	}
 	scene.camera.dir -= scene.camera.pos;
@@ -103,22 +128,25 @@ void PrintIndent( int level ) { for ( int i=0; i<level; i++) printf("   "); }
 
 //-------------------------------------------------------------------------------
 
-void LoadScene( Node *rootNode, tinyxml2::XMLElement *element )
+void LoadScene( RenderScene &scene, XMLElement *element )
 {
-	for ( tinyxml2::XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
-
+	for ( XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
 		if ( StrICmp( child->Value(), "object" ) ) {
-			LoadNode( rootNode, child, 0 );
+			LoadNode( scene.rootNode, child, 0 );
+		} else if ( StrICmp( child->Value(), "material" ) ) {
+			LoadMaterial( scene.materials, child );
+		} else if ( StrICmp( child->Value(), "light" ) ) {
+			LoadLight( scene.lights, child );
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------
 
-void LoadNode( Node *parent, tinyxml2::XMLElement *element, int level )
+void LoadNode( Node &parent, XMLElement *element, int level )
 {
 	Node *node = new Node;
-	parent->AppendChild(node);
+	parent.AppendChild(node);
 
 	// name
 	char const *name = element->Attribute("name");
@@ -127,6 +155,13 @@ void LoadNode( Node *parent, tinyxml2::XMLElement *element, int level )
 	printf("object [");
 	if ( name ) printf("%s",name);
 	printf("]");
+
+	// material
+	char const *mtlName = element->Attribute("material");
+	if ( mtlName ) {
+		printf(" <%s>", mtlName);
+		node->SetMaterial( (Material*)mtlName );	// temporarily set the material pointer to a string of the material name
+	}
 
 	// type
 	char const *type = element->Attribute("type");
@@ -143,39 +178,39 @@ void LoadNode( Node *parent, tinyxml2::XMLElement *element, int level )
 	printf("\n");
 
 
-	for ( tinyxml2::XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
+	for ( XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
 		if ( StrICmp( child->Value(), "object" ) ) {
-			LoadNode(node,child,level+1);
+			LoadNode( *node, child, level+1 );
 		}
 	}
-	LoadTransform( node, element, level );
+	LoadTransform( *node, element, level );
 
 }
 
 //-------------------------------------------------------------------------------
 
-void LoadTransform( Transformation *trans, tinyxml2::XMLElement *element, int level )
+void LoadTransform( Transformation &trans, XMLElement *element, int level )
 {
-	for ( tinyxml2::XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
+	for ( XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
 		if ( StrICmp( child->Value(), "scale" ) ) {
 			Vec3f s(1,1,1);
 			ReadVector( child, s );
-			trans->Scale(s.x,s.y,s.z);
+			trans.Scale(s.x,s.y,s.z);
 			PrintIndent(level);
 			printf("   scale %f %f %f\n",s.x,s.y,s.z);
 		} else if ( StrICmp( child->Value(), "rotate" ) ) {
 			Vec3f s(0,0,0);
 			ReadVector( child, s );
 			s.Normalize();
-			float a;
+			float a = 0.0f;
 			ReadFloat(child,a,"angle");
-			trans->Rotate(s,a);
+			trans.Rotate(s,a);
 			PrintIndent(level);
 			printf("   rotate %f degrees around %f %f %f\n", a, s.x, s.y, s.z);
 		} else if ( StrICmp( child->Value(), "translate" ) ) {
 			Vec3f t(0,0,0);
 			ReadVector(child,t);
-			trans->Translate(t);
+			trans.Translate(t);
 			PrintIndent(level);
 			printf("   translate %f %f %f\n",t.x,t.y,t.z);
 		}
@@ -184,17 +219,163 @@ void LoadTransform( Transformation *trans, tinyxml2::XMLElement *element, int le
 
 //-------------------------------------------------------------------------------
 
-void ReadVector( tinyxml2::XMLElement *element, Vec3f &v )
+void LoadMaterial( MaterialList &materials, XMLElement *element )
 {
-	double x = (double) v.x;
-	double y = (double) v.y;
-	double z = (double) v.z;
-	element->QueryDoubleAttribute( "x", &x );
-	element->QueryDoubleAttribute( "y", &y );
-	element->QueryDoubleAttribute( "z", &z );
-	v.x = (float) x;
-	v.y = (float) y;
-	v.z = (float) z;
+	Material *mtl = nullptr;
+
+	// name
+	char const *name = element->Attribute("name");
+	printf("Material [");
+	if ( name ) printf("%s",name);
+	printf("]");
+
+	auto loadPhongBlinn = [&element]( MtlBasePhongBlinn *m )
+	{
+		for ( XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
+			Color c(1,1,1);
+			float f=1;
+			if ( StrICmp( child->Value(), "diffuse" ) ) {
+				ReadColor( child, c );
+				m->SetDiffuse(c);
+				printf("   diffuse %f %f %f\n",c.r,c.g,c.b);
+			} else if ( StrICmp( child->Value(), "specular" ) ) {
+				ReadColor( child, c );
+				m->SetSpecular(c);
+				printf("   specular %f %f %f\n",c.r,c.g,c.b);
+			} else if ( StrICmp( child->Value(), "glossiness" ) ) {
+				ReadFloat( child, f );
+				m->SetGlossiness(f);
+				printf("   glossiness %f\n",f);
+			}
+		}
+		return m;
+	};
+
+	// type
+	char const *type = element->Attribute("type");
+	if ( type ) {
+		if ( StrICmp(type,"phong") ) {
+			printf(" - Phong\n");
+			mtl = loadPhongBlinn( new MtlPhong() );
+		} else if ( StrICmp(type,"blinn") ) {
+			printf(" - Blinn\n");
+			mtl = loadPhongBlinn( new MtlBlinn() );
+		} else if ( StrICmp(type,"microfacet") ) {
+			printf(" - Microfacet\n");
+			MtlMicrofacet *m = new MtlMicrofacet();
+			mtl = m;
+			for ( XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
+				Color c(1,1,1);
+				float f=1;
+				if ( StrICmp( child->Value(), "color" ) ) {
+					ReadColor( child, c );
+					m->SetBaseColor(c);
+					printf("   color %f %f %f\n",c.r,c.g,c.b);
+				} else if ( StrICmp( child->Value(), "roughness" ) ) {
+					ReadFloat( child, f );
+					m->SetRoughness(f);
+					printf("   roughness %f\n",f);
+				} else if ( StrICmp( child->Value(), "metallic" ) ) {
+					ReadFloat( child, f );
+					m->SetMetallic(f);
+					printf("   metallic %f\n",f);
+				} else if ( StrICmp( child->Value(), "ior" ) ) {
+					ReadFloat( child, f );
+					m->SetIOR(f);
+					printf("   ior %f\n",f);
+				}
+			}
+		} else {
+			printf(" - UNKNOWN\n");
+		}
+	}
+
+	if ( mtl ) {
+		mtl->SetName(name);
+		materials.push_back(mtl);
+	}
+}
+
+//-------------------------------------------------------------------------------
+
+void LoadLight( LightList &lights, XMLElement *element )
+{
+	Light *light = nullptr;
+
+	// name
+	char const *name = element->Attribute("name");
+	printf("Light [");
+	if ( name ) printf("%s",name);
+	printf("]");
+
+	// type
+	char const *type = element->Attribute("type");
+	if ( type ) {
+		if ( StrICmp(type,"ambient") ) {
+			printf(" - Ambient\n");
+			AmbientLight *l = new AmbientLight();
+			light = l;
+			for ( XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
+				if ( StrICmp( child->Value(), "intensity" ) ) {
+					Color c(1,1,1);
+					ReadColor( child, c );
+					l->SetIntensity(c);
+					printf("   intensity %f %f %f\n",c.r,c.g,c.b);
+				}
+			}
+		} else if ( StrICmp(type,"direct") ) {
+			printf(" - Direct\n");
+			DirectLight *l = new DirectLight();
+			light = l;
+			for ( XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
+				if ( StrICmp( child->Value(), "intensity" ) ) {
+					Color c(1,1,1);
+					ReadColor( child, c );
+					l->SetIntensity(c);
+					printf("   intensity %f %f %f\n",c.r,c.g,c.b);
+				} else if ( StrICmp( child->Value(), "direction" ) ) {
+					Vec3f v(1,1,1);
+					ReadVector( child, v );
+					l->SetDirection(v);
+					printf("   direction %f %f %f\n",v.x,v.y,v.z);
+				}
+			}
+		} else if ( StrICmp(type,"point") ) {
+			printf(" - Point\n");
+			PointLight *l = new PointLight();
+			light = l;
+			for ( XMLElement *child = element->FirstChildElement(); child!=nullptr; child = child->NextSiblingElement() ) {
+				if ( StrICmp( child->Value(), "intensity" ) ) {
+					Color c(1,1,1);
+					ReadColor( child, c );
+					l->SetIntensity(c);
+					printf("   intensity %f %f %f\n",c.r,c.g,c.b);
+				} else if ( StrICmp( child->Value(), "position" ) ) {
+					Vec3f v(0,0,0);
+					ReadVector( child, v );
+					l->SetPosition(v);
+					printf("   position %f %f %f\n",v.x,v.y,v.z);
+				}
+			}
+		} else {
+			printf(" - UNKNOWN\n");
+		}
+	}
+
+	if ( light ) {
+		light->SetName(name);
+		lights.push_back(light);
+	}
+
+}
+
+//-------------------------------------------------------------------------------
+
+void ReadVector( XMLElement *element, Vec3f &v )
+{
+	element->QueryFloatAttribute( "x", &v.x );
+	element->QueryFloatAttribute( "y", &v.y );
+	element->QueryFloatAttribute( "z", &v.z );
 
 	float f=1;
 	ReadFloat( element, f );
@@ -203,11 +384,35 @@ void ReadVector( tinyxml2::XMLElement *element, Vec3f &v )
 
 //-------------------------------------------------------------------------------
 
-void ReadFloat ( tinyxml2::XMLElement *element, float &f, char const *name )
+void ReadColor( XMLElement *element, Color &c )
 {
-	double d = (double) f;
-	element->QueryDoubleAttribute( name, &d );
-	f = (float) d;
+	element->QueryFloatAttribute( "r", &c.r );
+	element->QueryFloatAttribute( "g", &c.g );
+	element->QueryFloatAttribute( "b", &c.b );
+
+	float f=1;
+	ReadFloat( element, f );
+	c *= f;
+}
+
+//-------------------------------------------------------------------------------
+
+void ReadFloat ( XMLElement *element, float &f, char const *name )
+{
+	element->QueryFloatAttribute( name, &f );
+}
+
+//-------------------------------------------------------------------------------
+
+void SetNodeMaterials( Node *node, MaterialList const &materials )
+{
+	int n = node->GetNumChild();
+	if ( node->GetMaterial() ) {
+		const char *mtlName = (const char*) node->GetMaterial();
+		Material *mtl = materials.Find( mtlName );	// mtl can be null
+		node->SetMaterial(mtl);
+	}
+	for ( int i=0; i<n; i++ ) SetNodeMaterials( node->GetChild(i), materials );
 }
 
 //-------------------------------------------------------------------------------

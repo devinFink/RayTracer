@@ -11,7 +11,7 @@
 int main()
 {
 	RenderScene scene;
-    LoadScene(scene, "project_1_scene.xml");
+    LoadScene(scene, "project_2_scene.xml");
     ShowViewport(&scene);
 }
 

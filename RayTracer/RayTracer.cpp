@@ -1,9 +1,8 @@
 ﻿#define _USE_MATH_DEFINES
 #include "raytracer.h"
+#include "viewport.h"
 #include <cmath>
 #include <iostream>
-#include <scene.h>
-#include "viewport.h"
 #include <thread>
 
 #define DEG2RAD(degrees) ((degrees) * M_PI / 180.0)
@@ -71,6 +70,7 @@ void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixel
 		scene->renderImage.GetPixels()[pixel] = Color24(0, 0, 0);
 	}
 
+	
 	scene->renderImage.IncrementNumRenderPixel(1);
 	scene->renderImage.GetZBuffer()[pixel] = hit.z;
 }
@@ -110,8 +110,8 @@ void BeginRender(RenderScene* scene)
 			const int tileIndex = nextTile.fetch_add(1, std::memory_order_relaxed);
 			if (tileIndex >= totalTiles) break;
 
-			const int tileY = tileIndex / tilesX;
 			const int tileX = tileIndex % tilesX;
+			const int tileY = tileIndex / tilesX;
 
 			//Calculate tile coords
 			const int x0 = tileX * tileSize;
@@ -124,9 +124,9 @@ void BeginRender(RenderScene* scene)
 
 					int i = y * scrWidth + x;
 
-					cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (x + (1.0f / 2.0f))),        //x
-													((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (y + (1.0f / 2.0f))), //y
-												  (l));                                                                           //z
+					cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (x + (1.0f / 2.0f))),    //x
+												((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (y + (1.0f / 2.0f))), //y
+												 (l));                                                                           //z
 
 					TraceRay(scene, i, cam2Wrld, pixelPos);
 				}

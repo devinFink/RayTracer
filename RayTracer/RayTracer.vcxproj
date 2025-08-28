@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="materials.cpp" />
     <ClCompile Include="raytracer.cpp" />
     <ClCompile Include="objects.cpp" />
     <ClCompile Include="tinyxml2.cpp" />
@@ -138,13 +139,17 @@
     <ClCompile Include="xmlload.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lights.h" />
     <ClInclude Include="lodepng.h" />
+    <ClInclude Include="materials.h" />
     <ClInclude Include="raytracer.h" />
+    <ClInclude Include="scene.h" />
     <ClInclude Include="viewport.h" />
     <ClInclude Include="xmlload.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="project_1_scene.xml" />
+    <Xml Include="project_2_scene.xml" />
     <Xml Include="simple_scene.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
