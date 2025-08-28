@@ -21,6 +21,7 @@ bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 		if (obj->IntersectRay(transformedRay, hitInfo))
 		{
 			hit = true;
+			node->FromNodeCoords(hitInfo);
 			hitInfo.node = node;
 		}
 	}
@@ -31,7 +32,7 @@ bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 		if (TraverseTree(transformedRay, node->GetChild(i), hitInfo))
 		{
 			hit = true;
-			hitInfo.node = node->GetChild(i);
+			node->FromNodeCoords(hitInfo);
 		}
 	}
 
@@ -59,7 +60,14 @@ void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixel
 
 	if (TraverseTree(ray, &scene->rootNode, hit))
 	{
-		scene->renderImage.GetPixels()[pixel] = (cyColor24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights);
+		if (hit.node->GetMaterial())
+		{
+			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights);
+		}
+		else
+		{
+			scene->renderImage.GetPixels()[pixel] = Color24(255, 255, 255);
+		}
 	}
 	else
 	{
@@ -135,8 +143,8 @@ void BeginRender(RenderScene* scene)
 	for (auto& th : threads) th.join();
 
 	scene->renderImage.ComputeZBufferImage();
-	scene->renderImage.SaveZImage("projectOneZ.png");
-	scene->renderImage.SaveImage("projectOne.png");
+	scene->renderImage.SaveZImage("projectTwoZ.png");
+	scene->renderImage.SaveImage("projectTwo.png");
 }
 
 void StopRender()

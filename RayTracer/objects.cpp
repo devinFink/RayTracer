@@ -19,12 +19,11 @@ bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
         if(hInfo.z > t)
         {
             hInfo.z = t;
-            hInfo.N = t - q;
+            hInfo.p = ray.p + (ray.dir * t);
+            hInfo.N = hInfo.p.GetNormalized();
             return true;
         }
     }
-    else
-    {
-        return false;
-    }
+
+    return false;
 }
