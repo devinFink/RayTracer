@@ -4,15 +4,9 @@
 #include <cmath>
 #include <iostream>
 #include <thread>
+#include <algorithm>
 
 #define DEG2RAD(degrees) ((degrees) * M_PI / 180.0)
-
-Color24 RayColor(const Ray& r) {
-	auto a = 0.5 * (r.dir + 1.0);
-	cyVec3f colorVector = (1.0 - a) * cyVec3f(1.0, 1.0, 1.0) + a * cyVec3f(0.5, 0.7, 1.0);
-	Color24 color = Color24(colorVector.x, colorVector.y, colorVector.z);
-	return color;
-}
 
 bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 {
@@ -27,6 +21,7 @@ bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 		if (obj->IntersectRay(transformedRay, hitInfo))
 		{
 			hit = true;
+			hitInfo.node = node;
 		}
 	}
 
@@ -34,7 +29,10 @@ bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 	for (int i = 0; i < node->GetNumChild(); i++)
 	{
 		if (TraverseTree(transformedRay, node->GetChild(i), hitInfo))
+		{
 			hit = true;
+			hitInfo.node = node->GetChild(i);
+		}
 	}
 
 	return hit;
@@ -42,28 +40,26 @@ bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 
 cyMatrix4f CreateCam2Wrld(RenderScene* scene)
 {
-	cyVec3f cam2WrldZ = scene->camera.dir;
+	cyVec3f cam2WrldZ = -scene->camera.dir;
 	cyVec3f cam2WrldY = scene->camera.up;
-	cyVec3f cam2WrldX = cam2WrldZ.Cross(cam2WrldY);
+	cyVec3f cam2WrldX = cam2WrldY.Cross(cam2WrldZ);
 
-	cyMatrix4f cam2Wrld = cyMatrix4f(cyVec4f(cam2WrldX, 0), cyVec4f(cam2WrldY, 0), cyVec4f(cam2WrldZ, 0), cyVec4f(scene->camera.pos, 1));
-	return cam2Wrld.GetTranspose();
+	cyMatrix4f cam2Wrld = cyMatrix4f(cam2WrldX, cam2WrldY, cam2WrldZ, scene->camera.pos);
+	return cam2Wrld;
 }
 
 void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixelPos)
 {
 	//Ray Generation
-	cyVec3f rayDir = pixelPos - scene->camera.pos;
-	Ray ray = Ray(scene->camera.pos, rayDir);
-	ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 1));
-	ray.p = cyVec3f(cam2Wrld * cyVec4f(ray.p, 1));
+	Ray ray = Ray(scene->camera.pos, pixelPos);
+	ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 0));
 
 	HitInfo hit;
 	hit.Init();
 
 	if (TraverseTree(ray, &scene->rootNode, hit))
 	{
-		scene->renderImage.GetPixels()[pixel] = Color24(255, 255, 255);
+		scene->renderImage.GetPixels()[pixel] = (cyColor24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights);
 	}
 	else
 	{
@@ -126,7 +122,7 @@ void BeginRender(RenderScene* scene)
 
 					cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (x + (1.0f / 2.0f))),    //x
 												((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (y + (1.0f / 2.0f))), //y
-												 (l));                                                                           //z
+												 (-l));                                                                           //z
 
 					TraceRay(scene, i, cam2Wrld, pixelPos);
 				}
