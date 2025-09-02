@@ -1,4 +1,18 @@
 #include "materials.h"
+#include "lights.h"
+#include "raytracer.h"
+
+float GenLight::Shadow(Ray const& ray, float t_max)
+{
+	HitInfo h;
+	if (TraverseTree(ray, treeRoot, h))
+	{
+		if(h.z +.1 < t_max)
+			return 0.0;
+	}
+
+	return 1.0;
+}
 
 Color MtlPhong::Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lights) const
 {

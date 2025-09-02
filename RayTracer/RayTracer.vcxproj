@@ -148,6 +148,9 @@
     <ClInclude Include="xmlload.h" />
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="..\..\..\Desktop\scene3.xml" />
+    <Xml Include="..\..\..\Desktop\scene3_2.xml" />
+    <Xml Include="custom.xml" />
     <Xml Include="project_1_scene.xml" />
     <Xml Include="project_2_scene.xml" />
     <Xml Include="simple_scene.xml" />

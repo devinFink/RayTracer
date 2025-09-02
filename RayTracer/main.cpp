@@ -7,11 +7,12 @@
 #include "viewport.h"
 #include "xmlload.h"
 
+RenderScene scene;
 
 int main()
 {
-	RenderScene scene;
-    LoadScene(scene, "project_2_scene.xml");
+    LoadScene(scene, "custom.xml");
+    Node* treeRoot = &scene.rootNode;
     ShowViewport(&scene);
 }
 

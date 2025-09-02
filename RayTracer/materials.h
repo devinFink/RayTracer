@@ -13,6 +13,8 @@
 #define _MATERIALS_H_INCLUDED_
 
 #include "scene.h"
+#include "raytracer.h"
+#include <objects.h>
 //-------------------------------------------------------------------------------
 
 class MtlBasePhongBlinn : public Material

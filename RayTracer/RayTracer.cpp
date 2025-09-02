@@ -1,12 +1,14 @@
 ﻿#define _USE_MATH_DEFINES
 #include "raytracer.h"
 #include "viewport.h"
+#include "lights.h"
 #include <cmath>
 #include <iostream>
 #include <thread>
 #include <algorithm>
 
 #define DEG2RAD(degrees) ((degrees) * M_PI / 180.0)
+Node* treeRoot = nullptr;
 
 bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 {
@@ -87,6 +89,7 @@ void BeginRender(RenderScene* scene)
 	const float camWidthRes = scene->camera.imgWidth;
 	const float camHeightRes = scene->camera.imgHeight;
 	const int scrSize = scrHeight * scrWidth;
+	treeRoot = &scene->rootNode;
 
 	int l = 1;
 
@@ -143,8 +146,8 @@ void BeginRender(RenderScene* scene)
 	for (auto& th : threads) th.join();
 
 	scene->renderImage.ComputeZBufferImage();
-	scene->renderImage.SaveZImage("projectTwoZ.png");
-	scene->renderImage.SaveImage("projectTwo.png");
+	scene->renderImage.SaveZImage("projectThreeZ.png");
+	scene->renderImage.SaveImage("projectThree.png");
 }
 
 void StopRender()

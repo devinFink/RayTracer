@@ -73,5 +73,14 @@
     <Xml Include="project_2_scene.xml">
       <Filter>Resource Files</Filter>
     </Xml>
+    <Xml Include="..\..\..\Desktop\scene3.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Desktop\scene3_2.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="custom.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
 </Project>
