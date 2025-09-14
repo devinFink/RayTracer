@@ -153,6 +153,7 @@
     <Xml Include="custom.xml" />
     <Xml Include="project_1_scene.xml" />
     <Xml Include="project_2_scene.xml" />
+    <Xml Include="scene_4.xml" />
     <Xml Include="simple_scene.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

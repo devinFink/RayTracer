@@ -82,5 +82,8 @@
     <Xml Include="custom.xml">
       <Filter>Resource Files</Filter>
     </Xml>
+    <Xml Include="scene_4.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

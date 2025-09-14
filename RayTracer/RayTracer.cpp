@@ -1,4 +1,15 @@
-﻿#define _USE_MATH_DEFINES
+﻿///
+/// \file       raytracer.cpp
+/// \author     Devin Fink
+/// \version    4.0
+/// \date       September 13th, 2025
+///
+/// \Ray tracing implementation
+///
+
+
+
+#define _USE_MATH_DEFINES
 #include "raytracer.h"
 #include "viewport.h"
 #include "lights.h"
@@ -10,7 +21,19 @@
 #define DEG2RAD(degrees) ((degrees) * M_PI / 180.0)
 Node* treeRoot = nullptr;
 
-bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
+/**
+ * Recursively traverses the scene graph to test ray intersections.
+ * Transforms the ray into each node's local space, checks for intersections
+ * with attached geometry, and updates hit information with the closest hit.
+ *
+ * @param ray      Ray in world space to test for intersection.
+ * @param node     Current scene graph node (and its children) to traverse.
+ * @param hitInfo  Output parameter storing intersection details if a hit occurs.
+ * @param hitSide  Flags specifying which surface sides to consider.
+ * @return True if the ray intersects any object in this subtree, false otherwise.
+ */
+
+bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo, int hitSide)
 {
 	if (!node) return false;
 	bool hit = false;
@@ -20,7 +43,7 @@ bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 	const Object* obj = node->GetNodeObj();
 	if (obj)
 	{
-		if (obj->IntersectRay(transformedRay, hitInfo))
+		if (obj->IntersectRay(transformedRay, hitInfo, hitSide))
 		{
 			hit = true;
 			node->FromNodeCoords(hitInfo);
@@ -31,7 +54,7 @@ bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo)
 	// Traverse children
 	for (int i = 0; i < node->GetNumChild(); i++)
 	{
-		if (TraverseTree(transformedRay, node->GetChild(i), hitInfo))
+		if (TraverseTree(transformedRay, node->GetChild(i), hitInfo, hitSide))
 		{
 			hit = true;
 			node->FromNodeCoords(hitInfo);
@@ -51,6 +74,15 @@ cyMatrix4f CreateCam2Wrld(RenderScene* scene)
 	return cam2Wrld;
 }
 
+/**
+ * Casts a ray from the camera through a specific pixel, intersects it with the scene's geometry,
+ * and updates the render image and z-buffer accordingly.
+ *
+ * @param scene      Pointer to the RenderScene containing the camera, scene graph, lights, and render image.
+ * @param pixel      Index of the pixel in the render image to update.
+ * @param cam2Wrld   Camera-to-world transformation matrix.
+ * @param pixelPos   Position of the pixel in camera space.
+ */
 void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixelPos)
 {
 	//Ray Generation
@@ -62,9 +94,9 @@ void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixel
 
 	if (TraverseTree(ray, &scene->rootNode, hit))
 	{
-		if (hit.node->GetMaterial())
+		if (hit.node->GetMaterial() && hit.front == true)
 		{
-			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights);
+			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights, 10);
 		}
 		else
 		{
@@ -81,6 +113,12 @@ void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixel
 	scene->renderImage.GetZBuffer()[pixel] = hit.z;
 }
 
+/**
+ * Renders the entire scene by tracing rays through each pixel using multithreading,
+ * updates the render image and z-buffer, and saves the final images to disk.
+ *
+ * @param scene  Pointer to the RenderScene containing camera, scene graph, lights, and render image.
+ */
 void BeginRender(RenderScene* scene)
 {
 	scene->renderImage.ResetNumRenderedPixels();
@@ -146,8 +184,8 @@ void BeginRender(RenderScene* scene)
 	for (auto& th : threads) th.join();
 
 	scene->renderImage.ComputeZBufferImage();
-	scene->renderImage.SaveZImage("projectThreeZ.png");
-	scene->renderImage.SaveImage("projectThree.png");
+	scene->renderImage.SaveZImage("projectFourZ.png");
+	scene->renderImage.SaveImage("projectFour.png");
 }
 
 void StopRender()
