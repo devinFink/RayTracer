@@ -22,10 +22,9 @@ float GenLight::Shadow(Ray const& ray, float t_max)
 {
 	HitInfo h;
 	h.Init();
-	double bias = 0;
-	if (TraverseTree(ray, treeRoot, h, HIT_FRONT))
+	if (TraverseTree(ray, treeRoot, h, HIT_FRONT_AND_BACK))
 	{
-		if (h.z <= t_max && h.z > bias)
+		if (h.z <= t_max)
 			return 0.0;
 	}
 
@@ -89,35 +88,37 @@ Color RefractRay(float ior, const Ray& ray, const HitInfo& hInfo, const LightLis
 	float eta;
 	float cosThetaT;
 	cyVec3f refractDir;
+	Ray refract;
+	float eps = 1e-4f;
 
 	if (hInfo.front)
 	{
 		eta = 1 / ior;
 		cosThetaT = sqrt(1 - pow(eta, 2) * (1 - pow(refractView.Dot(hInfo.N), 2)));
 		refractDir = -eta * refractView - (cosThetaT - eta * (refractView.Dot(hInfo.N))) * hInfo.N;
+		refract = Ray(hInfo.p, refractDir.GetNormalized());
+		float sign = refract.dir.Dot(hInfo.N) > 0.0f ? 1.0f : -1.0f;
+		refract.p += hInfo.N * (eps * sign);
 	}
 	else
 	{
 		eta = ior / 1;
 		float cosThetaSquared = (1 - pow(eta, 2) * (1 - pow(refractView.Dot(-hInfo.N), 2)));
-		if (cosThetaSquared < 0.0)
+		if (cosThetaSquared < 0.0f)
 		{
 			return ReflectRay(ray, hInfo, lights, bounceCount - 1, HIT_FRONT_AND_BACK);
 		}
 		cosThetaT = sqrt(cosThetaSquared);
 		refractDir = -eta * refractView - (cosThetaT - eta * (refractView.Dot(-hInfo.N))) * -hInfo.N;
+		refract = Ray(hInfo.p, refractDir.GetNormalized());
+		float sign = refract.dir.Dot(-hInfo.N) > 0.0f ? 1.0f : -1.0f;
+		refract.p += -hInfo.N * (eps * sign);
 	}
 
-	//Refracted ray calculation with bias
-	Ray refract = Ray(hInfo.p, refractDir.GetNormalized());
-	float eps = 1e-4f;
-	float sign = refract.dir.Dot(hInfo.N) > 0.0f ? 1.0f : -1.0f;
-	refract.p += hInfo.N * (eps * sign);
 	if (TraverseTree(refract, treeRoot, refractHit, HIT_FRONT_AND_BACK) && (refractHit.node->GetMaterial()))
 	{
 		refractCol = refractHit.node->GetMaterial()->Shade(refract, refractHit, lights, bounceCount - 1);
 	}
-
 	return refractCol;
 }
 
@@ -138,18 +139,28 @@ Color MtlBlinn::Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lig
 	Color ambientLight(0, 0, 0);
 	Color reflectCol(0, 0, 0);
 	Color refractCol(0, 0, 0);
+	Color fresnel(0, 0, 0);
+	Color fullReflection = this->Reflection();
 
 
-	HitInfo reflectHit;
-	reflectHit.Init();
-	if (this->Reflection() != Color(0, 0, 0) && bounceCount > 0)
-	{
-		reflectCol = this->reflection * ReflectRay(ray, hInfo, lights, bounceCount, HIT_FRONT);
-	}
 
 	if (this->ior > 0.0f && bounceCount > 0)
 	{
 		refractCol = this->refraction * RefractRay(this->ior, ray, hInfo, lights, bounceCount);
+
+		refractCol.r *= exp(-this->absorption.r * hInfo.z);
+		refractCol.g *= exp(-this->absorption.g * hInfo.z);
+		refractCol.b *= exp(-this->absorption.b * hInfo.z);
+
+		//Fresnel Effect
+		fresnel = this->refraction * pow((1 - this->ior) / (1 + this->ior), 2);
+		fullReflection = fullReflection + fresnel;
+		refractCol = refractCol * (Color(1, 1, 1) - fullReflection);
+	}
+
+	if (fullReflection != Color(0, 0, 0) && bounceCount > 0)
+	{
+		reflectCol = fullReflection * ReflectRay(ray, hInfo, lights, bounceCount, HIT_FRONT);
 	}
 
 	float alpha = this->Glossiness();

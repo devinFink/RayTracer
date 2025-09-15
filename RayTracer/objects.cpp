@@ -24,7 +24,7 @@ bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
     double t1 = (-b - sqrt(discriminant)) / (2 * a);
     double t2 = (-b + sqrt(discriminant)) / (2 * a);
 
-    if(t1 > 0 && hitSide & HIT_FRONT)
+    if(t1 > 0.0002 && hitSide & HIT_FRONT)
     {
         if(hInfo.z > t1)
         {
@@ -35,7 +35,7 @@ bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
             return true;
         }
     }
-    else if(t2 > 0 && hitSide & HIT_BACK)
+    else if(t2 > 0.0002 && hitSide & HIT_BACK)
     {
         if (hInfo.z > t2)
         {
