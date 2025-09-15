@@ -1,86 +1,138 @@
 <xml>
-	<!--
-		Custom Scene file
-		Taken and slightly altered from Sam Hill - 2025.09.01
-		Version 1.0
-		Created for CS 5620, project 3
-	-->
-	
 	<scene>
-		<!-- Objects -->
-		<object type="sphere" name="surface" material="flat">
-			<scale x="12" y="0.1" z="12"/>
-			<translate y="-2.1"/>
+		<!-- Ground (large sphere as floor) -->
+		<object type="sphere" name="floor" material="floorMat">
+			<scale value="200"/>
+			<translate z="-200"/>
 		</object>
-		<object type="sphere" name="surface" material="spec">
-			<scale x="2" y="2" z="2"/>
+
+		<!-- Helix of spheres forming a tunnel -->
+		<object name="helix">
+			<!-- 16 spheres along a helix path -->
+			<object type="sphere" name="s1"  material="glassClear">
+				<scale value="3"/>
+				<translate x="12"  y="0"   z="5"/>
+			</object>
+			<object type="sphere" name="s2"  material="glassRed">
+				<scale value="3"/>
+				<translate x="10"  y="7"   z="10"/>
+			</object>
+			<object type="sphere" name="s3"  material="glassBlue">
+				<scale value="3"/>
+				<translate x="4"   y="12"  z="15"/>
+			</object>
+			<object type="sphere" name="s4"  material="glassGold">
+				<scale value="3"/>
+				<translate x="-4"  y="12"  z="20"/>
+			</object>
+			<object type="sphere" name="s5"  material="glassClear">
+				<scale value="3"/>
+				<translate x="-10" y="7"   z="25"/>
+			</object>
+			<object type="sphere" name="s6"  material="glassRed">
+				<scale value="3"/>
+				<translate x="-12" y="0"   z="30"/>
+			</object>
+			<object type="sphere" name="s7"  material="glassBlue">
+				<scale value="3"/>
+				<translate x="-10" y="-7"  z="35"/>
+			</object>
+			<object type="sphere" name="s8"  material="glassGold">
+				<scale value="3"/>
+				<translate x="-4"  y="-12" z="40"/>
+			</object>
+			<object type="sphere" name="s9"  material="glassClear">
+				<scale value="3"/>
+				<translate x="4"   y="-12" z="45"/>
+			</object>
+			<object type="sphere" name="s10" material="glassRed">
+				<scale value="3"/>
+				<translate x="10"  y="-7"  z="50"/>
+			</object>
+			<object type="sphere" name="s11" material="glassBlue">
+				<scale value="3"/>
+				<translate x="12"  y="0"   z="55"/>
+			</object>
+			<object type="sphere" name="s12" material="glassGold">
+				<scale value="3"/>
+				<translate x="10"  y="7"   z="60"/>
+			</object>
+			<object type="sphere" name="s13" material="glassClear">
+				<scale value="3"/>
+				<translate x="4"   y="12"  z="65"/>
+			</object>
+			<object type="sphere" name="s14" material="glassRed">
+				<scale value="3"/>
+				<translate x="-4"  y="12"  z="70"/>
+			</object>
+			<object type="sphere" name="s15" material="glassBlue">
+				<scale value="3"/>
+				<translate x="-10" y="7"   z="75"/>
+			</object>
+			<object type="sphere" name="s16" material="glassGold">
+				<scale value="3"/>
+				<translate x="-12" y="0"   z="80"/>
+			</object>
 		</object>
-		<object type="sphere" name="surface" material="spec">
-			<scale x="1" y="1" z="1"/>
-			<translate x="-5.2" y="-1" z="3" />
-		</object>
-		<object type="sphere" name="surface" material="spec">
-			<scale x="1" y="1" z="1"/>
-			<translate x="5.2" y="-1" z="3" />
-		</object>
-		<object type="sphere" name="surface" material="spec">
-			<scale x="1" y="1" z="1"/>
-			<translate x="0" y="-1" z="-6" />
-		</object>
-		<object type="sphere" name="surface" material="spec">
-			<scale x="2" y="2" z="2"/>
-		</object>
-		<object type="sphere" name="surface" material="spec">
-			<scale x="1" y="1" z="1"/>
-			<translate x="-5.2" y="-1" z="-3" />
-		</object>
-		<object type="sphere" name="surface" material="spec">
-			<scale x="1" y="1" z="1"/>
-			<translate x="5.2" y="-1" z="-3" />
-		</object>
-		<object type="sphere" name="surface" material="spec">
-			<scale x="1" y="1" z="1"/>
-			<translate x="0" y="-1" z="6" />
-		</object>
-	
+
 		<!-- Materials -->
-		<material type="blinn" name="flat">
-			<diffuse  r="1" g="1" b="1"/>
-			<specular value="0"/>
+		<material type="blinn" name="floorMat">
+			<diffuse r="0.9" g="0.9" b="0.9" value="0.7"/>
+			<specular r="1" g="1" b="1" value="0.1"/>
 		</material>
-		<material type="blinn" name="spec">
-			<diffuse  r="0.2" g="0" b="0.1"/>
-			<specular value="1"/>
+
+		<!-- Glass-like materials -->
+		<material type="blinn" name="glassClear">
+			<diffuse r="0.05" g="0.05" b="0.05"/>
+			<specular r="1" g="1" b="1" value="1.0"/>
+			<glossiness value="100"/>
+			<refraction value="1.0" index="1.52"/>
+			<reflection value="0.2"/>
+			<absorption r="0.001" g="0.001" b="0.001"/>
 		</material>
-		<material type="blinn" name="white">
-			<diffuse  r="1" g="1" b="1"/>
-			<specular value="1"/>
+
+		<material type="blinn" name="glassRed">
+			<diffuse r="0.1" g="0.02" b="0.02"/>
+			<specular r="1" g="0.8" b="0.8" value="0.9"/>
+			<glossiness value="80"/>
+			<refraction value="1.0" index="1.52"/>
+			<reflection value="0.25"/>
+			<absorption r="0.01" g="0.002" b="0.002"/>
 		</material>
-		
+
+		<material type="blinn" name="glassBlue">
+			<diffuse r="0.02" g="0.05" b="0.1"/>
+			<specular r="0.8" g="0.8" b="1.0" value="0.9"/>
+			<glossiness value="80"/>
+			<refraction value="1.0" index="1.52"/>
+			<reflection value="0.25"/>
+			<absorption r="0.002" g="0.003" b="0.01"/>
+		</material>
+
+		<material type="blinn" name="glassGold">
+			<diffuse r="0.1" g="0.08" b="0.02"/>
+			<specular r="1.0" g="0.9" b="0.6" value="0.95"/>
+			<glossiness value="90"/>
+			<refraction value="1.0" index="1.52"/>
+			<reflection value="0.3"/>
+			<absorption r="0.01" g="0.008" b="0.002"/>
+		</material>
+
 		<!-- Lights -->
 		<light type="ambient" name="ambientLight">
 			<intensity value="0.1"/>
 		</light>
-
-		<light type="point" name="purpleLight">
-			<intensity value=".75" r="1" g="0" b="1"/>
-			<position x="-2.16" y="3" z="1.25"/>
-		</light>
-		<light type="point" name="cyanLight">
-			<intensity value=".75" r="0" g="1" b="1"/>
-			<position x="2.16" y="3" z="1.25"/>
-		</light>
-		<light type="point" name="yellowLight">
-			<intensity value=".75" r="1" g="1" b="0"/>
-			<position x="0" y="3" z="-2.5"/>
+		<light type="point" name="backLight">
+			<intensity value="1" r="0" g="1" b="0"/>
+			<position x="0" y="0" z="150"/>
 		</light>
 	</scene>
-
+	<!-- Camera INSIDE spiral -->
 	<camera>
-		<position x="10" y="10" z="-17" />
-		<target x="0" y="-4" z="0"/>
-		<up x="0" y="1" z="0"/>
-		<fov value="50"/>
+		<position x="0" y="-5" z="0"/>
+		<target x="0" y="0" z="150"/>
+		<up x="0" y="0" z="1"/>
+		<fov value="45"/>
 		<width value="1920"/>
 		<height value="1080"/>
 	</camera>

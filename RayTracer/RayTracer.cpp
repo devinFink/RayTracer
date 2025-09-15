@@ -184,8 +184,8 @@ void BeginRender(RenderScene* scene)
 	for (auto& th : threads) th.join();
 
 	scene->renderImage.ComputeZBufferImage();
-	scene->renderImage.SaveZImage("projectFourZ.png");
-	scene->renderImage.SaveImage("projectFour.png");
+	scene->renderImage.SaveZImage("testZ.png");
+	scene->renderImage.SaveImage("playground.png");
 }
 
 void StopRender()
