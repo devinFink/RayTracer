@@ -77,7 +77,7 @@ Color ReflectRay(const Ray& ray, const HitInfo& hInfo, const LightList& lights, 
  * @param bounceCount Remaining recursion depth.
  * @return Color contribution from the refracted (or reflected) ray.
  */
-Color RefractRay(float ior, const Ray& ray, const HitInfo& hInfo, const LightList& lights, int bounceCount)
+Color RefractRay(float ior, const Ray& ray, const HitInfo& hInfo, const LightList& lights, int bounceCount, Color absorption)
 {
 	Color refractCol(0, 0, 0);
 	if (bounceCount < 0) return refractCol;
@@ -118,6 +118,13 @@ Color RefractRay(float ior, const Ray& ray, const HitInfo& hInfo, const LightLis
 	if (TraverseTree(refract, treeRoot, refractHit, HIT_FRONT_AND_BACK) && (refractHit.node->GetMaterial()))
 	{
 		refractCol = refractHit.node->GetMaterial()->Shade(refract, refractHit, lights, bounceCount - 1);
+
+		if (refractHit.node == hInfo.node)
+		{
+			refractCol.r *= exp(-absorption.r * refractHit.z);
+			refractCol.g *= exp(-absorption.g * refractHit.z);
+			refractCol.b *= exp(-absorption.b * refractHit.z);
+		}
 	}
 	return refractCol;
 }
@@ -146,11 +153,7 @@ Color MtlBlinn::Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lig
 
 	if (this->ior > 0.0f && bounceCount > 0)
 	{
-		refractCol = this->refraction * RefractRay(this->ior, ray, hInfo, lights, bounceCount);
-
-		refractCol.r *= exp(-this->absorption.r * hInfo.z);
-		refractCol.g *= exp(-this->absorption.g * hInfo.z);
-		refractCol.b *= exp(-this->absorption.b * hInfo.z);
+		refractCol = this->refraction * RefractRay(this->ior, ray, hInfo, lights, bounceCount, this->absorption);
 
 		//Fresnel Effect
 		fresnel = this->refraction * pow((1 - this->ior) / (1 + this->ior), 2);

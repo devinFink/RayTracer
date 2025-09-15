@@ -96,7 +96,7 @@ void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixel
 	{
 		if (hit.node->GetMaterial() && hit.front == true)
 		{
-			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights, 10);
+			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights, 64);
 		}
 		else
 		{

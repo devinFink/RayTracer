@@ -11,7 +11,7 @@ RenderScene scene;
 
 int main()
 {
-    LoadScene(scene, "custom.xml");
+    LoadScene(scene, "scene_4.xml");
     Node* treeRoot = &scene.rootNode;
     ShowViewport(&scene);
 }
