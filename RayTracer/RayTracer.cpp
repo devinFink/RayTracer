@@ -64,6 +64,33 @@ bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo, int hitSide)
 	return hit;
 }
 
+bool TraverseTreeShadow(const Ray& ray, Node* node, float t_max)
+{
+	if (!node) return false;
+	Ray transformedRay = node->ToNodeCoords(ray);
+
+	// Check current node's object
+	const Object* obj = node->GetNodeObj();
+	if (obj)
+	{
+		if (obj->shadowRay(transformedRay, t_max))
+		{
+			return true;
+		}
+	}
+
+	// Traverse children
+	for (int i = 0; i < node->GetNumChild(); i++)
+	{
+		if (TraverseTreeShadow(transformedRay, node->GetChild(i), t_max))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 cyMatrix4f CreateCam2Wrld(RenderScene* scene)
 {
 	cyVec3f cam2WrldZ = -scene->camera.dir;
@@ -92,11 +119,11 @@ void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixel
 	HitInfo hit;
 	hit.Init();
 
-	if (TraverseTree(ray, &scene->rootNode, hit))
+	if (TraverseTree(ray, &scene->rootNode, hit, HIT_FRONT))
 	{
-		if (hit.node->GetMaterial() && hit.front == true)
+		if (hit.node->GetMaterial())
 		{
-			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights, 64);
+			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights, 5);
 		}
 		else
 		{

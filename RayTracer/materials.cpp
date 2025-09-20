@@ -20,13 +20,7 @@
  */
 float GenLight::Shadow(Ray const& ray, float t_max)
 {
-	HitInfo h;
-	h.Init();
-	if (TraverseTree(ray, treeRoot, h, HIT_FRONT_AND_BACK))
-	{
-		if (h.z <= t_max)
-			return 0.0;
-	}
+	if (TraverseTreeShadow(ray, treeRoot, t_max)) return 0.0;
 
 	return 1.0;
 }
