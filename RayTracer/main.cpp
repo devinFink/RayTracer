@@ -2,16 +2,13 @@
 //
 
 #include <iostream>
-#include <objects.h>
-
-#include "viewport.h"
 #include "xmlload.h"
-
-RenderScene scene;
+#include "objects.h"
+#include "raytracer.h"
 
 int main()
 {
-    LoadScene(scene, "scene_5.xml");
-    Node* treeRoot = &scene.rootNode;
-    ShowViewport(&scene);
+	Renderer* theRenderer = new RayTracer();
+	theRenderer->LoadScene("project_1_scene.xml");
+    ShowViewport(theRenderer);
 }

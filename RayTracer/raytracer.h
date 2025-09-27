@@ -1,8 +1,28 @@
-﻿#pragma once
-#include "scene.h"
+#pragma once
+///
+/// \file       renderer.h 
+/// \author     Devin Fink
+/// \version    1.0
+/// \date       September 27, 2025
+///
+/// \brief PImplementation of Renderer Class
 
-extern Node* treeRoot;
+#include "renderer.h"
+class RayTracer : public Renderer
+{
+	public:
+		RayTracer() {}
+		~RayTracer() {}
+		void BeginRender() override;
+		void StopRender() override;
 
-bool TraverseTree(const Ray& ray, Node* node, HitInfo& hit, int hitSide = HIT_FRONT);
-bool TraverseTreeShadow(const Ray& ray, Node* node, float t_max);
-cyMatrix4f CreateCam2Wrld(RenderScene* scene);
+		bool TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT_AND_BACK) const override;
+		void CreateCam2Wrld();
+		void CreateRay(int i, cyVec3f pixelPos);
+
+	private:
+		const int tileSize = 32;
+		std::atomic<int> nextTile{ 0 };
+		cyMatrix4f cam2Wrld{};
+		void RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX, int tilesY);
+};

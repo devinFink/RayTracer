@@ -193,20 +193,18 @@
   <ItemGroup>
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="materials.cpp" />
-    <ClCompile Include="raytracer.cpp" />
     <ClCompile Include="objects.cpp" />
+    <ClCompile Include="raytracer.cpp" />
     <ClCompile Include="tinyxml2.cpp" />
     <ClCompile Include="viewport.cpp" />
     <ClCompile Include="xmlload.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="lights.h" />
     <ClInclude Include="lodepng.h" />
-    <ClInclude Include="materials.h" />
+    <ClInclude Include="objects.h" />
     <ClInclude Include="raytracer.h" />
+    <ClInclude Include="renderer.h" />
     <ClInclude Include="scene.h" />
-    <ClInclude Include="viewport.h" />
     <ClInclude Include="xmlload.h" />
   </ItemGroup>
   <ItemGroup>
