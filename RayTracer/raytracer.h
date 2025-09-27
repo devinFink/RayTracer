@@ -17,6 +17,7 @@ class RayTracer : public Renderer
 		void StopRender() override;
 
 		bool TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT_AND_BACK) const override;
+		bool TraverseTree(const Ray& ray, const Node* node, HitInfo& hitInfo, int hitSide) const;
 		void CreateCam2Wrld();
 		void CreateRay(int i, cyVec3f pixelPos);
 

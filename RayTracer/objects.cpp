@@ -33,7 +33,7 @@ bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
         if (hInfo.z > t1) {
             hInfo.z = t1;
             hInfo.p = ray.p + (ray.dir * t1);
-            //hInfo.N = hInfo.p.GetNormalized();
+            hInfo.N = hInfo.p.GetNormalized();
             hInfo.front = true;
             return true;
         }
@@ -42,7 +42,7 @@ bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
         if (hInfo.z > t2) {
             hInfo.z = t2;
             hInfo.p = ray.p + (ray.dir * t2);
-            //hInfo.N = hInfo.p.GetNormalized();
+            hInfo.N = hInfo.p.GetNormalized();
             hInfo.front = false;
             return true;
         }

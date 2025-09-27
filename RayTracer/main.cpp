@@ -9,6 +9,6 @@
 int main()
 {
 	Renderer* theRenderer = new RayTracer();
-	theRenderer->LoadScene("project_1_scene.xml");
+	theRenderer->LoadScene("project_2_scene.xml");
     ShowViewport(theRenderer);
 }

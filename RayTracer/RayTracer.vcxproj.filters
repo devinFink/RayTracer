@@ -36,6 +36,9 @@
     <ClCompile Include="objects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="materials.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lodepng.h">
@@ -54,6 +57,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="raytracer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="materials.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lights.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

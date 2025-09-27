@@ -97,7 +97,16 @@ void RayTracer::CreateRay(int index, cyVec3f pixelPos)
 
 	if (TraceRay(ray, hit, HIT_FRONT))
 	{
-		renderImage.GetPixels()[index] = Color24(255, 255, 255);
+		ShadeInfo info = ShadeInfo(scene.lights);
+		info.SetHit(ray, hit);
+		if (hit.node->GetMaterial())
+		{
+			renderImage.GetPixels()[index] = (Color24)hit.node->GetMaterial()->Shade(info);
+		}
+		else
+		{
+			renderImage.GetPixels()[index] = Color24(255, 255, 255);
+		}
 	}
 	else
 	{
@@ -109,32 +118,36 @@ void RayTracer::CreateRay(int index, cyVec3f pixelPos)
 	renderImage.GetZBuffer()[index] = hit.z;
 }
 
-bool RayTracer::TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide) const 
+bool RayTracer::TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
 {
-	if (!hInfo.node) return false;
+	return TraverseTree(ray, &scene.rootNode, hInfo, hitSide);
+}
+
+bool RayTracer::TraverseTree(const Ray& ray, const Node* node, HitInfo& hitInfo, int hitSide) const
+{
+	if (!node) return false;
 	bool hit = false;
-	Ray transformedRay = hInfo.node->ToNodeCoords(ray);
-	const Node* node = hInfo.node;
+	Ray transformedRay = node->ToNodeCoords(ray);
 
 	// Check current node's object
 	const Object* obj = node->GetNodeObj();
 	if (obj)
 	{
-		if (obj->IntersectRay(transformedRay, hInfo, hitSide))
+		if (obj->IntersectRay(transformedRay, hitInfo, hitSide))
 		{
 			hit = true;
-			node->FromNodeCoords(hInfo);
+			node->FromNodeCoords(hitInfo);
+			hitInfo.node = node;
 		}
 	}
 
 	// Traverse children
 	for (int i = 0; i < node->GetNumChild(); i++)
 	{
-		hInfo.node = node->GetChild(i);
-		if (TraceRay(transformedRay, hInfo, hitSide))
+		if (TraverseTree(transformedRay, node->GetChild(i), hitInfo, hitSide))
 		{
 			hit = true;
-			node->FromNodeCoords(hInfo);
+			node->FromNodeCoords(hitInfo);
 		}
 	}
 
