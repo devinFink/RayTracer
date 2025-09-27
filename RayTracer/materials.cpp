@@ -48,13 +48,18 @@ Color ReflectRay(const Ray& ray, const HitInfo& hInfo, const LightList& lights, 
 	HitInfo reflectHit;
 	reflectHit.Init();
 
-	cyVec3f reflectView = -Normalize(ray.dir);
-	cyVec3f reflectionDir = 2 * hInfo.N.Dot(reflectView) * hInfo.N - reflectView;
-	Ray reflect(hInfo.p, reflectionDir.GetNormalized());
+	cyVec3f reflectView = -ray.dir;
+	float dot = hInfo.N.Dot(reflectView);
+	cyVec3f reflectionDir = (2 * dot) * hInfo.N - reflectView;
+	reflectionDir.Normalize();
 
-	if (TraverseTree(reflect, treeRoot, reflectHit, HitSide) && (reflectHit.node->GetMaterial()))
-	{
-		return reflectHit.node->GetMaterial()->Shade(reflect, reflectHit, lights, bounceCount - 1);
+	Ray reflect(hInfo.p, reflectionDir);
+
+	if (TraverseTree(reflect, treeRoot, reflectHit, HitSide)) {
+		auto* mat = reflectHit.node->GetMaterial();
+		if (mat) {
+			return mat->Shade(reflect, reflectHit, lights, bounceCount - 1);
+		}
 	}
 
 	return Color(0, 0, 0);
@@ -78,7 +83,7 @@ Color RefractRay(float ior, const Ray& ray, const HitInfo& hInfo, const LightLis
 	HitInfo refractHit;
 	refractHit.Init();
 
-	cyVec3f refractView = -Normalize(ray.dir);
+	cyVec3f refractView = -ray.dir;
 	float eta;
 	float cosThetaT;
 	cyVec3f refractDir;
@@ -142,15 +147,16 @@ Color MtlBlinn::Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lig
 	Color refractCol(0, 0, 0);
 	Color fresnel(0, 0, 0);
 	Color fullReflection = this->Reflection();
+	float matior = this->ior;
 
 
 
-	if (this->ior > 0.0f && bounceCount > 0)
+	if (matior > 0.0f && bounceCount > 0)
 	{
 		refractCol = this->refraction * RefractRay(this->ior, ray, hInfo, lights, bounceCount, this->absorption);
 
 		//Fresnel Effect
-		fresnel = this->refraction * pow((1 - this->ior) / (1 + this->ior), 2);
+		fresnel = this->refraction * pow((1 - matior) / (1 + matior), 2);
 		fullReflection = fullReflection + fresnel;
 		refractCol = refractCol * (Color(1, 1, 1) - fullReflection);
 	}

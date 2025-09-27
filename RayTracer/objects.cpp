@@ -28,6 +28,8 @@ cyVec3f vecMax(const cyVec3f& a, const cyVec3f& b) {
 }
 
 /// Ray-AABB intersection
+/// TODO: Switch to return a struct with bool hit, float tmin, float tmax if needed
+/// 
 bool hitAABB(Ray ray, cyVec3f boxMin, cyVec3f boxMax) {
     auto safeInv = [](float d) {
         return (fabs(d) > 1e-8f) ? (1.0f / d) : std::numeric_limits<float>::infinity();
@@ -161,85 +163,116 @@ bool TriObj::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
     HitInfo temphit;
     temphit.Init();
     bool hit = false;
+    int closestFace = INT_MAX;
+    cyVec2f closestBary{ 0.0f, 0.0f };
 
     if (!hitAABB(ray, GetBoundMin(), GetBoundMax()))
         return false;
 
+    cyVec2f bary;
     for (int faceID = 0; faceID < NF(); faceID++) {
-        if (IntersectTriangle(ray, temphit, hitSide, faceID)) {
-            if (hInfo.z > temphit.z) {
-                hInfo = temphit;
-            }
+        if (IntersectTriangle(ray, temphit, hitSide, faceID, bary)) {
             hit = true;
+			if (temphit.z >= closestFace) continue; // not the closest hit
+            closestFace = faceID;
+            closestBary = bary;
         }
     }
 
-    return hit;
+    if (!hit)
+        return false;
+
+    // Interpolate normal for the closest triangle
+    float u = closestBary.x;
+    float v = closestBary.y;
+    hInfo.p = ray.p + ray.dir * temphit.z; // intersection point
+    hInfo.N = ((1.0f - u - v) * vn[FN(closestFace).v[0]] +
+        u * vn[FN(closestFace).v[1]] +
+        v * vn[FN(closestFace).v[2]]).GetNormalized();
+
+    hInfo.front = ray.dir.Dot(hInfo.N) < 0;
+    hInfo.z = temphit.z;
+
+    return true;
 }
 
-bool TriObj::shadowRay(Ray const& ray, float t_max) const {
-    HitInfo temphit;
-    temphit.Init();
 
+bool TriObj::shadowRay(Ray const& ray, float t_max) const {
+    // Early AABB rejection
     if (!hitAABB(ray, GetBoundMin(), GetBoundMax()))
         return false;
 
-    for (int faceID = 0; faceID < NF(); faceID++) {
-        if (IntersectTriangle(ray, temphit, HIT_FRONT_AND_BACK, faceID)) {
-            if (temphit.z < t_max)
-                return true;
+    for (int faceID = 0; faceID < NF(); ++faceID) {
+        cyVec3f v0 = V(F(faceID).v[0]);
+        cyVec3f v1 = V(F(faceID).v[1]);
+        cyVec3f v2 = V(F(faceID).v[2]);
+
+        const float epsilon = 0.0002f;
+
+        cyVec3f edge1 = v1 - v0;
+        cyVec3f edge2 = v2 - v0;
+        cyVec3f h = ray.dir.Cross(edge2);
+        float det = edge1.Dot(h);
+        if (fabs(det) < epsilon) continue; // parallel
+
+        float inv_det = 1.0f / det;
+        cyVec3f s = ray.p - v0;
+        float u = inv_det * s.Dot(h);
+        if (u < 0.0f || u > 1.0f) continue;
+
+        cyVec3f s_cross_e1 = s.Cross(edge1);
+        float v = inv_det * ray.dir.Dot(s_cross_e1);
+        if (v < 0.0f || (u + v) > 1.0f) continue;
+
+        float t = inv_det * edge2.Dot(s_cross_e1);
+        if (t > epsilon && t < t_max) {
+            return true;
         }
     }
 
-    return false;
+    return false; 
 }
 
 /*
 * Moller-Trumbore intersection algorithm
 */
-bool TriObj::IntersectTriangle(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int faceID) const {
-    cyVec3f v0 = V(F(faceID).v[0]);
-    cyVec3f v1 = V(F(faceID).v[1]);
-    cyVec3f v2 = V(F(faceID).v[2]);
+bool TriObj::IntersectTriangle(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int faceID, cyVec2f& bary) const {
+	TriFace const& face = F(faceID);
     const float epsilon = 0.0002f;
 
+    // Fetch vertices only once
+    const cyVec3f& v0 = V(face.v[0]);
+    const cyVec3f& v1 = V(face.v[1]);
+    const cyVec3f& v2 = V(face.v[2]);
+
+    // Precompute edges
     cyVec3f edge1 = v1 - v0;
     cyVec3f edge2 = v2 - v0;
-    cyVec3f h = ray.dir.Cross(edge2);
+
+    // Use references to avoid temporaries
+    const cyVec3f& dir = ray.dir;
+    cyVec3f h = dir.Cross(edge2);
     float det = edge1.Dot(h);
 
-    if (fabs(det) < epsilon) return false;
+    if (fabsf(det) < epsilon) return false;
 
     float inv_det = 1.0f / det;
     cyVec3f s = ray.p - v0;
     float u = inv_det * s.Dot(h);
 
-    // Branchless check for barycentric coordinates
-    bool valid = (u >= 0.0f) && (u <= 1.0f);
+    if (u < 0.0f || u > 1.0f) return false;
 
     cyVec3f s_cross_e1 = s.Cross(edge1);
-    float v = inv_det * ray.dir.Dot(s_cross_e1);
+    float v = inv_det * dir.Dot(s_cross_e1);
 
-    valid &= (v >= 0.0f) && ((u + v) <= 1.0f);
-
-    if (!valid) return false;
+    if (v < 0.0f || (u + v) > 1.0f) return false;
 
     float t = inv_det * edge2.Dot(s_cross_e1);
 
-    if (t > epsilon) {
-        hInfo.z = t;
-        hInfo.p = ray.p + (ray.dir * t);
+    if (t <= epsilon || t >= hInfo.z) return false;
 
-        // Interpolate normals using barycentric coordinates
-        hInfo.N = ((1.0f - u - v) * vn[FN(faceID).v[0]] +
-            u * vn[FN(faceID).v[1]] +
-            v * vn[FN(faceID).v[2]]).GetNormalized();
-
-        hInfo.front = ray.dir.Dot(hInfo.N) < 0;
-
-        if ((hInfo.front && (hitSide & HIT_FRONT)) || (!hInfo.front && (hitSide & HIT_BACK)))
-            return true;
-    }
-
-    return false;
+    hInfo.z = t;
+    bary.Set(u, v);
+    return true;
 }
+

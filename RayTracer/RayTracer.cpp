@@ -123,7 +123,7 @@ void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixel
 	{
 		if (hit.node->GetMaterial())
 		{
-			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights, 5);
+			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights, 3);
 		}
 		else
 		{
@@ -167,7 +167,7 @@ void BeginRender(RenderScene* scene)
 	const int numThreads = std::thread::hardware_concurrency();
 	std::vector<std::thread> threads;
 	threads.reserve(numThreads);
-	constexpr int tileSize = 16;
+	constexpr int tileSize = 32;
 	const int tilesX = (camWidthRes + tileSize - 1) / tileSize;
 	const int tilesY = (camHeightRes + tileSize - 1) / tileSize;
 	const int totalTiles = tilesX * tilesY;
@@ -208,7 +208,12 @@ void BeginRender(RenderScene* scene)
 
 	for (int t = 0; t < numThreads; t++)
 		threads.emplace_back(runThread);
-	for (auto& th : threads) th.join();
+	for (auto& th : threads) th.detach();
+
+	while (!scene->renderImage.IsRenderDone())
+	{
+		continue;
+	}
 
 	scene->renderImage.ComputeZBufferImage();
 	scene->renderImage.SaveZImage("testZ.png");
