@@ -65,6 +65,9 @@
     <ClInclude Include="lights.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="shadowInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="project_1_scene.xml">
@@ -76,9 +79,6 @@
     <Xml Include="project_2_scene.xml">
       <Filter>Resource Files</Filter>
     </Xml>
-    <Xml Include="..\..\..\Desktop\scene3_2.xml">
-      <Filter>Resource Files</Filter>
-    </Xml>
     <Xml Include="custom.xml">
       <Filter>Resource Files</Filter>
     </Xml>
@@ -86,6 +86,9 @@
       <Filter>Resource Files</Filter>
     </Xml>
     <Xml Include="scene_5.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="scene3.xml">
       <Filter>Resource Files</Filter>
     </Xml>
   </ItemGroup>

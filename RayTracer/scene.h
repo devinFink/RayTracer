@@ -140,6 +140,7 @@ class Object : public ItemBase
 {
 public:
     virtual bool IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT) const = 0;
+    virtual bool ShadowRay(Ray const& ray, float t_max) const = 0;
     virtual void ViewportDisplay(Material const* mtl) const {}    // used for OpenGL display
     virtual void Load(Loader const& loader) {}
 };

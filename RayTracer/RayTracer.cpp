@@ -2,6 +2,7 @@
 #include <cmath>
 #include "raytracer.h"
 #include "objects.h"
+#include "shadowInfo.h"
 #include <iostream>
 #include <thread>
 #include <atomic>
@@ -71,15 +72,17 @@ void RayTracer::BeginRender()
 	for (int t = 0; t < numThreads; t++)
 		threads.emplace_back([this, totalTiles, tilesX, tilesY]() { RunThread(this->nextTile, totalTiles, tilesX, tilesY); });
 	for (auto& th : threads) th.detach();
-}
 
-void RayTracer::StopRender() 
-{
 	while (!renderImage.IsRenderDone())
 	{
 		continue;
 	}
 
+	StopRender();
+}
+
+void RayTracer::StopRender() 
+{
 	renderImage.ComputeZBufferImage();
 	renderImage.SaveZImage("testZ.png");
 	renderImage.SaveImage("playground.png");
@@ -97,8 +100,9 @@ void RayTracer::CreateRay(int index, cyVec3f pixelPos)
 
 	if (TraceRay(ray, hit, HIT_FRONT))
 	{
-		ShadeInfo info = ShadeInfo(scene.lights);
+		ShadowInfo info = ShadowInfo(scene.lights, this);
 		info.SetHit(ray, hit);
+
 		if (hit.node->GetMaterial())
 		{
 			renderImage.GetPixels()[index] = (Color24)hit.node->GetMaterial()->Shade(info);
@@ -121,6 +125,38 @@ void RayTracer::CreateRay(int index, cyVec3f pixelPos)
 bool RayTracer::TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
 {
 	return TraverseTree(ray, &scene.rootNode, hInfo, hitSide);
+}
+
+bool RayTracer::TraceShadowRay(Ray const& ray, float t_max, int hitSide) const
+{
+	return TraverseTreeShadow(ray, &scene.rootNode, t_max);
+}
+
+bool RayTracer::TraverseTreeShadow(const Ray& ray, const Node* node, float t_max) const
+{
+	if (!node) return false;
+	Ray transformedRay = node->ToNodeCoords(ray);
+
+	// Check current node's object
+	const Object* obj = node->GetNodeObj();
+	if (obj)
+	{
+		if (obj->ShadowRay(transformedRay, t_max))
+		{
+			return true;
+		}
+	}
+
+	// Traverse children
+	for (int i = 0; i < node->GetNumChild(); i++)
+	{
+		if (TraverseTreeShadow(transformedRay, node->GetChild(i), t_max))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool RayTracer::TraverseTree(const Ray& ray, const Node* node, HitInfo& hitInfo, int hitSide) const

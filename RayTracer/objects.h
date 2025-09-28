@@ -26,6 +26,7 @@ class Sphere : public Object
 {
 public:
     bool IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT) const override;
+    bool ShadowRay(Ray const& ray, float t_max) const override;
     void ViewportDisplay(Material const* mtl) const override;
 };
 
