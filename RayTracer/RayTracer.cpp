@@ -73,12 +73,13 @@ void RayTracer::BeginRender()
 		threads.emplace_back([this, totalTiles, tilesX, tilesY]() { RunThread(this->nextTile, totalTiles, tilesX, tilesY); });
 	for (auto& th : threads) th.detach();
 
-	while (!renderImage.IsRenderDone())
+	while(!renderImage.IsRenderDone())
 	{
 		continue;
 	}
-
-	StopRender();
+	renderImage.ComputeZBufferImage();
+	renderImage.SaveZImage("testZ.png");
+	renderImage.SaveImage("prj_6.png");
 }
 
 void RayTracer::StopRender() 
