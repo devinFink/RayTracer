@@ -48,6 +48,11 @@ Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist) const
 			return mat->Shade(si);
 		}
 	}
+	else
+	{
+		Color color = this->EvalEnvironment(ray.dir);
+		return color;
+	}
 
 	dist = BIGFLOAT;
 	return Color(0, 0, 0);
@@ -69,8 +74,9 @@ Color MtlPhong::Shade(ShadeInfo const& info) const
  * @param HitSide     Flags specifying which surface sides to consider.
  * @return Color contribution from the reflected ray.
 // */
-Color ReflectRay(ShadeInfo const& info, int HitSide)
+TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption)
 {
+	Color reflectCol(0, 0, 0);
 	cyVec3f reflectView = info.V();
 	float dot = info.N().Dot(reflectView);
 	cyVec3f reflectionDir = (2 * dot) * info.N() - reflectView;
@@ -79,7 +85,12 @@ Color ReflectRay(ShadeInfo const& info, int HitSide)
 	Ray reflect(info.P(), reflectionDir);
 	float dist;
 
-	return info.TraceSecondaryRay(reflect, dist);
+	reflectCol = info.TraceSecondaryRay(reflect, dist);
+	reflectCol.r *= exp(-absorption.r * dist);
+	reflectCol.g *= exp(-absorption.g * dist);
+	reflectCol.b *= exp(-absorption.b * dist);
+
+	return reflectCol;
 }
 
 /**
@@ -87,13 +98,11 @@ Color ReflectRay(ShadeInfo const& info, int HitSide)
  * Handles entering/exiting, total internal reflection, and recursive shading.
  *
  * @param ior         Index of refraction of the material.
- * @param ray         Incident ray at the intersection.
  * @param hInfo       Surface hit information.
- * @param lights      Scene light list for shading.
- * @param bounceCount Remaining recursion depth.
+ * @param absorption  Absorption color.
  * @return Color contribution from the refracted (or reflected) ray.
  */
-Color RefractRay(float ior, ShadeInfo const& info, Color absorption)
+TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption)
 {
 	Color refractCol(0, 0, 0);
 
@@ -119,7 +128,7 @@ Color RefractRay(float ior, ShadeInfo const& info, Color absorption)
 		float cosThetaSquared = (1 - pow(eta, 2) * (1 - pow(refractView.Dot(-info.N()), 2)));
 		if (cosThetaSquared < 0.0f)
 		{
-			return ReflectRay(info, HIT_FRONT_AND_BACK);
+			return ReflectRay(info, HIT_FRONT_AND_BACK, absorption);
 		}
 		cosThetaT = sqrt(cosThetaSquared);
 		refractDir = -eta * refractView - (cosThetaT - eta * (refractView.Dot(-info.N()))) * -info.N();
@@ -141,10 +150,7 @@ Color RefractRay(float ior, ShadeInfo const& info, Color absorption)
  * Includes diffuse, specular, ambient, reflection, and refraction contributions,
  * with recursive ray tracing for reflective and refractive materials.
  *
- * @param ray         Incoming ray that hit the surface.
- * @param hInfo       Surface hit information.
- * @param lights      List of lights in the scene.
- * @param bounceCount Remaining recursion depth for reflection/refraction.
+ * @param ShadeInfo     Surface hit information with lights and view direction
  * @return Final shaded color at the hit point.
  */
 Color MtlBlinn::Shade(ShadeInfo const &info) const
@@ -156,27 +162,27 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	Color fresnel(0, 0, 0);
 
 	
-	Color fullReflection = this->Reflection();
+	Color fullReflection = this->Reflection().GetValue();
 	float matior = this->ior;
 	if (matior > 0.0f && info.CanBounce())
 	{
-		refractCol = this->refraction * RefractRay(this->ior, info, this->absorption);
+		refractCol = this->refraction.GetValue() * RefractRay(this->ior, info, this->absorption).Eval(info.UVW());
 
 		//Fresnel Effect
-		fresnel = this->refraction * pow((1 - matior) / (1 + matior), 2);
+		fresnel = this->refraction.GetValue() * pow((1 - matior) / (1 + matior), 2);
 		fullReflection = fullReflection + fresnel;
 		refractCol = refractCol * (Color(1, 1, 1) - fullReflection);
 	}
 
 	if (fullReflection != Color(0, 0, 0) && info.CanBounce())
 	{
-		reflectCol = fullReflection * ReflectRay(info, HIT_FRONT);
+		reflectCol = fullReflection * ReflectRay(info, HIT_FRONT, this->absorption).Eval(info.UVW());
 	}
 	
 
-	float alpha = this->Glossiness();
-	Color kd = this->Diffuse();
-	Color ks = this->Specular();
+	float alpha = this->Glossiness().Eval(info.UVW());
+	Color kd = this->Diffuse().Eval(info.UVW());
+	Color ks = this->Specular().Eval(info.UVW());
 
 	for (int i = 0; i < info.NumLights(); i++)
 	{
@@ -198,7 +204,8 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 		}
 	}
 
-	finalColor += (ambientLight * this->Diffuse());
+
+	finalColor += (ambientLight * kd);
 	finalColor += reflectCol;
 	finalColor += refractCol;
 	return finalColor;

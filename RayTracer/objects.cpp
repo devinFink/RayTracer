@@ -6,6 +6,7 @@
 /// \brief      Methods corresponding to objects defined in objects.h
 ///
 
+#define _USE_MATH_DEFINES
 #include <iostream>
 #include <cmath>
 #include <limits>
@@ -18,7 +19,7 @@
 bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
     cyVec3f q(0.0f, 0.0f, 0.0f);
     int r = 1;
-	float eps = 0.01f;
+	float eps = 0.002f;
     cyVec3f oc = q - ray.p;
     double a = ray.dir.Dot(ray.dir);
     double b = 2.0 * ray.dir.Dot(ray.p - q);
@@ -29,20 +30,26 @@ bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
     double t1 = (-b - sqrt(discriminant)) / (2 * a);
     double t2 = (-b + sqrt(discriminant)) / (2 * a);
 
-    if (t1 > eps && hitSide & HIT_FRONT) {
+    if (t1 >= eps && hitSide & HIT_FRONT) {
         if (hInfo.z > t1) {
             hInfo.z = t1;
             hInfo.p = ray.p + (ray.dir * t1);
             hInfo.N = hInfo.p.GetNormalized();
+            float tu = (atan2(hInfo.p.y, hInfo.p.x) / (2 * M_PI)) + .5;
+            float tv = asin(hInfo.p.z) / M_PI + .5;
+            hInfo.uvw = cyVec3f(tu, tv, 0.0f);
             hInfo.front = true;
             return true;
         }
     }
-    else if (t2 > eps && hitSide & HIT_BACK) {
+    else if (t2 >= eps && hitSide & HIT_BACK) {
         if (hInfo.z > t2) {
             hInfo.z = t2;
             hInfo.p = ray.p + (ray.dir * t2);
             hInfo.N = hInfo.p.GetNormalized();
+            float tu = (atan2(hInfo.p.y, hInfo.p.x) / (2 * M_PI)) + .5;
+			float tv = asin(hInfo.p.z) / M_PI + .5;
+			hInfo.uvw = cyVec3f(tu, tv, 0.0f);
             hInfo.front = false;
             return true;
         }
@@ -65,8 +72,8 @@ bool Sphere::ShadowRay(Ray const& ray, float t_max) const {
     double t1 = (-b - sqrt(discriminant)) / (2 * a);
     double t2 = (-b + sqrt(discriminant)) / (2 * a);
 
-    if (t1 > 0.0002 && t1 < t_max) return true;
-    if (t2 > 0.0002 && t2 < t_max) return true;
+    if (t1 > 0.002 && t1 < t_max) return true;
+    if (t2 > 0.002 && t2 < t_max) return true;
 
     return false;
 }
@@ -123,6 +130,7 @@ bool Plane::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
         hInfo.z = t;
         hInfo.N = planeNorm;
         hInfo.p = ray.p + (ray.dir * t);
+		hInfo.uvw = cyVec3f((hInfo.p.x + 1.0f) * 0.5f, (hInfo.p.y + 1.0f) * 0.5f, 0.0f);
 
         // Check if the intersection point is within the bounds of the plane
         if (hInfo.p.x < -1.0f || hInfo.p.x > 1.0f || hInfo.p.y < -1.0f || hInfo.p.y > 1.0f)
@@ -171,6 +179,7 @@ bool TriObj::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
 
 
 bool TriObj::ShadowRay(Ray const& ray, float t_max) const {
+
     return TraceBVHNodeShadow(ray, t_max, bvh.GetRootNodeID());
 }
 
@@ -179,7 +188,7 @@ bool TriObj::ShadowRay(Ray const& ray, float t_max) const {
 */
 bool TriObj::IntersectTriangle(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int faceID, cyVec2f& baryCoords) const {
     TriFace const& face = F(faceID);
-    const float epsilon = 0.002f;
+    const float epsilon = 0.0001f;
 
     // Fetch vertices only once
     const cyVec3f& v0 = V(face.v[0]);
@@ -232,8 +241,9 @@ bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned 
         unsigned int elementCount = bvh.GetNodeElementCount(nodeID);
         unsigned int const* elements = bvh.GetNodeElements(nodeID);
         int closestFace = INT_MAX;
-		cyVec2f baryCoords(0.0f, 0.0f);
-        HitInfo tempHit;
+		float dist = std::numeric_limits<float>::max();
+        cyVec2f baryCoords(0.0f, 0.0f);
+		HitInfo tempHit;
         tempHit.Init();
         cyVec2f tempBary;
 
@@ -245,20 +255,30 @@ bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned 
             if (IntersectTriangle(ray, tempHit, hitSide, triangleIndex, tempBary)) 
             {
                 hit = true;
-                if (tempHit.z >= hInfo.z) continue;
-                hInfo.z = tempHit.z;
+                if (tempHit.z >= dist) continue;
+                dist = tempHit.z;
                 closestFace = triangleIndex;
                 baryCoords = tempBary;
             }
         }
 		if (!hit) return false;
 
+        TriFace textureFace = FT(closestFace);
+		TriFace normalFace = FN(closestFace);
 		float u = baryCoords.x;
 		float v = baryCoords.y;
+		float w = 1.0f - u - v;
+        cyVec3f uvw = (vt[textureFace.v[0]] * w) + 
+                      (vt[textureFace.v[1]] * u) + 
+                      (vt[textureFace.v[2]] * v);
+
         hInfo.N = ((1.0f - u - v) * vn[FN(closestFace).v[0]] +
             u * vn[FN(closestFace).v[1]] +
             v * vn[FN(closestFace).v[2]]).GetNormalized();
+
         hInfo.p = ray.p + ray.dir * hInfo.z;
+        hInfo.uvw = uvw;
+        hInfo.z = dist;
         hInfo.front = ray.dir.Dot(hInfo.N) < 0;
 
         return true;

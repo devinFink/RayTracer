@@ -22,7 +22,7 @@ class RayTracer : public Renderer
 		bool TraverseTree(const Ray& ray, const Node* node, HitInfo& hitInfo, int hitSide) const;
 		bool TraverseTreeShadow(const Ray& ray, const Node* node, float t_max) const;
 		void CreateCam2Wrld();
-		void CreateRay(int i, cyVec3f pixelPos);
+		void CreateRay(int i, cyVec3f pixelPos, cyVec2f scrPos);
 
 	private:
 		const int tileSize = 32;

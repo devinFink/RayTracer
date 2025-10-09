@@ -50,7 +50,8 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 					((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (y + (1.0f / 2.0f))), //y
 					(-1));                                                                           //z
 
-				CreateRay(i, pixelPos);
+				cyVec2f scrPos = cyVec2f((float)x, (float)y);
+				CreateRay(i, pixelPos, scrPos);
 			}
 		}
 	}
@@ -73,23 +74,23 @@ void RayTracer::BeginRender()
 		threads.emplace_back([this, totalTiles, tilesX, tilesY]() { RunThread(this->nextTile, totalTiles, tilesX, tilesY); });
 	for (auto& th : threads) th.detach();
 
-	while(!renderImage.IsRenderDone())
-	{
-		continue;
-	}
-	renderImage.ComputeZBufferImage();
-	renderImage.SaveZImage("testZ.png");
-	renderImage.SaveImage("prj_6.png");
+	//while(!renderImage.IsRenderDone())
+	//{
+	//	continue;
+	//}
+	//renderImage.ComputeZBufferImage();
+	//renderImage.SaveZImage("testZ.png");
+	//renderImage.SaveImage("prj_6.png");
 }
 
 void RayTracer::StopRender() 
 {
 	renderImage.ComputeZBufferImage();
 	renderImage.SaveZImage("testZ.png");
-	renderImage.SaveImage("playground.png");
+	renderImage.SaveImage("testSpace.png");
 }
 
-void RayTracer::CreateRay(int index, cyVec3f pixelPos)
+void RayTracer::CreateRay(int index, cyVec3f pixelPos, cyVec2f scrPos)
 {
 	//Ray Generation
 	Ray ray = Ray(camera.pos, pixelPos);
@@ -101,7 +102,7 @@ void RayTracer::CreateRay(int index, cyVec3f pixelPos)
 
 	if (TraceRay(ray, hit, HIT_FRONT))
 	{
-		ShadowInfo info = ShadowInfo(scene.lights, this);
+		ShadowInfo info = ShadowInfo(scene.lights, scene.environment, this);
 		info.SetHit(ray, hit);
 
 		if (hit.node->GetMaterial())
@@ -115,7 +116,10 @@ void RayTracer::CreateRay(int index, cyVec3f pixelPos)
 	}
 	else
 	{
-		renderImage.GetPixels()[index] = Color24(0, 0, 0);
+		float u = scrPos.x / (float)camera.imgWidth;
+		float v = scrPos.y / (float)camera.imgHeight;
+		Color color = scene.background.Eval(Vec3f(u, v, 0.0));
+		renderImage.GetPixels()[index] = (Color24)color;
 	}
 
 
@@ -170,21 +174,33 @@ bool RayTracer::TraverseTree(const Ray& ray, const Node* node, HitInfo& hitInfo,
 	const Object* obj = node->GetNodeObj();
 	if (obj)
 	{
-		if (obj->IntersectRay(transformedRay, hitInfo, hitSide))
+		HitInfo localHit;
+		localHit.Init();
+		if (obj->IntersectRay(transformedRay, localHit, hitSide))
 		{
-			hit = true;
-			node->FromNodeCoords(hitInfo);
-			hitInfo.node = node;
+			if (localHit.z < hitInfo.z)
+			{
+				hitInfo = localHit;
+				hit = true;
+				node->FromNodeCoords(hitInfo);
+				hitInfo.node = node;
+			}
 		}
 	}
 
 	// Traverse children
 	for (int i = 0; i < node->GetNumChild(); i++)
 	{
-		if (TraverseTree(transformedRay, node->GetChild(i), hitInfo, hitSide))
+		HitInfo localHit;
+		localHit.Init();
+		if (TraverseTree(transformedRay, node->GetChild(i), localHit, hitSide))
 		{
-			hit = true;
-			node->FromNodeCoords(hitInfo);
+			if(localHit.z < hitInfo.z)
+			{
+				hitInfo = localHit;
+				hit = true;
+				node->FromNodeCoords(hitInfo);
+			}
 		}
 	}
 

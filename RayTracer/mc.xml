@@ -1,0 +1,157 @@
+<xml>
+  <scene>
+    <!-- Objects -->
+    <object name="box">
+      <translate x="0" y="0" z="12"/>
+      <!--<object type="plane" name="WallBottom" material="wall">
+        <scale value="32"/>
+        <translate z="-12"/>
+      </object>
+      <object type="plane" name="WallTop" material="wall">
+        <scale value="32"/>
+        <rotate angle="180" x="1"/>
+        <translate z="12"/>
+      </object>-->
+      <object type="plane" name="WallBack" material="wall">
+        <scale value="100"/>
+        <rotate angle="90" x="1"/>
+        <translate y="100"/>
+      </object>
+      <!--<object type="plane" name="WallLeft" material="wall">
+        <scale value="32"/>
+        <rotate angle="90" y="1"/>
+        <translate x="-15"/>
+      </object>
+      <object type="plane" name="WallRight" material="wall">
+        <scale value="32"/>
+        <rotate angle="-90" y="1"/>
+        <translate x="15"/>
+      </object>-->
+    </object>
+    <object type="obj" name="therest.obj" material="terrain">
+      <scale value="0.3"/>
+      <rotate angle="120" x="1"/>
+      <translate x="0" y="50" z="0"/>
+    </object>
+    <object type="obj" name="clouds.obj" material="clouds">
+      <scale value="0.3"/>
+      <rotate angle="120" x="1"/>
+      <translate x="0" y="50" z="10"/>
+    </object>
+    <object type="obj" name="water.obj" material="water">
+      <scale value="0.3"/>
+      <rotate angle="120" x="1"/>
+      <translate x="0" y="50" z="0"/>
+    </object>
+    <object type="obj" name="flowers.obj" material="flowers">
+      <scale value="0.3"/>
+      <rotate angle="120" x="1"/>
+      <translate x="0" y="50" z="0"/>
+    </object>
+    <object type="obj" name="grassblock.obj" material="grass">
+      <scale value="0.3"/>
+      <rotate angle="120" x="1"/>
+      <translate x="0" y="50" z="0"/>
+    </object>
+    <object type="obj" name="grass.obj" material="grass">
+      <scale value="0.3"/>
+      <rotate angle="120" x="1"/>
+      <translate x="0" y="50" z="0"/>
+    </object>
+    <object type="obj" name="trees.obj" material="trees">
+      <scale value="0.3"/>
+      <rotate angle="120" x="1"/>
+      <translate x="0" y="50" z="0"/>
+    </object>
+
+
+    <!--<object type="obj" name="teapot.obj" material="mtl1">
+      <scale value="0.3"/>
+      <rotate angle="-60" z="1"/>
+      <translate x="5" y="-6" z="0"/>
+    </object>
+    <object type="sphere" name="sphere2" material="mtl2">
+      <scale value="4"/>
+      <rotate angle="30" y="1"/>
+      <translate x="-8" y="-6" z="4"/>
+    </object>-->
+
+    <!-- Materials -->
+    <material type="blinn" name="wall">
+      <diffuse  r="0" g="0.5" b="1"/>
+      <specular value="0"/>
+    </material>
+    <material type="blinn" name="terrain">
+      <diffuse  r="0.55" g="0.55" b="0.55"/>
+      <specular value="0"/>
+    </material>
+    <material type="blinn" name="clouds">
+      <diffuse  r="0.75" g="0.75" b="0.75"/>
+      <specular r="0.5" g="0.5" b="0.5" value="0.8"/>
+      <glossiness value="2"/>
+      <refraction value="0.8" index="1.52"/>
+      <absorption r="0.1" g="0.1" b="0.1"/>
+    </material>
+    <material type="blinn" name="grass">
+      <diffuse  r="0.0" g="0.75" b="0.3"/>
+      <specular value="3"/>
+    </material>
+    <material type="blinn" name="trees">
+      <diffuse  r="0.0" g="0.95" b="0.3"/>
+      <specular value="2"/>
+    </material>
+    <material type="blinn" name="flowers">
+      <diffuse  r="0.9" g="0.5" b="0.3"/>
+      <specular value="3"/>
+    </material>
+    <material type="blinn" name="water">
+      <diffuse  r="0.0" g="0.2" b="0.5"/>
+      <specular r="0.0" g="0.5" b="0.5" value="0.8"/>
+      <glossiness value="4"/>
+      <refraction value="0.8" index="1.33"/>
+      <absorption r="0.2" g="0.1" b="0.1"/>
+    </material>
+
+
+
+    <material type="blinn" name="wallRed">
+      <diffuse  r="1.0" g="0.5" b="0.5"/>
+      <specular value="0"/>
+    </material>
+    <material type="blinn" name="wallGreen">
+      <diffuse r="0.4" g="0.8" b="0.4"/>
+      <specular value="0"/>
+    </material>
+    <material type="blinn" name="mtl1">
+      <diffuse  r="0.8" g="0.2" b="0.2"/>
+      <specular r="1.0" g="1.0" b="1.0" value="0.7"/>
+      <glossiness value="20"/>
+      <reflection value="0.7"/>
+    </material>
+    <material type="blinn" name="mtl2">
+      <diffuse  r="0.1" g="0.1" b="0.9"/>
+      <specular r="0.9" g="0.9" b="1.0" value="0.8"/>
+      <glossiness value="10"/>
+      <refraction value="0.8" index="1.52"/>
+      <absorption r="0.01" g="0.001" b="0.0001"/>
+    </material>
+
+    <!-- Lights -->
+    <light type="ambient" name="ambientLight">
+      <intensity value="0.1"/>
+    </light>
+    <light type="point" name="pointLight">
+      <intensity value="0.5"/>
+      <position x="0" y="0" z="22"/>
+    </light>
+  </scene>
+
+  <camera>
+    <position x="0" y="-60" z="12"/>
+    <target x="0" y="0" z="12"/>
+    <up x="0" y="0" z="1"/>
+    <fov value="30"/>
+    <width value="3840"/>
+    <height value="2160"/>
+  </camera>
+</xml>

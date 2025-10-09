@@ -39,6 +39,9 @@
     <ClCompile Include="materials.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lodepng.h">
@@ -68,6 +71,9 @@
     <ClInclude Include="shadowInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="project_1_scene.xml">
@@ -89,6 +95,12 @@
       <Filter>Resource Files</Filter>
     </Xml>
     <Xml Include="scene3.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="havingFun.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="scene_textures.xml">
       <Filter>Resource Files</Filter>
     </Xml>
   </ItemGroup>
