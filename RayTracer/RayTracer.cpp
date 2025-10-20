@@ -47,20 +47,25 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 				int index = y * scrWidth + x;
 				Color sumColor(0, 0, 0);
 				Color sumColorSquared(0, 0, 0);
-				Color finalColor(0, 0, 0);
 				HaltonSeq<64> haltonX(2);
 				HaltonSeq<64> haltonY(3);
 				RNG rng(index);
-				float randomOffsetX = rng.RandomFloat();
-				float randomOffsetY = rng.RandomFloat();
+				float randomOffset = rng.RandomFloat();
 				int totalSamples = 0;
 
 
 				//Adaptive Sampling loop
 				for(int i = 0; i < 64; i++)
 				{
-					float pixX = -(wrldImgWidth / 2.0f) + ((wrldImgWidth * (x + (1.0f / 2.0f) + haltonX[i] + randomOffsetX) / camWidthRes));
-					float pixY = (wrldImgHeight / 2.0f) - ((wrldImgHeight * (y + (1.0f / 2.0f) + haltonY[i] + randomOffsetY) / camHeightRes));
+					float haltonValueX = haltonX[i];
+					if(haltonValueX + randomOffset > 1.0f)
+						haltonValueX -= 1.0f;
+					float haltonValueY = haltonY[i];
+					if(haltonValueY + randomOffset > 1.0f)
+						haltonValueY -= 1.0f;
+
+					float pixX = -(wrldImgWidth / 2.0f) + ((wrldImgWidth * (x + (1.0f / 2.0f) + haltonValueX + randomOffset) / camWidthRes));
+					float pixY = (wrldImgHeight / 2.0f) - ((wrldImgHeight * (y + (1.0f / 2.0f) + haltonValueY + randomOffset) / camHeightRes));
 ;
 					cyVec3f pixelPos(pixX, pixY, -1);
 
@@ -84,22 +89,19 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 
 						if(phi.r <= threshold && phi.g <= threshold && phi.b <= threshold)
 						{
-							finalColor = mean;
-							totalSamples = (int)n;
+							totalSamples = i + 1;
 							break;
 						}
 					}
 
 					if(i == 63)
 					{
-						float n = (float)(i + 1);
-						finalColor = sumColor / n;
-						totalSamples = (int)n;
+						totalSamples = i + 1;
 					}
 				}                                                                
 
 
-				renderImage.GetPixels()[index] = (Color24)finalColor;
+				renderImage.GetPixels()[index] = (Color24)(sumColor / (float)totalSamples);
 				renderImage.IncrementNumRenderPixel(1);
 				renderImage.GetZBuffer()[index] = 0;
 				renderImage.GetSampleCount()[index] = totalSamples;
@@ -157,13 +159,13 @@ void RayTracer::BeginRender()
 		threads.emplace_back([this, totalTiles, tilesX, tilesY]() { RunThread(this->nextTile, totalTiles, tilesX, tilesY); });
 	for (auto& th : threads) th.detach();
 
-	//while(!renderImage.IsRenderDone())
-	//{
-	//	continue;
-	//}
-	//renderImage.ComputeZBufferImage();
-	//renderImage.SaveZImage("testZ.png");
-	//renderImage.SaveImage("prj_7.png");
+	while(!renderImage.IsRenderDone())
+	{
+		continue;
+	}
+	renderImage.ComputeZBufferImage();
+	renderImage.SaveZImage("testZ.png");
+	renderImage.SaveImage("prj_8.png");
 }
 
 void RayTracer::StopRender() 

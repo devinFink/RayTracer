@@ -20,7 +20,6 @@ bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
     cyVec3f q(0.0f, 0.0f, 0.0f);
     int r = 1;
 	float eps = 0.002f;
-    cyVec3f oc = q - ray.p;
     double a = ray.dir.Dot(ray.dir);
     double b = 2.0 * ray.dir.Dot(ray.p - q);
     double c = ray.p.Dot(ray.p) - r * r;
@@ -62,7 +61,6 @@ bool Sphere::ShadowRay(Ray const& ray, float t_max) const {
     cyVec3f q(0.0f, 0.0f, 0.0f);
     int r = 1;
 
-    cyVec3f oc = q - ray.p;
     double a = ray.dir.Dot(ray.dir);
     double b = 2.0 * ray.dir.Dot(ray.p - q);
     double c = ray.p.Dot(ray.p) - r * r;
@@ -270,12 +268,13 @@ bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned 
                       (vt[textureFace.v[1]] * u) + 
                       (vt[textureFace.v[2]] * v);
 
-        hInfo.N = (w * vn[FN(closestFace).v[0]] +
-            u * vn[FN(closestFace).v[1]] +
-            v * vn[FN(closestFace).v[2]]).GetNormalized();
+        hInfo.N = (w * vn[normalFace.v[0]] +
+            u * vn[normalFace.v[1]] +
+            v * vn[normalFace.v[2]]).GetNormalized();
 
         hInfo.p = ray.p + ray.dir * hInfo.z;
         hInfo.uvw = uvw;
+        hInfo.z = tempHit.z;
         hInfo.front = ray.dir.Dot(hInfo.N) < 0;
 
         return true;
