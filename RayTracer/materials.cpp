@@ -9,6 +9,7 @@
 #include "materials.h"
 #include "lights.h"
 #include "raytracer.h"
+#include "shadowInfo.h"
 
 /**
  * Determines whether a point is shadowed along a given ray.
@@ -18,14 +19,46 @@
  * @param t_max Maximum distance to test (typically distance to the light).
  * @return 0.0 if the ray is occluded (in shadow), 1.0 if unoccluded (lit).
  */
-float GenLight::Shadow(Ray const& ray, float t_max)
+float ShadowInfo::TraceShadowRay(Ray const& ray, float t_max) const
 {
-	if (TraverseTreeShadow(ray, treeRoot, t_max)) return 0.0;
+	if (renderer->TraceShadowRay(ray, t_max)) return 0.0;
 
 	return 1.0;
 }
 
-Color MtlPhong::Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lights, int bounceCount) const
+bool ShadowInfo::CanBounce() const
+{
+	return bounceS < renderer->bounceCount;
+}
+
+Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist) const
+{
+	HitInfo hit;
+	hit.Init();
+
+	if (renderer->TraceRay(ray, hit, HIT_FRONT_AND_BACK))
+	{
+		auto* mat = hit.node->GetMaterial();
+		if (mat)
+		{
+			ShadowInfo si = *this;
+			si.SetHit(ray, hit);
+			si.IncrementBounce();
+			si.IsFront() ? dist = si.Depth() : dist = 0;
+			return mat->Shade(si);
+		}
+	}
+	else
+	{
+		Color color = this->EvalEnvironment(ray.dir);
+		return color;
+	}
+
+	dist = BIGFLOAT;
+	return Color(0, 0, 0);
+}
+
+Color MtlPhong::Shade(ShadeInfo const& info) const
 {
 	return Color(255, 255, 255);
 }
@@ -40,29 +73,24 @@ Color MtlPhong::Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lig
  * @param bounceCount Remaining recursion depth.
  * @param HitSide     Flags specifying which surface sides to consider.
  * @return Color contribution from the reflected ray.
- */
-Color ReflectRay(const Ray& ray, const HitInfo& hInfo, const LightList& lights, int bounceCount, int HitSide)
+// */
+TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption)
 {
-	if (bounceCount < 0) return Color(0, 0, 0);
-
-	HitInfo reflectHit;
-	reflectHit.Init();
-
-	cyVec3f reflectView = -ray.dir;
-	float dot = hInfo.N.Dot(reflectView);
-	cyVec3f reflectionDir = (2 * dot) * hInfo.N - reflectView;
+	Color reflectCol(0, 0, 0);
+	cyVec3f reflectView = info.V();
+	float dot = info.N().Dot(reflectView);
+	cyVec3f reflectionDir = (2 * dot) * info.N() - reflectView;
 	reflectionDir.Normalize();
 
-	Ray reflect(hInfo.p, reflectionDir);
+	Ray reflect(info.P(), reflectionDir);
+	float dist;
 
-	if (TraverseTree(reflect, treeRoot, reflectHit, HitSide)) {
-		auto* mat = reflectHit.node->GetMaterial();
-		if (mat) {
-			return mat->Shade(reflect, reflectHit, lights, bounceCount - 1);
-		}
-	}
+	reflectCol = info.TraceSecondaryRay(reflect, dist);
+	reflectCol.r *= exp(-absorption.r * dist);
+	reflectCol.g *= exp(-absorption.g * dist);
+	reflectCol.b *= exp(-absorption.b * dist);
 
-	return Color(0, 0, 0);
+	return reflectCol;
 }
 
 /**
@@ -70,61 +98,50 @@ Color ReflectRay(const Ray& ray, const HitInfo& hInfo, const LightList& lights, 
  * Handles entering/exiting, total internal reflection, and recursive shading.
  *
  * @param ior         Index of refraction of the material.
- * @param ray         Incident ray at the intersection.
  * @param hInfo       Surface hit information.
- * @param lights      Scene light list for shading.
- * @param bounceCount Remaining recursion depth.
+ * @param absorption  Absorption color.
  * @return Color contribution from the refracted (or reflected) ray.
  */
-Color RefractRay(float ior, const Ray& ray, const HitInfo& hInfo, const LightList& lights, int bounceCount, Color absorption)
+TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption)
 {
 	Color refractCol(0, 0, 0);
-	if (bounceCount < 0) return refractCol;
-	HitInfo refractHit;
-	refractHit.Init();
 
-	cyVec3f refractView = -ray.dir;
+	cyVec3f refractView = info.V();
 	float eta;
 	float cosThetaT;
 	cyVec3f refractDir;
 	Ray refract;
 	float eps = 1e-4f;
 
-	if (hInfo.front)
+	if (info.IsFront())
 	{
 		eta = 1 / ior;
-		cosThetaT = sqrt(1 - pow(eta, 2) * (1 - pow(refractView.Dot(hInfo.N), 2)));
-		refractDir = -eta * refractView - (cosThetaT - eta * (refractView.Dot(hInfo.N))) * hInfo.N;
-		refract = Ray(hInfo.p, refractDir.GetNormalized());
-		float sign = refract.dir.Dot(hInfo.N) > 0.0f ? 1.0f : -1.0f;
-		refract.p += hInfo.N * (eps * sign);
+		cosThetaT = sqrt(1 - pow(eta, 2) * (1 - pow(refractView.Dot(info.N()), 2)));
+		refractDir = -eta * refractView - (cosThetaT - eta * (refractView.Dot(info.N()))) * info.N();
+		refract = Ray(info.P(), refractDir.GetNormalized());
+		float sign = refract.dir.Dot(info.N()) > 0.0f ? 1.0f : -1.0f;
+		refract.p += info.N() * (eps * sign);
 	}
 	else
 	{
 		eta = ior / 1;
-		float cosThetaSquared = (1 - pow(eta, 2) * (1 - pow(refractView.Dot(-hInfo.N), 2)));
+		float cosThetaSquared = (1 - pow(eta, 2) * (1 - pow(refractView.Dot(-info.N()), 2)));
 		if (cosThetaSquared < 0.0f)
 		{
-			return ReflectRay(ray, hInfo, lights, bounceCount - 1, HIT_FRONT_AND_BACK);
+			return ReflectRay(info, HIT_FRONT_AND_BACK, absorption);
 		}
 		cosThetaT = sqrt(cosThetaSquared);
-		refractDir = -eta * refractView - (cosThetaT - eta * (refractView.Dot(-hInfo.N))) * -hInfo.N;
-		refract = Ray(hInfo.p, refractDir.GetNormalized());
-		float sign = refract.dir.Dot(-hInfo.N) > 0.0f ? 1.0f : -1.0f;
-		refract.p += -hInfo.N * (eps * sign);
+		refractDir = -eta * refractView - (cosThetaT - eta * (refractView.Dot(-info.N()))) * -info.N();
+		refract = Ray(info.P(), refractDir.GetNormalized());
+		float sign = refract.dir.Dot(-info.N()) > 0.0f ? 1.0f : -1.0f;
+		refract.p += -info.N() * (eps * sign);
 	}
 
-	if (TraverseTree(refract, treeRoot, refractHit, HIT_FRONT_AND_BACK) && (refractHit.node->GetMaterial()))
-	{
-		refractCol = refractHit.node->GetMaterial()->Shade(refract, refractHit, lights, bounceCount - 1);
-
-		if (refractHit.node == hInfo.node)
-		{
-			refractCol.r *= exp(-absorption.r * refractHit.z);
-			refractCol.g *= exp(-absorption.g * refractHit.z);
-			refractCol.b *= exp(-absorption.b * refractHit.z);
-		}
-	}
+	float dist;
+	refractCol = info.TraceSecondaryRay(refract, dist);
+	refractCol.r *= exp(-absorption.r * dist);
+	refractCol.g *= exp(-absorption.g * dist);
+	refractCol.b *= exp(-absorption.b * dist);
 	return refractCol;
 }
 
@@ -133,67 +150,70 @@ Color RefractRay(float ior, const Ray& ray, const HitInfo& hInfo, const LightLis
  * Includes diffuse, specular, ambient, reflection, and refraction contributions,
  * with recursive ray tracing for reflective and refractive materials.
  *
- * @param ray         Incoming ray that hit the surface.
- * @param hInfo       Surface hit information.
- * @param lights      List of lights in the scene.
- * @param bounceCount Remaining recursion depth for reflection/refraction.
+ * @param ShadeInfo     Surface hit information with lights and view direction
  * @return Final shaded color at the hit point.
  */
-Color MtlBlinn::Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lights, int bounceCount) const
+Color MtlBlinn::Shade(ShadeInfo const &info) const
 {
 	Color finalColor(0, 0, 0);
 	Color ambientLight(0, 0, 0);
 	Color reflectCol(0, 0, 0);
 	Color refractCol(0, 0, 0);
 	Color fresnel(0, 0, 0);
-	Color fullReflection = this->Reflection();
+	Color reflection = this->Reflection().Eval(info.UVW());
+	Color refraction = this->Refraction().Eval(info.UVW());
+
+	
+	Color fullReflection = reflection;;
 	float matior = this->ior;
-
-
-
-	if (matior > 0.0f && bounceCount > 0)
+	if (matior > 0.0f && info.CanBounce())
 	{
-		refractCol = this->refraction * RefractRay(this->ior, ray, hInfo, lights, bounceCount, this->absorption);
+		refractCol = refraction * RefractRay(this->ior, info, this->absorption).Eval(info.UVW());
 
 		//Fresnel Effect
-		fresnel = this->refraction * pow((1 - matior) / (1 + matior), 2);
+		fresnel = refraction * pow((1 - matior) / (1 + matior), 2);
 		fullReflection = fullReflection + fresnel;
 		refractCol = refractCol * (Color(1, 1, 1) - fullReflection);
 	}
 
-	if (fullReflection != Color(0, 0, 0) && bounceCount > 0)
+	if (fullReflection != Color(0, 0, 0) && info.CanBounce())
 	{
-		reflectCol = fullReflection * ReflectRay(ray, hInfo, lights, bounceCount, HIT_FRONT);
+		reflectCol = fullReflection * ReflectRay(info, HIT_FRONT, this->absorption).Eval(info.UVW());
 	}
+	
 
-	float alpha = this->Glossiness();
-	Color kd = this->Diffuse();
-	Color ks = this->Specular();
+	float alpha = this->Glossiness().Eval(info.UVW());
+	Color kd = this->Diffuse().Eval(info.UVW());
+	Color ks = this->Specular().Eval(info.UVW());
 
-	for (int i = 0; i < lights.size(); i++)
+	for (int i = 0; i < info.NumLights(); i++)
 	{
-		if (lights[i]->IsAmbient())
+		const Light* light = info.GetLight(i);
+		cyVec3f lightDir{};
+		Color lightIntensity = light->Illuminate(info, lightDir);
+		if (light->IsAmbient())
 		{
-			ambientLight += lights[i]->Illuminate(hInfo.p, hInfo.N);
+			ambientLight += lightIntensity;
 		}
 		else
 		{
-			cyVec3f h = (((-lights[i]->Direction(hInfo.p)) - ray.dir).GetNormalized());
-			float cosphi = std::max(hInfo.N.Dot(h), 0.0f);
-			float costheta = std::max((-lights[i]->Direction(hInfo.p)).Dot(hInfo.N), 0.0f);
+			cyVec3f h = (lightDir + info.V()).GetNormalized();
+			float cosphi = std::max(info.N().Dot(h), 0.0f);
+			float costheta = std::max(lightDir.Dot(info.N()), 0.0f);
 
-			Color color = (lights[i]->Illuminate(hInfo.p, hInfo.N) * ((costheta * kd) + (ks * pow(cosphi, alpha))));
-			finalColor = finalColor + color;
+			Color color = (lightIntensity * ((costheta * kd) + (ks * pow(cosphi, alpha))));
+			finalColor += color;
 		}
 	}
 
-	finalColor += (ambientLight * this->Diffuse());
+
+	finalColor += (ambientLight * kd);
 	finalColor += reflectCol;
 	finalColor += refractCol;
 	return finalColor;
 }
 
-Color MtlMicrofacet::Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lights, int bounceCount) const
+Color MtlMicrofacet::Shade(ShadeInfo const &shade) const
 {
 	return Color(255, 255, 255);
 }

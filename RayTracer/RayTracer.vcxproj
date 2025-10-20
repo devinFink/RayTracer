@@ -194,8 +194,9 @@
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="materials.cpp" />
-    <ClCompile Include="raytracer.cpp" />
     <ClCompile Include="objects.cpp" />
+    <ClCompile Include="raytracer.cpp" />
+    <ClCompile Include="texture.cpp" />
     <ClCompile Include="tinyxml2.cpp" />
     <ClCompile Include="viewport.cpp" />
     <ClCompile Include="xmlload.cpp" />
@@ -204,18 +205,24 @@
     <ClInclude Include="lights.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="materials.h" />
+    <ClInclude Include="objects.h" />
     <ClInclude Include="raytracer.h" />
+    <ClInclude Include="renderer.h" />
+    <ClInclude Include="rng.h" />
     <ClInclude Include="scene.h" />
-    <ClInclude Include="viewport.h" />
+    <ClInclude Include="shadowInfo.h" />
+    <ClInclude Include="texture.h" />
     <ClInclude Include="xmlload.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\..\Desktop\scene3_2.xml" />
     <Xml Include="custom.xml" />
+    <Xml Include="havingFun.xml" />
     <Xml Include="project_1_scene.xml" />
     <Xml Include="project_2_scene.xml" />
+    <Xml Include="scene3.xml" />
     <Xml Include="scene_4.xml" />
     <Xml Include="scene_5.xml" />
+    <Xml Include="scene_textures.xml" />
     <Xml Include="simple_scene.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

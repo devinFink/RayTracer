@@ -3,8 +3,8 @@
 ///
 /// \file       xmlload.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    5.0
-/// \date       September 13, 2025
+/// \version    7.1
+/// \date       October 2, 2025
 ///
 /// \brief Example source for CS 6620 - University of Utah.
 ///
@@ -15,474 +15,376 @@
 ///
 //-------------------------------------------------------------------------------
 
-#include "scene.h"
-#include "materials.h"
+#include "renderer.h"
+#include "xmlload.h"
+#include "objects.h"
 #include "lights.h"
-#include "tinyxml2.h"
-#include <objects.h>
-
-//-------------------------------------------------------------------------------
-// How to use:
-
-// Call this function to load a scene from an xml file.
-int LoadScene(RenderScene& scene, char const* filename);
+#include "materials.h"
+#include "texture.h"
 
 //-------------------------------------------------------------------------------
 
 Sphere theSphere;
-Plane thePlane;
+Plane  thePlane;
 
 //-------------------------------------------------------------------------------
 
-using namespace tinyxml2;
+void LoadNode(Loader loader, Node& parent, ObjFileList& objList);
+void LoadLight(Loader loader, LightList& lights);
+void LoadMaterial(Loader loader, MaterialList& materials, TextureFileList& texFiles);
+void SetNodeMaterials(Node* node, MaterialList& materials, TextureFileList& texFiles);
+
+TextureFile* ReadTextureFile(TextureFileList& texFiles, char const* filename);
+Material* CreateMultiMtl(TextureFileList& texFiles, TriObj const* tobj);
 
 //-------------------------------------------------------------------------------
 
-void LoadScene(RenderScene& scene, XMLElement* element);
-void LoadNode(Node& parent, XMLElement* element, int level, ObjFileList& objList);
-void LoadTransform(Transformation& trans, XMLElement* element, int level);
-void LoadMaterial(MaterialList& materials, XMLElement* element);
-void LoadLight(LightList& lights, XMLElement* element);
-void ReadVector(XMLElement* element, Vec3f& v);
-void ReadColor(XMLElement* element, Color& c);
-void ReadFloat(XMLElement* element, float& f, char const* name = "value");
-void SetNodeMaterials(Node* node, MaterialList const& materials);
-
-//-------------------------------------------------------------------------------
-
-// Compares null terminated ('\0') strings.
-bool StrICmp(char const* a, char const* b)
+bool Renderer::LoadScene(char const* filename)
 {
-    if (a == b) return true;
-    if (!a || !b) return false;
-    int i = 0;
-    while (tolower(a[i]) == tolower(b[i])) {
-        if (a[i] == '\0') return true;
-        i++;
-    }
-    return false;
-}
+    tinyxml2::XMLDocument doc;
+    tinyxml2::XMLError e = doc.LoadFile(filename);
 
-//-------------------------------------------------------------------------------
-
-int LoadScene(RenderScene& scene, char const* filename)
-{
-    XMLDocument doc;
-    XMLError e = doc.LoadFile(filename);
-
-    if (e != XML_SUCCESS) {
-        printf("Failed to load the file \"%s\"\n", filename);
-        return 0;
+    if (e != tinyxml2::XML_SUCCESS) {
+        printf("ERROR: Failed to load the file \"%s\"\n", filename);
+        return false;
     }
 
-    XMLElement* xml = doc.FirstChildElement("xml");
+    tinyxml2::XMLElement* xml = doc.FirstChildElement("xml");
     if (!xml) {
-        printf("No \"xml\" tag found.\n");
-        return 0;
+        printf("ERROR: No \"xml\" tag found.\n");
+        return false;
     }
 
-    XMLElement* xscene = xml->FirstChildElement("scene");
+    tinyxml2::XMLElement* xscene = xml->FirstChildElement("scene");
     if (!xscene) {
-        printf("No \"scene\" tag found.\n");
-        return 0;
+        printf("ERROR: No \"scene\" tag found.\n");
+        return false;
     }
 
-    XMLElement* cam = xml->FirstChildElement("camera");
-    if (!cam) {
-        printf("No \"camera\" tag found.\n");
-        return 0;
+    tinyxml2::XMLElement* xcam = xml->FirstChildElement("camera");
+    if (!xcam) {
+        printf("ERROR: No \"camera\" tag found.\n");
+        return false;
     }
 
-    scene.rootNode.Init();
-    scene.materials.DeleteAll();
-    scene.lights.DeleteAll();
-    scene.objList.Clear();
-    LoadScene(scene, xscene);
+    scene.Load(Loader(xscene));
+    camera.Load(Loader(xcam));
+    renderImage.Init(camera.imgWidth, camera.imgHeight);
 
-    scene.rootNode.ComputeChildBoundBox();
+    sceneFile = filename;
 
-    // Assign materials
-    SetNodeMaterials(&scene.rootNode, scene.materials);
-
-    // Load Camera
-    scene.camera.Init();
-    scene.camera.dir += scene.camera.pos;
-    XMLElement* camChild = cam->FirstChildElement();
-    while (camChild) {
-        if (StrICmp(camChild->Value(), "position")) ReadVector(camChild, scene.camera.pos);
-        else if (StrICmp(camChild->Value(), "target")) ReadVector(camChild, scene.camera.dir);
-        else if (StrICmp(camChild->Value(), "up")) ReadVector(camChild, scene.camera.up);
-        else if (StrICmp(camChild->Value(), "fov")) ReadFloat(camChild, scene.camera.fov);
-        else if (StrICmp(camChild->Value(), "width")) camChild->QueryIntAttribute("value", &scene.camera.imgWidth);
-        else if (StrICmp(camChild->Value(), "height")) camChild->QueryIntAttribute("value", &scene.camera.imgHeight);
-        camChild = camChild->NextSiblingElement();
-    }
-    scene.camera.dir -= scene.camera.pos;
-    scene.camera.dir.Normalize();
-    Vec3f x = scene.camera.dir ^ scene.camera.up;
-    scene.camera.up = (x ^ scene.camera.dir).GetNormalized();
-
-    scene.renderImage.Init(scene.camera.imgWidth, scene.camera.imgHeight);
-
-    return 1;
+    return true;
 }
 
 //-------------------------------------------------------------------------------
 
-void PrintIndent(int level) { for (int i = 0; i < level; i++) printf("   "); }
-
-//-------------------------------------------------------------------------------
-
-void LoadScene(RenderScene& scene, XMLElement* element)
+void Scene::Load(Loader const& sceneLoader)
 {
-    for (XMLElement* child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-        if (StrICmp(child->Value(), "object")) {
-            LoadNode(scene.rootNode, child, 0, scene.objList);
-        }
-        else if (StrICmp(child->Value(), "material")) {
-            LoadMaterial(scene.materials, child);
-        }
-        else if (StrICmp(child->Value(), "light")) {
-            LoadLight(scene.lights, child);
-        }
+    rootNode.Init();
+    objList.DeleteAll();
+    lights.DeleteAll();
+    materials.DeleteAll();
+    texFiles.DeleteAll();
+
+    for (Loader loader : sceneLoader) {
+        if (loader == "object") LoadNode(loader, rootNode, objList);
+        else if (loader == "light") LoadLight(loader, lights);
+        else if (loader == "material") LoadMaterial(loader, materials, texFiles);
+        else if (loader == "background") loader.ReadTexturedColor(background, texFiles);
+        else if (loader == "environment") loader.ReadTexturedColor(environment, texFiles);
+        else printf("WARNING: Unknown tag \"%s\"\n", static_cast<char const*>(loader.Tag()));
     }
+
+    rootNode.ComputeChildBoundBox();
+
+    SetNodeMaterials(&rootNode, materials, texFiles);
 }
 
 //-------------------------------------------------------------------------------
 
-void LoadNode(Node& parent, XMLElement* element, int level, ObjFileList& objList)
+void Camera::Load(Loader const& loader)
+{
+    Init();
+    loader.Child("position").ReadVec3f(pos);
+    loader.Child("target").ReadVec3f(dir);
+    loader.Child("up").ReadVec3f(up);
+    loader.Child("fov").ReadFloat(fov);
+    loader.Child("width").ReadInt(imgWidth);
+    loader.Child("height").ReadInt(imgHeight);
+    dir -= pos;
+    dir.Normalize();
+    Vec3f x = dir ^ up;
+    up = (x ^ dir).GetNormalized();
+}
+
+//-------------------------------------------------------------------------------
+
+void LoadNode(Loader loader, Node& parent, ObjFileList& objList)
 {
     Node* node = new Node;
     parent.AppendChild(node);
 
     // name
-    char const* name = element->Attribute("name");
+    char const* name = loader.Attribute("name");
     node->SetName(name);
-    PrintIndent(level);
-    printf("object [");
-    if (name) printf("%s", name);
-    printf("]");
 
     // material
-    char const* mtlName = element->Attribute("material");
+    char const* mtlName = loader.Attribute("material");
     if (mtlName) {
-        printf(" <%s>", mtlName);
         node->SetMaterial((Material*)mtlName); // temporarily set the material pointer to a string of the material name
     }
 
     // type
-    char const* type = element->Attribute("type");
+    Loader::String type = loader.Attribute("type");
     if (type) {
-        if (StrICmp(type, "sphere")) {
-            node->SetNodeObj(&theSphere);
-            printf(" - Sphere");
-        }
-        else if (StrICmp(type, "plane")) {
-            node->SetNodeObj(&thePlane);
-            printf(" - Plane");
-        }
-        else if (StrICmp(type, "obj")) {
-            printf(" - OBJ");
-            Object* obj = objList.Find(name);
-            if (obj == nullptr) { // object is not on the list, so we should load it now
-                TriObj* tobj = new TriObj;
+        if (type == "sphere") node->SetNodeObj(&theSphere);
+        else if (type == "plane") node->SetNodeObj(&thePlane);
+        else if (type == "obj") {
+            TriObj* tobj = (TriObj*)objList.Find(name);
+            if (tobj == nullptr) {    // object is not on the list, so we should load it now
+                tobj = new TriObj;
                 if (!tobj->Load(name)) {
-                    printf(" -- ERROR: Cannot load file \"%s.\"", name);
+                    printf("ERROR: Cannot load file \"%s.\"", name);
                     delete tobj;
+                    tobj = nullptr;
                 }
                 else {
-                    objList.Append(tobj, name);  // add to the list
-                    obj = tobj;
+                    tobj->SetName(name);
+                    objList.push_back(tobj);    // add to the list
                 }
             }
-            node->SetNodeObj(obj);
+            if (mtlName == nullptr && tobj && tobj->NM() > 0) node->SetMaterial((Material*)tobj);  // temporarily set the material pointer to the object
+            node->SetNodeObj(tobj);
         }
-        else {
-            printf(" - UNKNOWN TYPE");
-        }
+        else printf("ERROR: Unknown object type %s\n", static_cast<char const*>(type));
     }
 
+    if (node->GetNodeObj()) node->GetNodeObj()->Load(loader);    // loads object-specific parameters (if any)
+    node->Load(loader);    // loads the transformation
 
-    printf("\n");
-
-
-    for (XMLElement* child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-        if (StrICmp(child->Value(), "object")) {
-            LoadNode(*node, child, level + 1, objList);
-        }
+    // Load child nodes
+    for (Loader L : loader) {
+        if (L == "object") LoadNode(L, *node, objList);
     }
-    LoadTransform(*node, element, level);
-
 }
 
 //-------------------------------------------------------------------------------
 
-void LoadTransform(Transformation& trans, XMLElement* element, int level)
+void Transformation::Load(Loader const& loader)
 {
-    for (XMLElement* child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-        if (StrICmp(child->Value(), "scale")) {
-            Vec3f s(1, 1, 1);
-            ReadVector(child, s);
-            trans.Scale(s.x, s.y, s.z);
-            PrintIndent(level);
-            printf("   scale %f %f %f\n", s.x, s.y, s.z);
+    for (Loader const& L : loader) {
+        if (L == "scale") {
+            Vec3f s;
+            L.ReadVec3f(s, Vec3f(1, 1, 1));
+            Scale(s);
         }
-        else if (StrICmp(child->Value(), "rotate")) {
-            Vec3f s(0, 0, 0);
-            ReadVector(child, s);
+        else if (L == "rotate") {
+            Vec3f s;
+            L.ReadVec3f(s);
             s.Normalize();
             float a = 0.0f;
-            ReadFloat(child, a, "angle");
-            trans.Rotate(s, a);
-            PrintIndent(level);
-            printf("   rotate %f degrees around %f %f %f\n", a, s.x, s.y, s.z);
+            L.ReadFloat(a, "angle");
+            Rotate(s, a);
         }
-        else if (StrICmp(child->Value(), "translate")) {
-            Vec3f t(0, 0, 0);
-            ReadVector(child, t);
-            trans.Translate(t);
-            PrintIndent(level);
-            printf("   translate %f %f %f\n", t.x, t.y, t.z);
+        else if (L == "translate") {
+            Vec3f t;
+            L.ReadVec3f(t);
+            Translate(t);
         }
     }
 }
 
 //-------------------------------------------------------------------------------
 
-void LoadMaterial(MaterialList& materials, XMLElement* element)
+void LoadLight(Loader loader, LightList& lights)
+{
+    Loader::String type = loader.Attribute("type");
+    Light* light = nullptr;
+    if (type == "ambient") light = new AmbientLight;
+    else if (type == "direct") light = new DirectLight;
+    else if (type == "point") light = new PointLight;
+    else {
+        printf("ERROR: Unknown light type %s\n", static_cast<char const*>(type));
+        return;
+    }
+
+    light->SetName(loader.Attribute("name"));
+    light->Load(loader);
+    lights.push_back(light);
+}
+
+//-------------------------------------------------------------------------------
+
+void AmbientLight::Load(Loader const& loader)
+{
+    loader.Child("intensity").ReadColor(intensity);
+}
+
+//-------------------------------------------------------------------------------
+
+void DirectLight::Load(Loader const& loader)
+{
+    loader.Child("intensity").ReadColor(intensity);
+    loader.Child("direction").ReadVec3f(direction);
+    direction.Normalize();
+}
+
+//-------------------------------------------------------------------------------
+
+void PointLight::Load(Loader const& loader)
+{
+    loader.Child("intensity").ReadColor(intensity);
+    loader.Child("position").ReadVec3f(position);
+}
+
+//-------------------------------------------------------------------------------
+
+void LoadMaterial(Loader loader, MaterialList& materials, TextureFileList& texFiles)
 {
     Material* mtl = nullptr;
 
-    // name
-    char const* name = element->Attribute("name");
-    printf("Material [");
-    if (name) printf("%s", name);
-    printf("]");
-
-    auto loadPhongBlinn = [&element](MtlBasePhongBlinn* m)
-        {
-            for (XMLElement* child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-                Color c(1, 1, 1);
-                float f = 1;
-                if (StrICmp(child->Value(), "diffuse")) {
-                    ReadColor(child, c);
-                    m->SetDiffuse(c);
-                    printf("   diffuse %f %f %f\n", c.r, c.g, c.b);
-                }
-                else if (StrICmp(child->Value(), "specular")) {
-                    ReadColor(child, c);
-                    m->SetSpecular(c);
-                    printf("   specular %f %f %f\n", c.r, c.g, c.b);
-                }
-                else if (StrICmp(child->Value(), "glossiness")) {
-                    ReadFloat(child, f);
-                    m->SetGlossiness(f);
-                    printf("   glossiness %f\n", f);
-                }
-                else if (StrICmp(child->Value(), "reflection")) {
-                    ReadColor(child, c);
-                    m->SetReflection(c);
-                    printf("   reflection %f %f %f\n", c.r, c.g, c.b);
-                }
-                else if (StrICmp(child->Value(), "refraction")) {
-                    ReadColor(child, c);
-                    m->SetRefraction(c);
-                    ReadFloat(child, f, "index");
-                    m->SetIOR(f);
-                    printf("   refraction %f %f %f (ior: %f)\n", c.r, c.g, c.b, f);
-                }
-                else if (StrICmp(child->Value(), "absorption")) {
-                    ReadColor(child, c);
-                    m->SetAbsorption(c);
-                    printf("   absorption %f %f %f\n", c.r, c.g, c.b);
-                }
-            }
-            return m;
-        };
-
-    // type
-    char const* type = element->Attribute("type");
-    if (type) {
-        if (StrICmp(type, "phong")) {
-            printf(" - Phong\n");
-            mtl = loadPhongBlinn(new MtlPhong());
-        }
-        else if (StrICmp(type, "blinn")) {
-            printf(" - Blinn\n");
-            mtl = loadPhongBlinn(new MtlBlinn());
-        }
-        else if (StrICmp(type, "microfacet")) {
-            printf(" - Microfacet\n");
-            MtlMicrofacet* m = new MtlMicrofacet();
-            mtl = m;
-            for (XMLElement* child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-                Color c(1, 1, 1);
-                float f = 1;
-                if (StrICmp(child->Value(), "color")) {
-                    ReadColor(child, c);
-                    m->SetBaseColor(c);
-                    printf("   color %f %f %f\n", c.r, c.g, c.b);
-                }
-                else if (StrICmp(child->Value(), "roughness")) {
-                    ReadFloat(child, f);
-                    m->SetRoughness(f);
-                    printf("   roughness %f\n", f);
-                }
-                else if (StrICmp(child->Value(), "metallic")) {
-                    ReadFloat(child, f);
-                    m->SetMetallic(f);
-                    printf("   metallic %f\n", f);
-                }
-                else if (StrICmp(child->Value(), "ior")) {
-                    ReadFloat(child, f);
-                    m->SetIOR(f);
-                    printf("   ior %f\n", f);
-                }
-                else if (StrICmp(child->Value(), "transmittance")) {
-                    ReadColor(child, c);
-                    m->SetTransmittance(c);
-                    printf("   transmittance %f %f %f\n", c.r, c.g, c.b);
-                }
-                else if (StrICmp(child->Value(), "absorption")) {
-                    ReadColor(child, c);
-                    m->SetAbsorption(c);
-                    printf("   absorption %f %f %f\n", c.r, c.g, c.b);
-                }
-            }
-        }
-        else {
-            printf(" - UNKNOWN\n");
-        }
+    Loader::String type = loader.Attribute("type");
+    if (type == "phong") mtl = new MtlPhong;
+    else if (type == "blinn") mtl = new MtlBlinn;
+    else if (type == "microfacet") mtl = new MtlMicrofacet;
+    else {
+        printf("ERROR: Unknown material type %s\n", static_cast<char const*>(type));
+        return;
     }
 
-    if (mtl) {
-        mtl->SetName(name);
-        materials.push_back(mtl);
-    }
+    mtl->SetName(loader.Attribute("name"));
+    mtl->Load(loader, texFiles);
+    materials.push_back(mtl);
 }
 
 //-------------------------------------------------------------------------------
 
-void LoadLight(LightList& lights, XMLElement* element)
+void MtlBasePhongBlinn::Load(Loader const& loader, TextureFileList& tfl)
 {
-    Light* light = nullptr;
-
-    // name
-    char const* name = element->Attribute("name");
-    printf("Light [");
-    if (name) printf("%s", name);
-    printf("]");
-
-    // type
-    char const* type = element->Attribute("type");
-    if (type) {
-        if (StrICmp(type, "ambient")) {
-            printf(" - Ambient\n");
-            AmbientLight* l = new AmbientLight();
-            light = l;
-            for (XMLElement* child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-                if (StrICmp(child->Value(), "intensity")) {
-                    Color c(1, 1, 1);
-                    ReadColor(child, c);
-                    l->SetIntensity(c);
-                    printf("   intensity %f %f %f\n", c.r, c.g, c.b);
-                }
-            }
-        }
-        else if (StrICmp(type, "direct")) {
-            printf(" - Direct\n");
-            DirectLight* l = new DirectLight();
-            light = l;
-            for (XMLElement* child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-                if (StrICmp(child->Value(), "intensity")) {
-                    Color c(1, 1, 1);
-                    ReadColor(child, c);
-                    l->SetIntensity(c);
-                    printf("   intensity %f %f %f\n", c.r, c.g, c.b);
-                }
-                else if (StrICmp(child->Value(), "direction")) {
-                    Vec3f v(1, 1, 1);
-                    ReadVector(child, v);
-                    l->SetDirection(v);
-                    printf("   direction %f %f %f\n", v.x, v.y, v.z);
-                }
-            }
-        }
-        else if (StrICmp(type, "point")) {
-            printf(" - Point\n");
-            PointLight* l = new PointLight();
-            light = l;
-            for (XMLElement* child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-                if (StrICmp(child->Value(), "intensity")) {
-                    Color c(1, 1, 1);
-                    ReadColor(child, c);
-                    l->SetIntensity(c);
-                    printf("   intensity %f %f %f\n", c.r, c.g, c.b);
-                }
-                else if (StrICmp(child->Value(), "position")) {
-                    Vec3f v(0, 0, 0);
-                    ReadVector(child, v);
-                    l->SetPosition(v);
-                    printf("   position %f %f %f\n", v.x, v.y, v.z);
-                }
-            }
-        }
-        else {
-            printf(" - UNKNOWN\n");
-        }
-    }
-
-    if (light) {
-        light->SetName(name);
-        lights.push_back(light);
-    }
-
+    loader.Child("diffuse").ReadTexturedColor(diffuse, tfl);
+    loader.Child("specular").ReadTexturedColor(specular, tfl);
+    loader.Child("glossiness").ReadTexturedFloat(glossiness, tfl);
+    loader.Child("reflection").ReadTexturedColor(reflection, tfl);
+    loader.Child("refraction").ReadTexturedColor(refraction, tfl);
+    loader.Child("refraction").ReadFloat(ior, "index");
+    loader.Child("absorption").ReadColor(absorption);
 }
 
 //-------------------------------------------------------------------------------
 
-void ReadVector(XMLElement* element, Vec3f& v)
+void MtlMicrofacet::Load(Loader const& loader, TextureFileList& tfl)
 {
-    element->QueryFloatAttribute("x", &v.x);
-    element->QueryFloatAttribute("y", &v.y);
-    element->QueryFloatAttribute("z", &v.z);
-
-    float f = 1;
-    ReadFloat(element, f);
-    v *= f;
+    loader.Child("color").ReadTexturedColor(baseColor, tfl);
+    loader.Child("roughness").ReadTexturedFloat(roughness, tfl);
+    loader.Child("metallic").ReadTexturedFloat(metallic, tfl);
+    loader.Child("transmittance").ReadTexturedColor(transmittance, tfl);
+    loader.Child("ior").ReadFloat(ior);
+    loader.Child("absorption").ReadColor(absorption);
 }
 
 //-------------------------------------------------------------------------------
 
-void ReadColor(XMLElement* element, Color& c)
-{
-    element->QueryFloatAttribute("r", &c.r);
-    element->QueryFloatAttribute("g", &c.g);
-    element->QueryFloatAttribute("b", &c.b);
-
-    float f = 1;
-    ReadFloat(element, f);
-    c *= f;
-}
-
-//-------------------------------------------------------------------------------
-
-void ReadFloat(XMLElement* element, float& f, char const* name)
-{
-    element->QueryFloatAttribute(name, &f);
-}
-
-//-------------------------------------------------------------------------------
-
-void SetNodeMaterials(Node* node, MaterialList const& materials)
+void SetNodeMaterials(Node* node, MaterialList& materials, TextureFileList& texFiles)
 {
     int n = node->GetNumChild();
     if (node->GetMaterial()) {
-        const char* mtlName = (const char*)node->GetMaterial();
-        Material* mtl = materials.Find(mtlName);  // mtl can be null
-        node->SetMaterial(mtl);
+        if (node->GetNodeObj() == (Object*)node->GetMaterial()) {
+            // if the material pointer was set to the object, we must create the object's material.
+            Material* mtl = materials.Find(node->GetName());
+            if (!mtl) {
+                mtl = CreateMultiMtl(texFiles, (TriObj*)node->GetNodeObj());
+                mtl->SetName(node->GetName());
+                materials.push_back(mtl);
+            }
+            node->SetMaterial(mtl);
+        }
+        else {
+            const char* mtlName = (const char*)node->GetMaterial();
+            Material* mtl = materials.Find(mtlName);  // mtl can be null
+            node->SetMaterial(mtl);
+        }
     }
-    for (int i = 0; i < n; i++) SetNodeMaterials(node->GetChild(i), materials);
+    for (int i = 0; i < n; i++) SetNodeMaterials(node->GetChild(i), materials, texFiles);
+}
+
+//-------------------------------------------------------------------------------
+
+Material* CreateMultiMtl(TextureFileList& texFiles, TriObj const* tobj)
+{
+    // generate multi-material
+    MultiMtl* mm = new MultiMtl;
+    for (unsigned int i = 0; i < tobj->NM(); i++) {
+        MtlBlinn* m = new MtlBlinn;
+        TriMesh::Mtl const& mtl = tobj->M(i);
+        m->SetDiffuse(Color(mtl.Kd));
+        m->SetSpecular(Color(mtl.Ks));
+        m->SetGlossiness(mtl.Ns);
+        m->SetIOR(mtl.Ni);
+        if (mtl.map_Kd.data != nullptr) m->SetDiffuseTexture(new TextureMap(ReadTextureFile(texFiles, mtl.map_Kd.data)));
+        if (mtl.map_Ks.data != nullptr) m->SetDiffuseTexture(new TextureMap(ReadTextureFile(texFiles, mtl.map_Ks.data)));
+        if (mtl.illum > 2 && mtl.illum <= 7) {
+            m->SetReflection(Color(mtl.Ks));
+            if (mtl.map_Ks.data != nullptr) m->SetReflectionTexture(new TextureMap(ReadTextureFile(texFiles, mtl.map_Ks.data)));
+            float gloss = std::acos(std::pow(2.0f, 1.0f / mtl.Ns));
+            if (mtl.illum >= 6) {
+                m->SetRefraction(1 - Color(mtl.Tf));
+            }
+        }
+        mm->AppendMaterial(m);
+    }
+    return mm;
+}
+
+//-------------------------------------------------------------------------------
+
+TextureMap* Loader::ReadTextureMap(TextureFileList& texFiles) const
+{
+    Loader::String texName = Attribute("texture");
+    if (!texName) return nullptr;
+
+    Texture* tex = nullptr;
+    if (texName == "checkerboard") {
+        tex = new TextureChecker;
+        tex->Load(*this, texFiles);   // loads the texture parameters
+        tex->SetName(texName);
+    }
+    else {
+        tex = ReadTextureFile(texFiles, texName);
+    }
+    if (!tex) return nullptr;
+
+    TextureMap* map = new TextureMap(tex);
+    map->Load(*this);  // loads the transformations
+    return map;
+}
+
+//-------------------------------------------------------------------------------
+
+void TextureChecker::Load(Loader const& loader, TextureFileList& texFiles)
+{
+    loader.Child("color1").ReadTexturedColor(color[0], texFiles);
+    loader.Child("color2").ReadTexturedColor(color[1], texFiles);
+}
+
+//-------------------------------------------------------------------------------
+
+TextureFile* ReadTextureFile(TextureFileList& texFiles, char const* texName)
+{
+    TextureFile* tex = (TextureFile*)texFiles.Find(texName);
+    if (tex == nullptr) {
+        tex = new TextureFile;
+        tex->SetName(texName);
+        if (!tex->LoadFile()) {
+            printf("ERROR: cannot load file %s\n", texName);
+            delete tex;
+            tex = nullptr;
+        }
+        else {
+            tex->SetName(texName);
+            texFiles.push_back(tex);
+        }
+    }
+    return tex;
 }
 
 //-------------------------------------------------------------------------------

@@ -1,70 +1,189 @@
-﻿///
-/// \file       raytracer.cpp
-/// \author     Devin Fink
-/// \version    4.0
-/// \date       September 13th, 2025
-///
-/// \Ray tracing implementation
-///
-
-
-
 #define _USE_MATH_DEFINES
-#include "raytracer.h"
-#include "viewport.h"
-#include "lights.h"
 #include <cmath>
+#include "raytracer.h"
+#include "objects.h"
+#include "shadowInfo.h"
 #include <iostream>
 #include <thread>
-#include <algorithm>
+#include <atomic>
 
 #define DEG2RAD(degrees) ((degrees) * M_PI / 180.0)
-Node* treeRoot = nullptr;
 
-/**
- * Recursively traverses the scene graph to test ray intersections.
- * Transforms the ray into each node's local space, checks for intersections
- * with attached geometry, and updates hit information with the closest hit.
- *
- * @param ray      Ray in world space to test for intersection.
- * @param node     Current scene graph node (and its children) to traverse.
- * @param hitInfo  Output parameter storing intersection details if a hit occurs.
- * @param hitSide  Flags specifying which surface sides to consider.
- * @return True if the ray intersects any object in this subtree, false otherwise.
- */
-
-bool TraverseTree(const Ray& ray, Node* node, HitInfo& hitInfo, int hitSide)
+void RayTracer::CreateCam2Wrld()
 {
-	if (!node) return false;
-	bool hit = false;
-	Ray transformedRay = node->ToNodeCoords(ray);
+	cyVec3f cam2WrldZ = -camera.dir;
+	cyVec3f cam2WrldY = camera.up;
+	cyVec3f cam2WrldX = cam2WrldY.Cross(cam2WrldZ);
 
-	// Check current node's object
-	const Object* obj = node->GetNodeObj();
-	if (obj)
-	{
-		if (obj->IntersectRay(transformedRay, hitInfo, hitSide))
-		{
-			hit = true;
-			node->FromNodeCoords(hitInfo);
-			hitInfo.node = node;
-		}
-	}
-
-	// Traverse children
-	for (int i = 0; i < node->GetNumChild(); i++)
-	{
-		if (TraverseTree(transformedRay, node->GetChild(i), hitInfo, hitSide))
-		{
-			hit = true;
-			node->FromNodeCoords(hitInfo);
-		}
-	}
-
-	return hit;
+	this->cam2Wrld = cyMatrix4f(cam2WrldX, cam2WrldY, cam2WrldZ, camera.pos);
 }
 
-bool TraverseTreeShadow(const Ray& ray, Node* node, float t_max)
+void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX, int tilesY)
+{
+	const int scrHeight = renderImage.GetHeight();
+	const int scrWidth = renderImage.GetWidth();
+	const float camWidthRes = camera.imgWidth;
+	const float camHeightRes = camera.imgHeight;
+	float wrldImgHeight = 2.0f * 1 * tan((DEG2RAD(camera.fov)) / 2.0f);
+	float wrldImgWidth = wrldImgHeight * (camWidthRes / camHeightRes);
+
+	for (;;)
+	{
+		const int tileIndex = nextTile.fetch_add(1, std::memory_order_relaxed);
+		if (tileIndex >= totalTiles) break;
+
+		const int tileX = tileIndex % tilesX;
+		const int tileY = tileIndex / tilesX;
+
+		//Calculate tile coords
+		const int x0 = tileX * tileSize;
+		const int y0 = tileY * tileSize;
+		const int x1 = std::min(x0 + tileSize, scrWidth);
+		const int y1 = std::min(y0 + tileSize, scrHeight);
+
+		for (int y = y0; y < y1; ++y) {
+			for (int x = x0; x < x1; ++x) {
+
+				int index = y * scrWidth + x;
+				Color sumColor(0, 0, 0);
+				Color sumColorSquared(0, 0, 0);
+				Color finalColor(0, 0, 0);
+				HaltonSeq<64> haltonX(2);
+				HaltonSeq<64> haltonY(3);
+				RNG rng(index);
+				float randomOffsetX = rng.RandomFloat();
+				float randomOffsetY = rng.RandomFloat();
+				int totalSamples = 0;
+
+
+				//Adaptive Sampling loop
+				for(int i = 0; i < 64; i++)
+				{
+					float pixX = -(wrldImgWidth / 2.0f) + ((wrldImgWidth * (x + (1.0f / 2.0f) + haltonX[i] + randomOffsetX) / camWidthRes));
+					float pixY = (wrldImgHeight / 2.0f) - ((wrldImgHeight * (y + (1.0f / 2.0f) + haltonY[i] + randomOffsetY) / camHeightRes));
+;
+					cyVec3f pixelPos(pixX, pixY, -1);
+
+
+					cyVec2f scrPos = cyVec2f((float)x, (float)y);
+					Color tempColor = CreateRay(i, pixelPos, scrPos);
+					sumColor += tempColor;
+					sumColorSquared += tempColor * tempColor;
+
+					if (i >= 3)
+					{
+						float n = (float)(i + 1);
+						Color mean = sumColor / n;
+						Color meanSq = sumColor * sumColor;
+						Color variance = (sumColorSquared - meanSq / n) / (n - 1.0f);
+						variance.ClampMin(0.0f);
+						Color stdDev = Sqrt(variance);
+						float t = tValues[(int)n - 1]; // from table
+						Color phi = t * (stdDev / sqrtf(n));
+						float threshold = 0.01f;
+
+						if(phi.r <= threshold && phi.g <= threshold && phi.b <= threshold)
+						{
+							finalColor = mean;
+							totalSamples = (int)n;
+							break;
+						}
+					}
+
+					if(i == 63)
+					{
+						float n = (float)(i + 1);
+						finalColor = sumColor / n;
+						totalSamples = (int)n;
+					}
+				}                                                                
+
+
+				renderImage.GetPixels()[index] = (Color24)finalColor;
+				renderImage.IncrementNumRenderPixel(1);
+				renderImage.GetZBuffer()[index] = 0;
+				renderImage.GetSampleCount()[index] = totalSamples;
+			}
+		}
+	}
+}
+
+Color RayTracer::CreateRay(int index, cyVec3f pixelPos, cyVec2f scrPos)
+{
+	//Ray Generation
+	Ray ray = Ray(camera.pos, pixelPos);
+	ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 0));
+
+	HitInfo hit;
+	hit.Init();
+	hit.node = &scene.rootNode;
+
+	if (TraceRay(ray, hit, HIT_FRONT))
+	{
+		ShadowInfo info = ShadowInfo(scene.lights, scene.environment, this);
+		info.SetHit(ray, hit);
+
+		if (hit.node->GetMaterial())
+		{
+			return (Color)hit.node->GetMaterial()->Shade(info);
+		}
+		else
+		{
+			return Color(255, 255, 255);
+		}
+	}
+	else
+	{
+		float u = scrPos.x / (float)camera.imgWidth;
+		float v = scrPos.y / (float)camera.imgHeight;
+		return scene.background.Eval(Vec3f(u, v, 0.0));
+	}
+}
+
+void RayTracer::BeginRender() 
+{
+	renderImage.ResetNumRenderedPixels();
+	CreateCam2Wrld();
+
+	//Multithreading
+	const int numThreads = std::thread::hardware_concurrency();
+	std::vector<std::thread> threads;
+	threads.reserve(numThreads);
+	const int tilesX = (camera.imgWidth + tileSize - 1) / tileSize;
+	const int tilesY = (camera.imgHeight + tileSize - 1) / tileSize;
+	const int totalTiles = tilesX * tilesY;
+
+	for (int t = 0; t < numThreads; t++)
+		threads.emplace_back([this, totalTiles, tilesX, tilesY]() { RunThread(this->nextTile, totalTiles, tilesX, tilesY); });
+	for (auto& th : threads) th.detach();
+
+	//while(!renderImage.IsRenderDone())
+	//{
+	//	continue;
+	//}
+	//renderImage.ComputeZBufferImage();
+	//renderImage.SaveZImage("testZ.png");
+	//renderImage.SaveImage("prj_7.png");
+}
+
+void RayTracer::StopRender() 
+{
+	renderImage.ComputeZBufferImage();
+	renderImage.SaveZImage("testZ.png");
+	renderImage.SaveImage("testSpace.png");
+}
+
+bool RayTracer::TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
+{
+	return TraverseTree(ray, &scene.rootNode, hInfo, hitSide);
+}
+
+bool RayTracer::TraceShadowRay(Ray const& ray, float t_max, int hitSide) const
+{
+	return TraverseTreeShadow(ray, &scene.rootNode, t_max);
+}
+
+bool RayTracer::TraverseTreeShadow(const Ray& ray, const Node* node, float t_max) const
 {
 	if (!node) return false;
 	Ray transformedRay = node->ToNodeCoords(ray);
@@ -73,7 +192,7 @@ bool TraverseTreeShadow(const Ray& ray, Node* node, float t_max)
 	const Object* obj = node->GetNodeObj();
 	if (obj)
 	{
-		if (obj->shadowRay(transformedRay, t_max))
+		if (obj->ShadowRay(transformedRay, t_max))
 		{
 			return true;
 		}
@@ -91,136 +210,45 @@ bool TraverseTreeShadow(const Ray& ray, Node* node, float t_max)
 	return false;
 }
 
-cyMatrix4f CreateCam2Wrld(RenderScene* scene)
+bool RayTracer::TraverseTree(const Ray& ray, const Node* node, HitInfo& hitInfo, int hitSide) const
 {
-	cyVec3f cam2WrldZ = -scene->camera.dir;
-	cyVec3f cam2WrldY = scene->camera.up;
-	cyVec3f cam2WrldX = cam2WrldY.Cross(cam2WrldZ);
+	if (!node) return false;
+	bool hit = false;
+	Ray transformedRay = node->ToNodeCoords(ray);
 
-	cyMatrix4f cam2Wrld = cyMatrix4f(cam2WrldX, cam2WrldY, cam2WrldZ, scene->camera.pos);
-	return cam2Wrld;
-}
-
-/**
- * Casts a ray from the camera through a specific pixel, intersects it with the scene's geometry,
- * and updates the render image and z-buffer accordingly.
- *
- * @param scene      Pointer to the RenderScene containing the camera, scene graph, lights, and render image.
- * @param pixel      Index of the pixel in the render image to update.
- * @param cam2Wrld   Camera-to-world transformation matrix.
- * @param pixelPos   Position of the pixel in camera space.
- */
-void TraceRay(RenderScene* scene, int pixel, cyMatrix4f& cam2Wrld, cyVec3f pixelPos)
-{
-	//Ray Generation
-	Ray ray = Ray(scene->camera.pos, pixelPos);
-	ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 0));
-
-	HitInfo hit;
-	hit.Init();
-
-	if (TraverseTree(ray, &scene->rootNode, hit, HIT_FRONT))
+	// Check current node's object
+	const Object* obj = node->GetNodeObj();
+	if (obj)
 	{
-		if (hit.node->GetMaterial())
+		HitInfo localHit;
+		localHit.Init();
+		if (obj->IntersectRay(transformedRay, localHit, hitSide))
 		{
-			scene->renderImage.GetPixels()[pixel] = (Color24)hit.node->GetMaterial()->Shade(ray, hit, scene->lights, 3);
-		}
-		else
-		{
-			scene->renderImage.GetPixels()[pixel] = Color24(255, 255, 255);
-		}
-	}
-	else
-	{
-		scene->renderImage.GetPixels()[pixel] = Color24(0, 0, 0);
-	}
-
-	
-	scene->renderImage.IncrementNumRenderPixel(1);
-	scene->renderImage.GetZBuffer()[pixel] = hit.z;
-}
-
-/**
- * Renders the entire scene by tracing rays through each pixel using multithreading,
- * updates the render image and z-buffer, and saves the final images to disk.
- *
- * @param scene  Pointer to the RenderScene containing camera, scene graph, lights, and render image.
- */
-void BeginRender(RenderScene* scene)
-{
-	scene->renderImage.ResetNumRenderedPixels();
-	const int scrHeight = scene->renderImage.GetHeight();
-	const int scrWidth = scene->renderImage.GetWidth();
-	const float camWidthRes = scene->camera.imgWidth;
-	const float camHeightRes = scene->camera.imgHeight;
-	const int scrSize = scrHeight * scrWidth;
-	treeRoot = &scene->rootNode;
-
-	int l = 1;
-
-	float wrldImgHeight = 2.0f * l * tan((DEG2RAD(scene->camera.fov)) / 2.0f);
-	float wrldImgWidth = wrldImgHeight * (camWidthRes / camHeightRes);
-
-	cyMatrix4f cam2Wrld = CreateCam2Wrld(scene);
-
-	//Multithreading
-	const int numThreads = std::thread::hardware_concurrency();
-	std::vector<std::thread> threads;
-	threads.reserve(numThreads);
-	constexpr int tileSize = 32;
-	const int tilesX = (camWidthRes + tileSize - 1) / tileSize;
-	const int tilesY = (camHeightRes + tileSize - 1) / tileSize;
-	const int totalTiles = tilesX * tilesY;
-	std::atomic<int> nextTile{ 0 };
-
-
-	//runThread Lambda
-	auto runThread = [&]
-	{
-		for (;;)
-		{
-			const int tileIndex = nextTile.fetch_add(1, std::memory_order_relaxed);
-			if (tileIndex >= totalTiles) break;
-
-			const int tileX = tileIndex % tilesX;
-			const int tileY = tileIndex / tilesX;
-
-			//Calculate tile coords
-			const int x0 = tileX * tileSize;
-			const int y0 = tileY * tileSize;
-			const int x1 = std::min(x0 + tileSize, scrWidth);
-			const int y1 = std::min(y0 + tileSize, scrHeight);
-
-			for (int y = y0; y < y1; ++y) {
-				for (int x = x0; x < x1; ++x) {
-
-					int i = y * scrWidth + x;
-
-					cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (x + (1.0f / 2.0f))),    //x
-												((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (y + (1.0f / 2.0f))), //y
-												 (-l));                                                                           //z
-
-					TraceRay(scene, i, cam2Wrld, pixelPos);
-				}
+			if (localHit.z < hitInfo.z)
+			{
+				hitInfo = localHit;
+				hit = true;
+				node->FromNodeCoords(hitInfo);
+				hitInfo.node = node;
 			}
 		}
-	};
-
-	for (int t = 0; t < numThreads; t++)
-		threads.emplace_back(runThread);
-	for (auto& th : threads) th.detach();
-
-	while (!scene->renderImage.IsRenderDone())
-	{
-		continue;
 	}
 
-	scene->renderImage.ComputeZBufferImage();
-	scene->renderImage.SaveZImage("testZ.png");
-	scene->renderImage.SaveImage("playground.png");
-}
+	// Traverse children
+	for (int i = 0; i < node->GetNumChild(); i++)
+	{
+		HitInfo localHit;
+		localHit.Init();
+		if (TraverseTree(transformedRay, node->GetChild(i), localHit, hitSide))
+		{
+			if(localHit.z < hitInfo.z)
+			{
+				hitInfo = localHit;
+				hit = true;
+				node->FromNodeCoords(hitInfo);
+			}
+		}
+	}
 
-void StopRender()
-{
-	return;
+	return hit;
 }

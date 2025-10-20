@@ -3,8 +3,8 @@
 ///
 /// \file       materials.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    4.0
-/// \date       August 25, 2025
+/// \version    7.0
+/// \date       September 19, 2025
 ///
 /// \brief Example source for CS 6620 - University of Utah.
 ///
@@ -13,41 +13,45 @@
 #ifndef _MATERIALS_H_INCLUDED_
 #define _MATERIALS_H_INCLUDED_
 
-#include "scene.h"
+#include "renderer.h"
 
 //-------------------------------------------------------------------------------
 
 class MtlBasePhongBlinn : public Material
 {
 public:
-    MtlBasePhongBlinn() : diffuse(0.5f, 0.5f, 0.5f), specular(0.7f, 0.7f, 0.7f), glossiness(20.0f),
-        reflection(0, 0, 0), refraction(0, 0, 0), absorption(0, 0, 0), ior(1.5f) {
-    }
+    void Load(Loader const& loader, TextureFileList& tfl) override;
 
-    void SetDiffuse(Color const& d) { diffuse = d; }
-    void SetSpecular(Color const& s) { specular = s; }
-    void SetGlossiness(float        g) { glossiness = g; }
-
-    void SetReflection(Color const& r) { reflection = r; }
-    void SetRefraction(Color const& r) { refraction = r; }
+    void SetDiffuse(Color const& d) { diffuse.SetValue(d); }
+    void SetSpecular(Color const& s) { specular.SetValue(s); }
+    void SetGlossiness(float        g) { glossiness.SetValue(g); }
+    void SetReflection(Color const& r) { reflection.SetValue(r); }
+    void SetRefraction(Color const& r) { refraction.SetValue(r); }
     void SetAbsorption(Color const& a) { absorption = a; }
     void SetIOR(float        i) { ior = i; }
 
-    const Color& Diffuse() const { return diffuse; }
-    const Color& Specular() const { return specular; }
-    float        Glossiness() const { return glossiness; }
+    void SetDiffuseTexture(TextureMap* tex) { diffuse.SetTexture(tex); }
+    void SetSpecularTexture(TextureMap* tex) { specular.SetTexture(tex); }
+    void SetGlossinessTexture(TextureMap* tex) { glossiness.SetTexture(tex); }
+    void SetReflectionTexture(TextureMap* tex) { reflection.SetTexture(tex); }
+    void SetRefractionTexture(TextureMap* tex) { refraction.SetTexture(tex); }
 
-    const Color& Reflection() const { return reflection; }
-    const Color& Refraction() const { return refraction; }
+    const TexturedColor& Diffuse() const { return diffuse; }
+    const TexturedColor& Specular() const { return specular; }
+    const TexturedFloat& Glossiness() const { return glossiness; }
+    const TexturedColor& Reflection() const { return reflection; }
+    const TexturedColor& Refraction() const { return refraction; }
     const Color& Absorption() const { return absorption; }
-    float        IOR() const { return ior; }
+    float                IOR() const { return ior; }
 
 protected:
-    Color diffuse, specular;
-    float glossiness;
-    Color reflection, refraction;
-    Color absorption;
-    float ior;  // index of refraction
+    TexturedColor diffuse = Color(0.5f);
+    TexturedColor specular = Color(0.7f);
+    TexturedFloat glossiness = 20.0f;
+    TexturedColor reflection = Color(0.0f);
+    TexturedColor refraction = Color(0.0f);
+    Color         absorption = Color(0.0f);
+    float         ior = 1.5f;    // index of refraction
 };
 
 //-------------------------------------------------------------------------------
@@ -55,8 +59,8 @@ protected:
 class MtlPhong : public MtlBasePhongBlinn
 {
 public:
-    Color Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lights, int bounceCount) const override;
-    void SetViewportMaterial(int subMtlID = 0) const override;    // used for OpenGL display
+    Color Shade(ShadeInfo const& shadeInfo) const override;
+    void SetViewportMaterial(int mtlID = 0) const override; // used for OpenGL display
 };
 
 //-------------------------------------------------------------------------------
@@ -64,8 +68,8 @@ public:
 class MtlBlinn : public MtlBasePhongBlinn
 {
 public:
-    Color Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lights, int bounceCount) const override;
-    void SetViewportMaterial(int subMtlID = 0) const override;    // used for OpenGL display
+    Color Shade(ShadeInfo const& shadeInfo) const override;
+    void SetViewportMaterial(int mtlID = 0) const override;    // used for OpenGL display
 };
 
 //-------------------------------------------------------------------------------
@@ -73,27 +77,47 @@ public:
 class MtlMicrofacet : public Material
 {
 public:
-    MtlMicrofacet() : baseColor(0.5f, 0.5f, 0.5f), roughness(1.0f), metallic(0.0f), ior(1.5f),
-        transmittance(0, 0, 0), absorption(0, 0, 0) {
-    }
+    void Load(Loader const& loader, TextureFileList& tfl) override;
 
-    void SetBaseColor(Color const& c) { baseColor = c; }
-    void SetRoughness(float        r) { roughness = r; }
-    void SetMetallic(float        m) { metallic = m; }
-    void SetIOR(float        i) { ior = i; }
-    void SetTransmittance(Color const& t) { transmittance = t; }
+    void SetBaseColor(Color const& c) { baseColor.SetValue(c); }
+    void SetRoughness(float        r) { roughness.SetValue(r); }
+    void SetMetallic(float        m) { metallic.SetValue(m); }
+    void SetTransmittance(Color const& t) { transmittance.SetValue(t); }
     void SetAbsorption(Color const& a) { absorption = a; }
+    void SetIOR(float        i) { ior = i; }
 
-    Color Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lights, int bounceCount) const override;
-    void SetViewportMaterial(int subMtlID = 0) const override;    // used for OpenGL display
+    void SetBaseColorTexture(TextureMap* tex) { baseColor.SetTexture(tex); }
+    void SetRoughnessTexture(TextureMap* tex) { roughness.SetTexture(tex); }
+    void SetMetallicTexture(TextureMap* tex) { metallic.SetTexture(tex); }
+    void SetTransmittanceTexture(TextureMap* tex) { transmittance.SetTexture(tex); }
+
+    Color Shade(ShadeInfo const& shadeInfo) const override;
+    void SetViewportMaterial(int mtlID = 0) const override; // used for OpenGL display
 
 private:
-    Color baseColor;    // albedo for dielectrics, F0 for metals
-    float roughness;
-    float metallic;
-    float ior;  // index of refraction
-    Color transmittance;
-    Color absorption;
+    TexturedColor baseColor = Color(0.5f);  // albedo for dielectrics, F0 for metals
+    TexturedFloat roughness = 1.0f;
+    TexturedFloat metallic = 0.0f;
+    TexturedColor transmittance = Color(0.0f);
+    Color         absorption = Color(0.0f);
+    float         ior = 1.5f; // index of refraction
+};
+
+//-------------------------------------------------------------------------------
+
+class MultiMtl : public Material
+{
+public:
+    virtual ~MultiMtl() { for (Material* m : mtls) delete m; }
+
+    Color Shade(ShadeInfo const& sInfo) const override { int m = sInfo.MaterialID(); return m < (int)mtls.size() ? mtls[m]->Shade(sInfo) : Color(1, 1, 1); }
+
+    void SetViewportMaterial(int mtlID = 0) const override { if (mtlID < (int)mtls.size()) mtls[mtlID]->SetViewportMaterial(); }
+
+    void AppendMaterial(Material* m) { mtls.push_back(m); }
+
+private:
+    std::vector<Material*> mtls;
 };
 
 //-------------------------------------------------------------------------------

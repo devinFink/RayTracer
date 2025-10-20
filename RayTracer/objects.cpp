@@ -1,4 +1,4 @@
-﻿///
+///
 /// \file       objects.cpp 
 /// \author     Devin Fink
 /// \date       September 13, 2025
@@ -6,11 +6,81 @@
 /// \brief      Methods corresponding to objects defined in objects.h
 ///
 
+#define _USE_MATH_DEFINES
 #include <iostream>
-#include <objects.h>
 #include <cmath>
 #include <limits>
+#include "objects.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// Sphere
+////////////////////////////////////////////////////////////////////////////////
+
+bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
+    cyVec3f q(0.0f, 0.0f, 0.0f);
+    int r = 1;
+	float eps = 0.002f;
+    cyVec3f oc = q - ray.p;
+    double a = ray.dir.Dot(ray.dir);
+    double b = 2.0 * ray.dir.Dot(ray.p - q);
+    double c = ray.p.Dot(ray.p) - r * r;
+    double discriminant = b * b - 4 * a * c;
+    if (discriminant < 0) return false;
+
+    double t1 = (-b - sqrt(discriminant)) / (2 * a);
+    double t2 = (-b + sqrt(discriminant)) / (2 * a);
+
+    if (t1 > eps && hitSide & HIT_FRONT) {
+        if (hInfo.z > t1) {
+            hInfo.z = t1;
+            hInfo.p = ray.p + (ray.dir * t1);
+            hInfo.N = hInfo.p.GetNormalized();
+            float tu = (atan2(hInfo.p.y, hInfo.p.x) / (2 * M_PI)) + .5;
+            float tv = asin(hInfo.p.z) / M_PI + .5;
+            hInfo.uvw = cyVec3f(tu, tv, 0.0f);
+            hInfo.front = true;
+            return true;
+        }
+    }
+    else if (t2 >= eps && hitSide & HIT_BACK) {
+        if (hInfo.z > t2) {
+            hInfo.z = t2;
+            hInfo.p = ray.p + (ray.dir * t2);
+            hInfo.N = hInfo.p.GetNormalized();
+            float tu = (atan2(hInfo.p.y, hInfo.p.x) / (2 * M_PI)) + .5;
+			float tv = asin(hInfo.p.z) / M_PI + .5;
+			hInfo.uvw = cyVec3f(tu, tv, 0.0f);
+            hInfo.front = false;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Sphere::ShadowRay(Ray const& ray, float t_max) const {
+    cyVec3f q(0.0f, 0.0f, 0.0f);
+    int r = 1;
+
+    cyVec3f oc = q - ray.p;
+    double a = ray.dir.Dot(ray.dir);
+    double b = 2.0 * ray.dir.Dot(ray.p - q);
+    double c = ray.p.Dot(ray.p) - r * r;
+    double discriminant = b * b - 4 * a * c;
+    if (discriminant < 0) return false;
+
+    double t1 = (-b - sqrt(discriminant)) / (2 * a);
+    double t2 = (-b + sqrt(discriminant)) / (2 * a);
+
+    if (t1 > 0.01 && t1 < t_max) return true;
+    if (t2 > 0.01 && t2 < t_max) return true;
+
+    return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Box
+////////////////////////////////////////////////////////////////////////////////
 cyVec3f vecMin(const cyVec3f& a, const cyVec3f& b) {
     return {
         std::min(a.x, b.x),
@@ -41,76 +111,11 @@ bool hitAABB(Ray ray, cyVec3f boxMin, cyVec3f boxMax) {
     cyVec3f tmin = vecMin(ttop, tbot);
     cyVec3f tmax = vecMax(ttop, tbot);
 
-    cyVec2f t;
-    t.x = std::max(tmin.x, tmin.y);
-    t.y = std::max(tmin.x, tmin.z);
-    float t0 = std::max(t.x, t.y);
+    float t0 = std::max({ tmin.x, tmin.y, tmin.z });
 
-    t.x = std::max(tmax.x, tmax.y);
-    t.y = std::max(tmax.x, tmax.z);
-    float t1 = std::min(t.x, t.y);
+    float t1 = std::min({ tmax.x, tmax.y, tmax.z });
 
     return t0 <= t1 && t1 >= 0.0f;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Sphere
-////////////////////////////////////////////////////////////////////////////////
-
-bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
-    cyVec3f q(0.0f, 0.0f, 0.0f);
-    int r = 1;
-
-    cyVec3f oc = q - ray.p;
-    double a = ray.dir.Dot(ray.dir);
-    double b = 2.0 * ray.dir.Dot(ray.p - q);
-    double c = ray.p.Dot(ray.p) - r * r;
-    double discriminant = b * b - 4 * a * c;
-    if (discriminant < 0) return false;
-
-    double t1 = (-b - sqrt(discriminant)) / (2 * a);
-    double t2 = (-b + sqrt(discriminant)) / (2 * a);
-
-    if (t1 > 0.0002 && hitSide & HIT_FRONT) {
-        if (hInfo.z > t1) {
-            hInfo.z = t1;
-            hInfo.p = ray.p + (ray.dir * t1);
-            hInfo.N = hInfo.p.GetNormalized();
-            hInfo.front = true;
-            return true;
-        }
-    }
-    else if (t2 > 0.0002 && hitSide & HIT_BACK) {
-        if (hInfo.z > t2) {
-            hInfo.z = t2;
-            hInfo.p = ray.p + (ray.dir * t2);
-            hInfo.N = hInfo.p.GetNormalized();
-            hInfo.front = false;
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool Sphere::shadowRay(Ray const& ray, float t_max) const {
-    cyVec3f q(0.0f, 0.0f, 0.0f);
-    int r = 1;
-
-    cyVec3f oc = q - ray.p;
-    double a = ray.dir.Dot(ray.dir);
-    double b = 2.0 * ray.dir.Dot(ray.p - q);
-    double c = ray.p.Dot(ray.p) - r * r;
-    double discriminant = b * b - 4 * a * c;
-    if (discriminant < 0) return false;
-
-    double t1 = (-b - sqrt(discriminant)) / (2 * a);
-    double t2 = (-b + sqrt(discriminant)) / (2 * a);
-
-    if (t1 > 0.0002 && t1 < t_max) return true;
-    if (t2 > 0.0002 && t2 < t_max) return true;
-
-    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -125,6 +130,7 @@ bool Plane::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
         hInfo.z = t;
         hInfo.N = planeNorm;
         hInfo.p = ray.p + (ray.dir * t);
+		hInfo.uvw = cyVec3f((hInfo.p.x + 1.0f) * 0.5f, (hInfo.p.y + 1.0f) * 0.5f, 0.0f);
 
         // Check if the intersection point is within the bounds of the plane
         if (hInfo.p.x < -1.0f || hInfo.p.x > 1.0f || hInfo.p.y < -1.0f || hInfo.p.y > 1.0f)
@@ -138,7 +144,7 @@ bool Plane::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
     return false;
 }
 
-bool Plane::shadowRay(Ray const& ray, float t_max) const {
+bool Plane::ShadowRay(Ray const& ray, float t_max) const {
     cyVec3f planeNorm(0.0f, 0.0f, 1.0f);
     float t = -(ray.p.z / ray.dir.z);
 
@@ -158,87 +164,30 @@ bool Plane::shadowRay(Ray const& ray, float t_max) const {
 ////////////////////////////////////////////////////////////////////////////////
 // Triangle Mesh
 ////////////////////////////////////////////////////////////////////////////////
-
 bool TriObj::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
     HitInfo temphit;
     temphit.Init();
-    bool hit = false;
-    int closestFace = INT_MAX;
-    cyVec2f closestBary{ 0.0f, 0.0f };
 
-    if (!hitAABB(ray, GetBoundMin(), GetBoundMax()))
-        return false;
-
-    cyVec2f bary;
-    for (int faceID = 0; faceID < NF(); faceID++) {
-        if (IntersectTriangle(ray, temphit, hitSide, faceID, bary)) {
-            hit = true;
-			if (temphit.z >= closestFace) continue; // not the closest hit
-            closestFace = faceID;
-            closestBary = bary;
-        }
+    if (TraceBVHNode(ray, temphit, hitSide, bvh.GetRootNodeID()))
+    {
+		hInfo = temphit;
+        return true;
     }
 
-    if (!hit)
-        return false;
-
-    // Interpolate normal for the closest triangle
-    float u = closestBary.x;
-    float v = closestBary.y;
-    hInfo.p = ray.p + ray.dir * temphit.z; // intersection point
-    hInfo.N = ((1.0f - u - v) * vn[FN(closestFace).v[0]] +
-        u * vn[FN(closestFace).v[1]] +
-        v * vn[FN(closestFace).v[2]]).GetNormalized();
-
-    hInfo.front = ray.dir.Dot(hInfo.N) < 0;
-    hInfo.z = temphit.z;
-
-    return true;
+    return false;
 }
 
 
-bool TriObj::shadowRay(Ray const& ray, float t_max) const {
-    // Early AABB rejection
-    if (!hitAABB(ray, GetBoundMin(), GetBoundMax()))
-        return false;
-
-    for (int faceID = 0; faceID < NF(); ++faceID) {
-        cyVec3f v0 = V(F(faceID).v[0]);
-        cyVec3f v1 = V(F(faceID).v[1]);
-        cyVec3f v2 = V(F(faceID).v[2]);
-
-        const float epsilon = 0.0002f;
-
-        cyVec3f edge1 = v1 - v0;
-        cyVec3f edge2 = v2 - v0;
-        cyVec3f h = ray.dir.Cross(edge2);
-        float det = edge1.Dot(h);
-        if (fabs(det) < epsilon) continue; // parallel
-
-        float inv_det = 1.0f / det;
-        cyVec3f s = ray.p - v0;
-        float u = inv_det * s.Dot(h);
-        if (u < 0.0f || u > 1.0f) continue;
-
-        cyVec3f s_cross_e1 = s.Cross(edge1);
-        float v = inv_det * ray.dir.Dot(s_cross_e1);
-        if (v < 0.0f || (u + v) > 1.0f) continue;
-
-        float t = inv_det * edge2.Dot(s_cross_e1);
-        if (t > epsilon && t < t_max) {
-            return true;
-        }
-    }
-
-    return false; 
+bool TriObj::ShadowRay(Ray const& ray, float t_max) const {
+    return TraceBVHNodeShadow(ray, t_max, bvh.GetRootNodeID());
 }
 
 /*
 * Moller-Trumbore intersection algorithm
 */
-bool TriObj::IntersectTriangle(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int faceID, cyVec2f& bary) const {
-	TriFace const& face = F(faceID);
-    const float epsilon = 0.0002f;
+bool TriObj::IntersectTriangle(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int faceID, cyVec2f& baryCoords) const {
+    TriFace const& face = F(faceID);
+    const float epsilon = 0.002f;
 
     // Fetch vertices only once
     const cyVec3f& v0 = V(face.v[0]);
@@ -272,7 +221,115 @@ bool TriObj::IntersectTriangle(Ray const& ray, HitInfo& hInfo, int hitSide, unsi
     if (t <= epsilon || t >= hInfo.z) return false;
 
     hInfo.z = t;
-    bary.Set(u, v);
+    baryCoords.Set(u, v);
     return true;
 }
 
+bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int nodeID) const {
+    float const* bounds = bvh.GetNodeBounds(nodeID);
+    cyVec3f boxMin(bounds[0], bounds[1], bounds[2]);
+    cyVec3f boxMax(bounds[3], bounds[4], bounds[5]);
+
+    if (!hitAABB(ray, boxMin, boxMax)) {
+        return false;
+    }
+
+    // Check if this is a leaf node
+    if (bvh.IsLeafNode(nodeID)) {
+        bool hit = false;
+        unsigned int elementCount = bvh.GetNodeElementCount(nodeID);
+        unsigned int const* elements = bvh.GetNodeElements(nodeID);
+        int closestFace = INT_MAX;
+        cyVec2f baryCoords(0.0f, 0.0f);
+		HitInfo tempHit;
+        tempHit.Init();
+        cyVec2f tempBary;
+
+        // Test ray against each triangle in this leaf node
+        for (unsigned int i = 0; i < elementCount; i++) 
+        {
+            unsigned int triangleIndex = elements[i];
+
+            if (IntersectTriangle(ray, tempHit, hitSide, triangleIndex, tempBary)) 
+            {
+                hit = true;
+                if (tempHit.z >= hInfo.z) continue;
+				hInfo.z = tempHit.z;
+                closestFace = triangleIndex;
+                baryCoords = tempBary;
+            }
+        }
+		if (!hit) return false;
+
+        TriFace textureFace = FT(closestFace);
+		TriFace normalFace = FN(closestFace);
+		float u = baryCoords.x;
+		float v = baryCoords.y;
+		float w = 1.0f - u - v;
+        cyVec3f uvw = (vt[textureFace.v[0]] * w) + 
+                      (vt[textureFace.v[1]] * u) + 
+                      (vt[textureFace.v[2]] * v);
+
+        hInfo.N = (w * vn[FN(closestFace).v[0]] +
+            u * vn[FN(closestFace).v[1]] +
+            v * vn[FN(closestFace).v[2]]).GetNormalized();
+
+        hInfo.p = ray.p + ray.dir * hInfo.z;
+        hInfo.uvw = uvw;
+        hInfo.front = ray.dir.Dot(hInfo.N) < 0;
+
+        return true;
+    }
+    else {
+        unsigned int child1, child2;
+        bvh.GetChildNodes(nodeID, child1, child2);
+
+        HitInfo hitInfo1, hitInfo2;
+        bool hit1 = TraceBVHNode(ray, hitInfo1, hitSide, child1);
+        bool hit2 = TraceBVHNode(ray, hitInfo2, hitSide, child2);
+        if(hitInfo1.z < hitInfo2.z) {
+            hInfo = hitInfo1;
+            return hit1;
+        } else {
+            hInfo = hitInfo2;
+            return hit2;
+		}
+    }
+}
+
+bool TriObj::TraceBVHNodeShadow(Ray const& ray, float t_max, unsigned int nodeID) const {
+    float const* bounds = bvh.GetNodeBounds(nodeID);
+    cyVec3f boxMin(bounds[0], bounds[1], bounds[2]);
+    cyVec3f boxMax(bounds[3], bounds[4], bounds[5]);
+    if (!hitAABB(ray, boxMin, boxMax)) {
+        return false;
+    }
+    // Check if this is a leaf node
+    if (bvh.IsLeafNode(nodeID)) {
+        unsigned int elementCount = bvh.GetNodeElementCount(nodeID);
+        unsigned int const* elements = bvh.GetNodeElements(nodeID);
+        HitInfo tempHit;
+        tempHit.Init();
+        cyVec2f tempBary;
+        // Test ray against each triangle in this leaf node
+        for (unsigned int i = 0; i < elementCount; i++)
+        {
+            unsigned int triangleIndex = elements[i];
+            if (IntersectTriangle(ray, tempHit, HIT_FRONT_AND_BACK, triangleIndex, tempBary))
+            {
+                if (tempHit.z < t_max) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    else {
+        unsigned int child1, child2;
+        bvh.GetChildNodes(nodeID, child1, child2);
+        bool hit1 = TraceBVHNodeShadow(ray, t_max, child1);
+        if (hit1) return true;
+        bool hit2 = TraceBVHNodeShadow(ray, t_max, child2);
+        return hit2;
+    }
+}

@@ -3,8 +3,8 @@
 ///
 /// \file       scene.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    5.0
-/// \date       September 13, 2025
+/// \version    7.1
+/// \date       October 2, 2025
 ///
 /// \brief Project source for CS 6620 - University of Utah.
 ///
@@ -22,8 +22,7 @@
 
 #include <vector>
 #include <atomic>
-
-#include "lodepng.h"
+#include <string>
 
 #include "cyVector.h"
 #include "cyMatrix.h"
@@ -34,38 +33,54 @@ using namespace cy;
 
 #define BIGFLOAT std::numeric_limits<float>::max()
 
+class Object;
+class Light;
+class Material;
+class Texture;
+class Node;
+class ShadeInfo;
+class Loader;
+
+template <class T> class ItemList;
+
+typedef ItemList<Object>   ObjFileList;
+typedef ItemList<Light>    LightList;
+typedef ItemList<Material> MaterialList;
+typedef ItemList<Texture>  TextureFileList;
+
 //-------------------------------------------------------------------------------
 
-class Ray
+struct Ray
 {
-public:
     Vec3f p, dir;
 
-    Ray() {}
+    Ray() = default;
     Ray(Vec3f const& _p, Vec3f const& _dir) : p(_p), dir(_dir) {}
-    Ray(Ray const& r) : p(r.p), dir(r.dir) {}
-    void Normalize() { dir.Normalize(); }
 };
 
 //-------------------------------------------------------------------------------
-
-class Node;
 
 #define HIT_NONE           0
 #define HIT_FRONT          1
 #define HIT_BACK           2
 #define HIT_FRONT_AND_BACK (HIT_FRONT|HIT_BACK)
 
+//-------------------------------------------------------------------------------
+
 struct HitInfo
 {
     Vec3f       p;      // position of the hit point
     float       z;      // the distance from the ray center to the hit point
-    Vec3f       N;      // surface normal at the hit point
     Node const* node;   // the object node that was hit
+    Vec3f       N;      // surface normal at the hit point
+    Vec3f       GN;     // geometry normal at the hit point
+    Vec3f       uvw;    // texture coordinate at the hit point
+    Vec3f       duvw[2];// derivatives of the texture coordinate
+    int         mtlID;  // sub-material index
     bool        front;  // true if the ray hits the front side, false if the ray hits the back side
 
     HitInfo() { Init(); }
-    void Init() { z = BIGFLOAT; node = nullptr; front = true; }
+    void Init() { z = BIGFLOAT; node = nullptr; uvw.Set(0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID = 0; front = true; }
 };
 
 //-------------------------------------------------------------------------------
@@ -111,7 +126,7 @@ public:
     }
 
     // Enlarges the box such that it includes the given box b.
-    void operator += (const Box& b)
+    void operator += (Box const& b)
     {
         for (int i = 0; i < 3; i++) {
             if (pmin[i] > b.pmin[i]) pmin[i] = b.pmin[i];
@@ -128,205 +143,242 @@ public:
 
 //-------------------------------------------------------------------------------
 
-class ItemBase
-{
-private:
-    char* name;         // The name of the item
-
-public:
-    ItemBase() : name(nullptr) {}
-    virtual ~ItemBase() { if (name) delete[] name; }
-
-    char const* GetName() const { return name ? name : ""; }
-    void SetName(char const* newName)
-    {
-        if (name) delete[] name;
-        if (newName) {
-            int n = (int)strlen(newName);
-            name = new char[n + 1];
-            for (int i = 0; i < n; i++) name[i] = newName[i];
-            name[n] = '\0';
-        }
-        else { name = nullptr; }
-    }
-};
-
-template <class T> class ItemList : public std::vector<T*>
-{
-public:
-    virtual ~ItemList() { DeleteAll(); }
-    void DeleteAll() { int n = (int)this->size(); for (int i = 0; i < n; i++) if (this->at(i)) delete this->at(i); }
-};
-
-template <class T> class ItemFileList
-{
-public:
-    void Clear() { list.DeleteAll(); }
-    void Append(T* item, char const* name) { list.push_back(new FileInfo(item, name)); }
-    T* Find(char const* name) const { for (FileInfo* fi : list) if (fi && strcmp(name, fi->GetName()) == 0) return fi->GetObj(); return nullptr; }
-
-private:
-    class FileInfo : public ItemBase
-    {
-    private:
-        T* item;
-    public:
-        FileInfo() : item(nullptr) {}
-        FileInfo(T* _item, char const* name) : item(_item) { SetName(name); }
-        ~FileInfo() { Delete(); }
-        void Delete() { if (item) delete item; item = nullptr; }
-        void SetObj(T* _item) { Delete(); item = _item; }
-        T* GetObj() { return item; }
-    };
-
-    ItemList<FileInfo> list;
-};
-
-//-------------------------------------------------------------------------------
-
 class Transformation
 {
 private:
-    Matrix3f tm;            // Transformation matrix to the local space
-    Vec3f    pos;           // Translation part of the transformation matrix
-    mutable Matrix3f itm;   // Inverse of the transformation matrix (cached)
+    Matrix34f tm;   // Transformation matrix from the local space
+    Matrix34f itm;  // Inverse of the transformation matrix
 public:
-    Transformation() : pos(0, 0, 0) { tm.SetIdentity(); itm.SetIdentity(); }
-    Matrix3f const& GetTransform() const { return tm; }
-    Vec3f    const& GetPosition() const { return pos; }
-    Matrix3f const& GetInverseTransform() const { return itm; }
+    Transformation() { InitTransform(); }
 
-    Vec3f TransformTo(Vec3f const& p) const { return itm * (p - pos); } // Transform to the local coordinate system
-    Vec3f TransformFrom(Vec3f const& p) const { return tm * p + pos; }  // Transform from the local coordinate system
+    void InitTransform() { tm.SetIdentity(); itm.SetIdentity(); }
+
+    void Translate(Vec3f const& p) { Transform(Matrix34f::Translation(p)); }
+    void Rotate(Vec3f const& axis, float degrees) { Transform(Matrix34f::Rotation(axis, Deg2Rad(degrees))); }
+    void Scale(Vec3f const& s) { Transform(Matrix34f::Scale(s)); }
+    void Transform(Matrix34f const& m) { tm = m * tm; itm = tm.GetInverse(); }
+
+    Matrix34f const& GetTransform() const { return tm; }
+    Matrix34f const& GetInverseTransform() const { return itm; }
+
+    Vec3f TransformTo(Vec3f const& p) const { return itm * p; }   // Transform a position vector to the local coordinate system
+    Vec3f TransformFrom(Vec3f const& p) const { return tm * p; }   // Transform a position vector from the local coordinate system
+
+    Vec3f DirectionTransformTo(Vec3f const& p) const { return itm.GetSubMatrix3() * p; }  // Transform a direction vector to the local coordinate system
+    Vec3f DirectionTransformFrom(Vec3f const& p) const { return tm.GetSubMatrix3() * p; }  // Transform a direction vector from the local coordinate system
 
     // Transforms a normal vector to the local coordinate system (same as multiplication with the inverse transpose of the transformation)
-    Vec3f NormalTransformTo(Vec3f const& dir) const { return tm.TransposeMult(dir); }
+    Vec3f NormalTransformTo(Vec3f const& dir) const { return tm.GetSubMatrix3().TransposeMult(dir); }
 
     // Transforms a normal vector from the local coordinate system (same as multiplication with the inverse transpose of the transformation)
-    Vec3f NormalTransformFrom(Vec3f const& dir) const { return itm.TransposeMult(dir); }
-
-    void Translate(Vec3f const& p) { pos += p; }
-    void Rotate(Vec3f const& axis, float degrees) { Matrix3f m; m.SetRotation(axis, degrees * Pi<float>() / 180.0f); Transform(m); }
-    void Scale(float sx, float sy, float sz) { Matrix3f m; m.Zero(); m[0] = sx; m[4] = sy; m[8] = sz; Transform(m); }
-    void Transform(Matrix3f const& m) { tm = m * tm; pos = m * pos; itm = tm.GetInverse(); }
-
-    void InitTransform() { pos.Zero(); tm.SetIdentity(); itm.SetIdentity(); }
+    Vec3f NormalTransformFrom(Vec3f const& dir) const { return itm.GetSubMatrix3().TransposeMult(dir); }
 
     // Transformations
-    Ray ToNodeCoords(Ray const& ray) const
-    {
-        Ray r;
-        r.p = TransformTo(ray.p);
-        r.dir = TransformTo(ray.p + ray.dir) - r.p;
-        return r;
-    }
+    Ray ToNodeCoords(Ray const& ray) const { return Ray(TransformTo(ray.p), DirectionTransformTo(ray.dir)); }
     void FromNodeCoords(HitInfo& hInfo) const
     {
         hInfo.p = TransformFrom(hInfo.p);
-        hInfo.N = NormalTransformFrom(hInfo.N).GetNormalized();
+        hInfo.N = NormalTransformFrom(hInfo.N);
+        hInfo.GN = NormalTransformFrom(hInfo.GN);
     }
+
+    void Load(Loader const& loader);
 };
 
 //-------------------------------------------------------------------------------
 
-class Material;
+class ItemBase
+{
+private:
+    std::string name;   // The name of the item
+public:
+    char const* GetName() const { return name.data(); }
+    void SetName(char const* newName) { name = newName ? newName : ""; }
+};
 
-// Base class for all object types
-class Object
+
+//-------------------------------------------------------------------------------
+
+class Object : public ItemBase
 {
 public:
     virtual bool IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT) const = 0;
-	virtual bool shadowRay(Ray const& ray, float t_max) const = 0; // optimized version of IntersectRay for shadow rays
+    virtual bool ShadowRay(Ray const& ray, float t_max) const = 0; // returns true if any intersection is found before t_max
     virtual Box  GetBoundBox() const = 0;
     virtual void ViewportDisplay(Material const* mtl) const {}    // used for OpenGL display
+    virtual void Load(Loader const& loader) {}
 };
-
-typedef ItemFileList<Object> ObjFileList;
 
 //-------------------------------------------------------------------------------
 
 class Light : public ItemBase
 {
 public:
-    virtual Color Illuminate(Vec3f const& p, Vec3f const& N) const = 0;
-    virtual Vec3f Direction(Vec3f const& p) const = 0;
+    virtual Color Illuminate(ShadeInfo const& sInfo, Vec3f& dir) const = 0; // returns the light intensity and direction
     virtual bool  IsAmbient() const { return false; }
-    virtual void  SetViewportLight(int lightID) const {}    // used for OpenGL display
+    virtual void  SetViewportLight(int lightID) const {}  // used for OpenGL display
+    virtual void  Load(Loader const& loader) {}
 };
-
-class LightList : public ItemList<Light> {};
 
 //-------------------------------------------------------------------------------
 
 class Material : public ItemBase
 {
 public:
-    // The main method that handles the shading by calling all the lights in the list.
-    // ray: incoming ray,
-    // hInfo: hit information for the point that is being shaded, lights: the light list,
-    // bounceCount: permitted number of additional bounces for reflection and refraction.
-    virtual Color Shade(Ray const& ray, HitInfo const& hInfo, LightList const& lights, int bounceCount) const = 0;
-
-    virtual void SetViewportMaterial(int subMtlID = 0) const {}   // used for OpenGL display
+    virtual Color Shade(ShadeInfo const& shadeInfo) const = 0;  // the main method that handles shading
+    virtual void SetViewportMaterial(int mtlID = 0) const {}    // used for OpenGL display
+    virtual void Load(Loader const& loader, TextureFileList& textureFileList) {}
 };
 
-class MaterialList : public ItemList<Material>
+//-------------------------------------------------------------------------------
+
+class Texture : public ItemBase
 {
 public:
-    Material* Find(char const* name) const { for (Material* mtl : *this) if (mtl && strcmp(name, mtl->GetName()) == 0) return mtl; return nullptr; }
+    // Evaluates the color at the given uvw location.
+    virtual Color Eval(Vec3f const& uvw) const = 0;
+
+    // Evaluates the color around the given uvw location using the derivatives duvw
+    // by calling the Eval function multiple times.
+    virtual Color Eval(Vec3f const& uvw, Vec3f const duvw[2]) const
+    {
+        Color c = Eval(uvw);
+        if (duvw[0].LengthSquared() + duvw[1].LengthSquared() == 0) return c;
+        const int sampleCount = 32;
+        for (int i = 1; i < sampleCount; i++) {
+            float x = 0, y = 0, fx = 0.5f, fy = 1.0f / 3.0f;
+            for (int ix = i; ix > 0; ix /= 2) { x += fx * (ix % 2); fx /= 2; }   // Halton sequence (base 2)
+            for (int iy = i; iy > 0; iy /= 3) { y += fy * (iy % 3); fy /= 3; }   // Halton sequence (base 3)
+            if (x > 0.5f) x -= 1;
+            if (y > 0.5f) y -= 1;
+            c += Eval(uvw + x * duvw[0] + y * duvw[1]);
+        }
+        return c / float(sampleCount);
+    }
+
+    virtual bool SetViewportTexture() const { return false; }   // used for OpenGL display
+
+    virtual void Load(Loader const& loader, TextureFileList& textureFileList) {}
+
+protected:
+
+    // Clamps the uvw values for tiling textures, such that all values fall between 0 and 1.
+    static Vec3f TileClamp(Vec3f const& uvw)
+    {
+        Vec3f u;
+        u.x = uvw.x - (int)uvw.x;
+        u.y = uvw.y - (int)uvw.y;
+        u.z = uvw.z - (int)uvw.z;
+        if (u.x < 0) u.x += 1;
+        if (u.y < 0) u.y += 1;
+        if (u.z < 0) u.z += 1;
+        return u;
+    }
 };
+
+//-------------------------------------------------------------------------------
+
+// This class handles textures with texture transformations.
+// The uvw values passed to the Eval methods are transformed
+// using the texture transformation.
+class TextureMap : public Transformation
+{
+public:
+    TextureMap() : texture(nullptr) {}
+    TextureMap(Texture const* tex) : texture(tex) {}
+    void SetTexture(Texture const* tex) { texture = tex; }
+
+    virtual Color Eval(Vec3f const& uvw) const { return texture ? texture->Eval(TransformTo(uvw)) : Color(0, 0, 0); }
+    virtual Color Eval(Vec3f const& uvw, Vec3f const duvw[2]) const
+    {
+        if (texture == nullptr) return Color(0, 0, 0);
+        Vec3f d[2] = { DirectionTransformTo(duvw[0]), DirectionTransformTo(duvw[1]) };
+        return texture->Eval(TransformTo(uvw), d);
+    }
+
+    bool SetViewportTexture() const { if (texture) return texture->SetViewportTexture(); return false; }   // used for OpenGL display
+
+private:
+    Texture const* texture;
+};
+
+//-------------------------------------------------------------------------------
+
+// This class keeps a TextureMap and a value. This is useful for keeping material
+// parameters that can also be textures. If no texture is specified, it automatically 
+// uses the value. Otherwise, the texture is multiplied by the value.
+template <typename T>
+class TexturedValue
+{
+private:
+    T value;
+    TextureMap* map;
+public:
+    TexturedValue() : value(T(0.0f)), map(nullptr) {}
+    TexturedValue(T const& v) : value(v), map(nullptr) {}
+    virtual ~TexturedValue() { if (map) delete map; }
+
+    void SetValue(T const& c) { value = c; }
+    void SetTexture(TextureMap* m) { if (map) delete map; map = m; }
+
+    T GetValue() const { return value; }
+    const TextureMap* GetTexture() const { return map; }
+
+    T Eval(Vec3f const& uvw) const { return (map) ? value * EvalMap(uvw) : value; }
+    T Eval(Vec3f const& uvw, Vec3f const duvw[2]) const { return (map) ? value * EvalMap(uvw, duvw) : value; }
+
+    // Returns the value value at the given direction for environment mapping.
+    T EvalEnvironment(Vec3f const& dir) const
+    {
+        float len = dir.Length();
+        float z = std::asin(-dir.z / len) / Pi<float>() + 0.5f;
+        float x = dir.x / (fabs(dir.x) + fabs(dir.y));
+        float y = dir.y / (fabs(dir.x) + fabs(dir.y));
+        return Eval(Vec3f(0.5f + 0.5f * z * (x - y), 0.5f + 0.5f * z * (x + y), 0.0f));
+    }
+
+private:
+    T EvalMap(Vec3f const& uvw) const;
+    T EvalMap(Vec3f const& uvw, Vec3f const duvw[2]) const;
+};
+
+template <> inline Color TexturedValue<Color>::EvalMap(Vec3f const& uvw) const { return map->Eval(uvw); }
+template <> inline float TexturedValue<float>::EvalMap(Vec3f const& uvw) const { return map->Eval(uvw).r; }
+template <> inline Color TexturedValue<Color>::EvalMap(Vec3f const& uvw, Vec3f const duvw[2]) const { return map->Eval(uvw, duvw); }
+template <> inline float TexturedValue<float>::EvalMap(Vec3f const& uvw, Vec3f const duvw[2]) const { return map->Eval(uvw, duvw).r; }
+
+typedef TexturedValue<Color> TexturedColor;
+typedef TexturedValue<float> TexturedFloat;
 
 //-------------------------------------------------------------------------------
 
 class Node : public ItemBase, public Transformation
 {
 private:
-    Node** child;       // Child nodes
-    int numChild;       // The number of child nodes
-    Object* obj;        // Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
-    Material* mtl;      // Material used for shading the object
-    Box childBoundBox;  // Bounding box of the child nodes, which does not include the object of this node, but includes the objects of the child nodes
+    std::vector<Node*> childNodes;        // Child nodes
+    Object* obj = nullptr;   // Object reference (merely points to the object, but does not own the object, so it doesn't get deleted automatically)
+    Material* mtl = nullptr;   // Material used for shading the object
+    Box                childBoundBox;   // Bounding box of the childNodes nodes, which does not include the object of this node, but includes the objects of the childNodes nodes
 public:
-    Node() : child(nullptr), numChild(0), obj(nullptr), mtl(nullptr) {}
     virtual ~Node() { DeleteAllChildNodes(); }
 
-    void Init() { DeleteAllChildNodes(); obj = nullptr; mtl = nullptr; childBoundBox.Init(); SetName(nullptr); InitTransform(); } // Initialize the node deleting all child nodes
+    void Init() { DeleteAllChildNodes(); obj = nullptr; mtl = nullptr; childBoundBox.Init(); SetName(nullptr); InitTransform(); } // Initialize the node deleting all childNodes nodes
 
     // Hierarchy management
-    int  GetNumChild() const { return numChild; }
-    void SetNumChild(int n, int keepOld = false)
-    {
-        if (n < 0) n = 0;    // just to be sure
-        Node** nc = nullptr;    // new child pointer
-        if (n > 0) nc = new Node * [n];
-        for (int i = 0; i < n; i++) nc[i] = nullptr;
-        if (keepOld) {
-            int sn = Min(n, numChild);
-            for (int i = 0; i < sn; i++) nc[i] = child[i];
-        }
-        if (child) delete[] child;
-        child = nc;
-        numChild = n;
-    }
-    Node const* GetChild(int i) const { return child[i]; }
-    Node* GetChild(int i) { return child[i]; }
-    void        SetChild(int i, Node* node) { child[i] = node; }
-    void        AppendChild(Node* node) { SetNumChild(numChild + 1, true); SetChild(numChild - 1, node); }
-    void        RemoveChild(int i) { for (int j = i; j < numChild - 1; j++) child[j] = child[j + 1]; SetNumChild(numChild - 1); }
-    void        DeleteAllChildNodes() { for (int i = 0; i < numChild; i++) { child[i]->DeleteAllChildNodes(); delete child[i]; } SetNumChild(0); }
+    int         GetNumChild() const { return (int)childNodes.size(); }
+    Node const* GetChild(int i) const { return childNodes[i]; }
+    Node* GetChild(int i) { return childNodes[i]; }
+    void        AppendChild(Node* node) { childNodes.push_back(node); }
+    void        DeleteAllChildNodes() { for (Node* c : childNodes) { c->DeleteAllChildNodes(); delete c; } childNodes.clear(); }
 
     // Bounding Box
     Box const& ComputeChildBoundBox()
     {
         childBoundBox.Init();
-        for (int i = 0; i < numChild; i++) {
-            Box childBox = child[i]->ComputeChildBoundBox();
-            Object* cobj = child[i]->GetNodeObj();
-            if (cobj) childBox += cobj->GetBoundBox();
-            if (!childBox.IsEmpty()) {
-                // transform the box from child coordinates
-                for (int j = 0; j < 8; j++) childBoundBox += child[i]->TransformFrom(childBox.Corner(j));
-            }
+        for (Node* c : childNodes) {
+            Box childBox = c->ComputeChildBoundBox();
+            if (c->GetNodeObj()) childBox += c->GetNodeObj()->GetBoundBox();
+            if (!childBox.IsEmpty()) for (int j = 0; j < 8; j++) childBoundBox += c->TransformFrom(childBox.Corner(j));    // transform the box from childNodes coordinates
         }
         return childBoundBox;
     }
@@ -360,97 +412,34 @@ public:
         imgWidth = 1920;
         imgHeight = 1080;
     }
+
+    void Load(Loader const& loader);
 };
 
 //-------------------------------------------------------------------------------
 
-class RenderImage
+template <class T>
+class ItemList : public std::vector<T*>
 {
-private:
-    Color24* img;
-    float* zbuffer;
-    uint8_t* zbufferImg;
-    int      width, height;
-    std::atomic<int> numRenderedPixels;
 public:
-    RenderImage() : img(nullptr), zbuffer(nullptr), zbufferImg(nullptr), width(0), height(0), numRenderedPixels(0) {}
-    void Init(int w, int h)
-    {
-        width = w;
-        height = h;
-        int size = width * height;
-        if (img) delete[] img;
-        img = new Color24[size];
-        if (zbuffer) delete[] zbuffer;
-        zbuffer = new float[size];
-        for (int i = 0; i < size; ++i) zbuffer[i] = BIGFLOAT;
-        if (zbufferImg) delete[] zbufferImg;
-        zbufferImg = new uint8_t[size];
-        ResetNumRenderedPixels();
-    }
-
-    int      GetWidth() const { return width; }
-    int      GetHeight() const { return height; }
-    Color24* GetPixels() { return img; }
-    float* GetZBuffer() { return zbuffer; }
-    uint8_t* GetZBufferImage() { return zbufferImg; }
-
-    void ResetNumRenderedPixels() { numRenderedPixels = 0; }
-    int  GetNumRenderedPixels() const { return numRenderedPixels; }
-    void IncrementNumRenderPixel(int n) { numRenderedPixels += n; }
-    bool IsRenderDone() const { return numRenderedPixels >= width * height; }
-
-    void ComputeZBufferImage()
-    {
-        int size = width * height;
-        if (zbufferImg) delete[] zbufferImg;
-        zbufferImg = new uint8_t[size];
-
-        float zmin = BIGFLOAT, zmax = 0;
-        for (int i = 0; i < size; i++) {
-            if (zbuffer[i] == BIGFLOAT) continue;
-            if (zmin > zbuffer[i]) zmin = zbuffer[i];
-            if (zmax < zbuffer[i]) zmax = zbuffer[i];
-        }
-        for (int i = 0; i < size; i++) {
-            if (zbuffer[i] == BIGFLOAT) zbufferImg[i] = 0;
-            else {
-                float f = (zmax - zbuffer[i]) / (zmax - zmin);
-                int c = int(f * 255);
-                if (c < 0) c = 0;
-                if (c > 255) c = 255;
-                zbufferImg[i] = c;
-            }
-        }
-    }
-
-    bool SaveImage(char const* filename) const { return SavePNG(filename, &img[0].r, 3); }
-    bool SaveZImage(char const* filename) const { return SavePNG(filename, zbufferImg, 1); }
-
-private:
-    bool SavePNG(char const* filename, uint8_t* data, int compCount) const
-    {
-        LodePNGColorType colortype;
-        switch (compCount) {
-        case 1: colortype = LCT_GREY; break;
-        case 3: colortype = LCT_RGB;  break;
-        default: return false;
-        }
-        unsigned int error = lodepng::encode(filename, data, width, height, colortype, 8);
-        return error == 0;
-    }
+    virtual ~ItemList() { DeleteAll(); }
+    void DeleteAll() { for (T* i : *this) if (i) delete i; this->clear(); }
+    T* Find(char const* name) const { for (T* i : *this) if (i && strcmp(name, i->GetName()) == 0) return i; return nullptr; }
 };
 
 //-------------------------------------------------------------------------------
 
-struct RenderScene
+struct Scene
 {
-    Node         rootNode;
-    MaterialList materials;
-    LightList    lights;
-    ObjFileList  objList;
-    Camera       camera;
-    RenderImage  renderImage;
+    Node            rootNode;
+    ObjFileList     objList;
+    LightList       lights;
+    MaterialList    materials;
+    TextureFileList texFiles;
+    TexturedColor   background;
+    TexturedColor   environment;
+
+    void Load(Loader const& loader);
 };
 
 //-------------------------------------------------------------------------------

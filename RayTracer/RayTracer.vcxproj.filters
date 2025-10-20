@@ -21,10 +21,13 @@
     <ClCompile Include="tinyxml2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="viewport.cpp">
+    <ClCompile Include="lodepng.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xmlload.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="viewport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="raytracer.cpp">
@@ -33,15 +36,24 @@
     <ClCompile Include="objects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lodepng.cpp">
+    <ClCompile Include="materials.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="materials.cpp">
+    <ClCompile Include="texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="viewport.h">
+    <ClInclude Include="lodepng.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="objects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="xmlload.h">
@@ -50,16 +62,19 @@
     <ClInclude Include="raytracer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lodepng.h">
+    <ClInclude Include="materials.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lights.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="scene.h">
+    <ClInclude Include="shadowInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="materials.h">
+    <ClInclude Include="texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rng.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -73,9 +88,6 @@
     <Xml Include="project_2_scene.xml">
       <Filter>Resource Files</Filter>
     </Xml>
-    <Xml Include="..\..\..\Desktop\scene3_2.xml">
-      <Filter>Resource Files</Filter>
-    </Xml>
     <Xml Include="custom.xml">
       <Filter>Resource Files</Filter>
     </Xml>
@@ -83,6 +95,15 @@
       <Filter>Resource Files</Filter>
     </Xml>
     <Xml Include="scene_5.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="scene3.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="havingFun.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="scene_textures.xml">
       <Filter>Resource Files</Filter>
     </Xml>
   </ItemGroup>
