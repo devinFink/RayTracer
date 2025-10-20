@@ -208,6 +208,7 @@
     <ClInclude Include="objects.h" />
     <ClInclude Include="raytracer.h" />
     <ClInclude Include="renderer.h" />
+    <ClInclude Include="rng.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="shadowInfo.h" />
     <ClInclude Include="texture.h" />

@@ -44,16 +44,99 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 		for (int y = y0; y < y1; ++y) {
 			for (int x = x0; x < x1; ++x) {
 
-				int i = y * scrWidth + x;
+				int index = y * scrWidth + x;
+				Color sumColor(0, 0, 0);
+				Color sumColorSquared(0, 0, 0);
+				Color finalColor(0, 0, 0);
+				HaltonSeq<64> haltonX(2);
+				HaltonSeq<64> haltonY(3);
+				RNG rng(index);
+				float randomOffsetX = rng.RandomFloat();
+				float randomOffsetY = rng.RandomFloat();
+				int totalSamples = 0;
 
-				cyVec3f pixelPos = cyVec3f((-(wrldImgWidth / 2.0f) + (wrldImgWidth / camWidthRes) * (x + (1.0f / 2.0f))),    //x
-					((wrldImgHeight / 2.0f) - (wrldImgHeight / camHeightRes) * (y + (1.0f / 2.0f))), //y
-					(-1));                                                                           //z
 
-				cyVec2f scrPos = cyVec2f((float)x, (float)y);
-				CreateRay(i, pixelPos, scrPos);
+				//Adaptive Sampling loop
+				for(int i = 0; i < 64; i++)
+				{
+					float pixX = -(wrldImgWidth / 2.0f) + ((wrldImgWidth * (x + (1.0f / 2.0f) + haltonX[i] + randomOffsetX) / camWidthRes));
+					float pixY = (wrldImgHeight / 2.0f) - ((wrldImgHeight * (y + (1.0f / 2.0f) + haltonY[i] + randomOffsetY) / camHeightRes));
+;
+					cyVec3f pixelPos(pixX, pixY, -1);
+
+
+					cyVec2f scrPos = cyVec2f((float)x, (float)y);
+					Color tempColor = CreateRay(i, pixelPos, scrPos);
+					sumColor += tempColor;
+					sumColorSquared += tempColor * tempColor;
+
+					if (i >= 3)
+					{
+						float n = (float)(i + 1);
+						Color mean = sumColor / n;
+						Color meanSq = sumColor * sumColor;
+						Color variance = (sumColorSquared - meanSq / n) / (n - 1.0f);
+						variance.ClampMin(0.0f);
+						Color stdDev = Sqrt(variance);
+						float t = tValues[(int)n - 1]; // from table
+						Color phi = t * (stdDev / sqrtf(n));
+						float threshold = 0.01f;
+
+						if(phi.r <= threshold && phi.g <= threshold && phi.b <= threshold)
+						{
+							finalColor = mean;
+							totalSamples = (int)n;
+							break;
+						}
+					}
+
+					if(i == 63)
+					{
+						float n = (float)(i + 1);
+						finalColor = sumColor / n;
+						totalSamples = (int)n;
+					}
+				}                                                                
+
+
+				renderImage.GetPixels()[index] = (Color24)finalColor;
+				renderImage.IncrementNumRenderPixel(1);
+				renderImage.GetZBuffer()[index] = 0;
+				renderImage.GetSampleCount()[index] = totalSamples;
 			}
 		}
+	}
+}
+
+Color RayTracer::CreateRay(int index, cyVec3f pixelPos, cyVec2f scrPos)
+{
+	//Ray Generation
+	Ray ray = Ray(camera.pos, pixelPos);
+	ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 0));
+
+	HitInfo hit;
+	hit.Init();
+	hit.node = &scene.rootNode;
+
+	if (TraceRay(ray, hit, HIT_FRONT))
+	{
+		ShadowInfo info = ShadowInfo(scene.lights, scene.environment, this);
+		info.SetHit(ray, hit);
+
+		if (hit.node->GetMaterial())
+		{
+			return (Color)hit.node->GetMaterial()->Shade(info);
+		}
+		else
+		{
+			return Color(255, 255, 255);
+		}
+	}
+	else
+	{
+		float u = scrPos.x / (float)camera.imgWidth;
+		float v = scrPos.y / (float)camera.imgHeight;
+		return scene.background.Eval(Vec3f(u, v, 0.0));
 	}
 }
 
@@ -80,7 +163,7 @@ void RayTracer::BeginRender()
 	//}
 	//renderImage.ComputeZBufferImage();
 	//renderImage.SaveZImage("testZ.png");
-	//renderImage.SaveImage("prj_6.png");
+	//renderImage.SaveImage("prj_7.png");
 }
 
 void RayTracer::StopRender() 
@@ -88,43 +171,6 @@ void RayTracer::StopRender()
 	renderImage.ComputeZBufferImage();
 	renderImage.SaveZImage("testZ.png");
 	renderImage.SaveImage("testSpace.png");
-}
-
-void RayTracer::CreateRay(int index, cyVec3f pixelPos, cyVec2f scrPos)
-{
-	//Ray Generation
-	Ray ray = Ray(camera.pos, pixelPos);
-	ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 0));
-
-	HitInfo hit;
-	hit.Init();
-	hit.node = &scene.rootNode;
-
-	if (TraceRay(ray, hit, HIT_FRONT))
-	{
-		ShadowInfo info = ShadowInfo(scene.lights, scene.environment, this);
-		info.SetHit(ray, hit);
-
-		if (hit.node->GetMaterial())
-		{
-			renderImage.GetPixels()[index] = (Color24)hit.node->GetMaterial()->Shade(info);
-		}
-		else
-		{
-			renderImage.GetPixels()[index] = Color24(255, 255, 255);
-		}
-	}
-	else
-	{
-		float u = scrPos.x / (float)camera.imgWidth;
-		float v = scrPos.y / (float)camera.imgHeight;
-		Color color = scene.background.Eval(Vec3f(u, v, 0.0));
-		renderImage.GetPixels()[index] = (Color24)color;
-	}
-
-
-	renderImage.IncrementNumRenderPixel(1);
-	renderImage.GetZBuffer()[index] = hit.z;
 }
 
 bool RayTracer::TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide) const

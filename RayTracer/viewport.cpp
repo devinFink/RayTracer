@@ -3,7 +3,7 @@
 ///
 /// \file       viewport.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    7.0
+/// \version    8.0
 /// \date       September 24, 2025
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -53,6 +53,7 @@ static const char* uiControlsString =
 "1     - Shows OpenGL view.\n"
 "2     - Shows the rendered image.\n"
 "3     - Shows the z (depth) image.\n"
+"4     - Shows the sample count image.\n"
 "Space - Starts/stops rendering.\n"
 "Esc   - Terminates software.\n"
 "Mouse Left Click - Writes the pixel information to the console.\n";
@@ -68,10 +69,11 @@ Renderer* theRenderer = nullptr;
 
 //-------------------------------------------------------------------------------
 
-#define WINDOW_TITLE        "Ray Tracer - CS 6620"
-#define WINDOW_TITLE_OPENGL WINDOW_TITLE " - OpenGL"
-#define WINDOW_TITLE_IMAGE  WINDOW_TITLE " - Rendered Image"
-#define WINDOW_TITLE_Z      WINDOW_TITLE " - Z (Depth) Image"
+#define WINDOW_TITLE              "Ray Tracer - CS 6620"
+#define WINDOW_TITLE_OPENGL       WINDOW_TITLE " - OpenGL"
+#define WINDOW_TITLE_IMAGE        WINDOW_TITLE " - Rendered Image"
+#define WINDOW_TITLE_Z            WINDOW_TITLE " - Z (Depth) Image"
+#define WINDOW_TITLE_SAMPLE_COUNT WINDOW_TITLE " - Sample Count"
 
 enum Mode {
     MODE_READY,         // Ready to render
@@ -84,6 +86,7 @@ enum ViewMode
     VIEWMODE_OPENGL,
     VIEWMODE_IMAGE,
     VIEWMODE_Z,
+    VIEWMODE_SAMPLECOUNT,
 };
 
 enum MouseMode {
@@ -423,6 +426,10 @@ void GlutDisplay()
         renderImage.ComputeZBufferImage();
         DrawImage(renderImage.GetZBufferImage(), GL_UNSIGNED_BYTE, GL_LUMINANCE);
         break;
+    case VIEWMODE_SAMPLECOUNT:
+        renderImage.ComputeSampleCountImage();
+        DrawImage(renderImage.GetSampleCountImage(), GL_UNSIGNED_BYTE, GL_LUMINANCE);
+        break;
     }
     if (mode == MODE_RENDERING) DrawRenderProgressBar();
 
@@ -507,6 +514,11 @@ void GlutKeyboard(unsigned char key, int x, int y)
         glutSetWindowTitle(WINDOW_TITLE_Z);
         glutPostRedisplay();
         break;
+    case '4':
+        viewMode = VIEWMODE_SAMPLECOUNT;
+        glutSetWindowTitle(WINDOW_TITLE_SAMPLE_COUNT);
+        glutPostRedisplay();
+        break;
     }
 }
 
@@ -554,11 +566,13 @@ void PrintPixelData(int x, int y)
     if (x >= 0 && y >= 0 && x < renderImage.GetWidth() && y < renderImage.GetHeight()) {
         Color24* colors = renderImage.GetPixels();
         float* zbuffer = renderImage.GetZBuffer();
+        int* sCount = renderImage.GetSampleCount();
         int i = y * renderImage.GetWidth() + x;
         printf("   Pixel: %4d, %4d\n   Color:  %3d,  %3d,  %3d\n", x, y, colors[i].r, colors[i].g, colors[i].b);
         terminal_erase_line();
         if (zbuffer[i] == BIGFLOAT) printf("Z-Buffer: max\n");
         else printf("Z-Buffer: %f\n", zbuffer[i]);
+        printf(" Samples: %3d      \n", sCount[i]);
     }
 }
 

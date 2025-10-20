@@ -160,16 +160,18 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	Color reflectCol(0, 0, 0);
 	Color refractCol(0, 0, 0);
 	Color fresnel(0, 0, 0);
+	Color reflection = this->Reflection().Eval(info.UVW());
+	Color refraction = this->Refraction().Eval(info.UVW());
 
 	
-	Color fullReflection = this->Reflection().GetValue();
+	Color fullReflection = reflection;;
 	float matior = this->ior;
 	if (matior > 0.0f && info.CanBounce())
 	{
-		refractCol = this->refraction.GetValue() * RefractRay(this->ior, info, this->absorption).Eval(info.UVW());
+		refractCol = refraction * RefractRay(this->ior, info, this->absorption).Eval(info.UVW());
 
 		//Fresnel Effect
-		fresnel = this->refraction.GetValue() * pow((1 - matior) / (1 + matior), 2);
+		fresnel = refraction * pow((1 - matior) / (1 + matior), 2);
 		fullReflection = fullReflection + fresnel;
 		refractCol = refractCol * (Color(1, 1, 1) - fullReflection);
 	}

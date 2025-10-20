@@ -30,7 +30,7 @@ bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
     double t1 = (-b - sqrt(discriminant)) / (2 * a);
     double t2 = (-b + sqrt(discriminant)) / (2 * a);
 
-    if (t1 >= eps && hitSide & HIT_FRONT) {
+    if (t1 > eps && hitSide & HIT_FRONT) {
         if (hInfo.z > t1) {
             hInfo.z = t1;
             hInfo.p = ray.p + (ray.dir * t1);
@@ -72,8 +72,8 @@ bool Sphere::ShadowRay(Ray const& ray, float t_max) const {
     double t1 = (-b - sqrt(discriminant)) / (2 * a);
     double t2 = (-b + sqrt(discriminant)) / (2 * a);
 
-    if (t1 > 0.002 && t1 < t_max) return true;
-    if (t2 > 0.002 && t2 < t_max) return true;
+    if (t1 > 0.01 && t1 < t_max) return true;
+    if (t2 > 0.01 && t2 < t_max) return true;
 
     return false;
 }
@@ -179,7 +179,6 @@ bool TriObj::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
 
 
 bool TriObj::ShadowRay(Ray const& ray, float t_max) const {
-
     return TraceBVHNodeShadow(ray, t_max, bvh.GetRootNodeID());
 }
 
@@ -188,7 +187,7 @@ bool TriObj::ShadowRay(Ray const& ray, float t_max) const {
 */
 bool TriObj::IntersectTriangle(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int faceID, cyVec2f& baryCoords) const {
     TriFace const& face = F(faceID);
-    const float epsilon = 0.0001f;
+    const float epsilon = 0.002f;
 
     // Fetch vertices only once
     const cyVec3f& v0 = V(face.v[0]);
@@ -241,7 +240,6 @@ bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned 
         unsigned int elementCount = bvh.GetNodeElementCount(nodeID);
         unsigned int const* elements = bvh.GetNodeElements(nodeID);
         int closestFace = INT_MAX;
-		float dist = std::numeric_limits<float>::max();
         cyVec2f baryCoords(0.0f, 0.0f);
 		HitInfo tempHit;
         tempHit.Init();
@@ -255,8 +253,8 @@ bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned 
             if (IntersectTriangle(ray, tempHit, hitSide, triangleIndex, tempBary)) 
             {
                 hit = true;
-                if (tempHit.z >= dist) continue;
-                dist = tempHit.z;
+                if (tempHit.z >= hInfo.z) continue;
+				hInfo.z = tempHit.z;
                 closestFace = triangleIndex;
                 baryCoords = tempBary;
             }
@@ -272,13 +270,12 @@ bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned 
                       (vt[textureFace.v[1]] * u) + 
                       (vt[textureFace.v[2]] * v);
 
-        hInfo.N = ((1.0f - u - v) * vn[FN(closestFace).v[0]] +
+        hInfo.N = (w * vn[FN(closestFace).v[0]] +
             u * vn[FN(closestFace).v[1]] +
             v * vn[FN(closestFace).v[2]]).GetNormalized();
 
         hInfo.p = ray.p + ray.dir * hInfo.z;
         hInfo.uvw = uvw;
-        hInfo.z = dist;
         hInfo.front = ray.dir.Dot(hInfo.N) < 0;
 
         return true;
