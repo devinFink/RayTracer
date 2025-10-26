@@ -178,7 +178,7 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 
 	if (fullReflection != Color(0, 0, 0) && info.CanBounce())
 	{
-		reflectCol = fullReflection * ReflectRay(info, HIT_FRONT, this->absorption).Eval(info.UVW());
+		reflectCol = fullReflection * ReflectRay(info, HIT_FRONT_AND_BACK, this->absorption).Eval(info.UVW());
 	}
 	
 

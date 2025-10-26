@@ -106,5 +106,8 @@
     <Xml Include="scene_textures.xml">
       <Filter>Resource Files</Filter>
     </Xml>
+    <Xml Include="scene6.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

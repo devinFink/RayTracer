@@ -3,7 +3,7 @@
 ///
 /// \file       xmlload.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    7.1
+/// \version    9.0
 /// \date       October 2, 2025
 ///
 /// \brief Example source for CS 6620 - University of Utah.
@@ -109,6 +109,8 @@ void Camera::Load(Loader const& loader)
     loader.Child("target").ReadVec3f(dir);
     loader.Child("up").ReadVec3f(up);
     loader.Child("fov").ReadFloat(fov);
+    loader.Child("focaldist").ReadFloat(focaldist);
+    loader.Child("dof").ReadFloat(dof);
     loader.Child("width").ReadInt(imgWidth);
     loader.Child("height").ReadInt(imgHeight);
     dir -= pos;

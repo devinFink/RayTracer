@@ -9,6 +9,6 @@
 int main()
 {
 	Renderer* theRenderer = new RayTracer();
-	theRenderer->LoadScene("scene_textures.xml");
+	theRenderer->LoadScene("scene6.xml");
     ShowViewport(theRenderer);
 }

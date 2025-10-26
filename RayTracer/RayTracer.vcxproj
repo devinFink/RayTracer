@@ -143,7 +143,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\devin\Desktop\raylibs\include;C:\Users\devin\Desktop\raylibs\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -181,6 +181,7 @@
       <ConformanceMode>true</ConformanceMode>
       <Optimization>MaxSpeed</Optimization>
       <AdditionalIncludeDirectories>C:\Users\devin\Desktop\raylibs\include;C:\Users\devin\Desktop\raylibs\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -219,6 +220,7 @@
     <Xml Include="havingFun.xml" />
     <Xml Include="project_1_scene.xml" />
     <Xml Include="project_2_scene.xml" />
+    <Xml Include="scene6.xml" />
     <Xml Include="scene3.xml" />
     <Xml Include="scene_4.xml" />
     <Xml Include="scene_5.xml" />

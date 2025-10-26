@@ -20,11 +20,12 @@ void RayTracer::CreateCam2Wrld()
 
 void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX, int tilesY)
 {
+	float l = camera.focaldist;
 	const int scrHeight = renderImage.GetHeight();
 	const int scrWidth = renderImage.GetWidth();
 	const float camWidthRes = camera.imgWidth;
 	const float camHeightRes = camera.imgHeight;
-	float wrldImgHeight = 2.0f * 1 * tan((DEG2RAD(camera.fov)) / 2.0f);
+	float wrldImgHeight = 2.0f * l * tan((DEG2RAD(camera.fov)) / 2.0f);
 	float wrldImgWidth = wrldImgHeight * (camWidthRes / camHeightRes);
 
 	for (;;)
@@ -49,6 +50,8 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 				Color sumColorSquared(0, 0, 0);
 				HaltonSeq<64> haltonX(2);
 				HaltonSeq<64> haltonY(3);
+				HaltonSeq<64> haltonDiscX(5);
+				HaltonSeq<64> haltonDiscY(7);
 				RNG rng(index);
 				float randomOffset = rng.RandomFloat();
 				int totalSamples = 0;
@@ -57,26 +60,50 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 				//Adaptive Sampling loop
 				for(int i = 0; i < 64; i++)
 				{
-					float haltonValueX = haltonX[i];
-					if(haltonValueX + randomOffset > 1.0f)
+					float haltonValueX = haltonX[i] + randomOffset;
+					if(haltonValueX > 1.0f)
 						haltonValueX -= 1.0f;
-					float haltonValueY = haltonY[i];
-					if(haltonValueY + randomOffset > 1.0f)
+
+					float haltonValueY = haltonY[i] + randomOffset;
+					if(haltonValueY > 1.0f)
 						haltonValueY -= 1.0f;
 
-					float pixX = -(wrldImgWidth / 2.0f) + ((wrldImgWidth * (x + (1.0f / 2.0f) + haltonValueX + randomOffset) / camWidthRes));
-					float pixY = (wrldImgHeight / 2.0f) - ((wrldImgHeight * (y + (1.0f / 2.0f) + haltonValueY + randomOffset) / camHeightRes));
-;
-					cyVec3f pixelPos(pixX, pixY, -1);
+
+					float pixX = -(wrldImgWidth / 2.0f) + ((wrldImgWidth * (x + (1.0f / 2.0f)  + haltonValueX) / camWidthRes));
+					float pixY = (wrldImgHeight / 2.0f) - ((wrldImgHeight * (y + (1.0f / 2.0f) + haltonValueY) / camHeightRes));
+					cyVec3f pixelPos(pixX, pixY, -l);
+
+					//Depth of Field
+					float discX = haltonDiscX[i] + randomOffset;
+					float discY = haltonDiscY[i] + randomOffset;
+					if(discX > 1.0f)
+						discX -= 1.0f;
+					if (discY > 1.0f)
+						discY -= 1.0f;
+
+					float r = sqrt(discX);
+					float angle = 2.0f * M_PI * discY;
+					float lensU = r * camera.dof * cos(angle);
+					float lensV = r * camera.dof * sin(angle);
+					Vec3f cameraOffset = Vec3f(lensU, lensV, 0.0f);
+					Vec3f worldCamera = cyVec3f(cam2Wrld * cyVec4f(cameraOffset, 0));
+					Vec3f worldPixel = cyVec3f(cam2Wrld * cyVec4f(pixelPos, 0));
+					Vec3f offsetCamera = camera.pos + worldCamera;
+					cyVec3f rayDir = worldPixel - worldCamera;
 
 
 					cyVec2f scrPos = cyVec2f((float)x, (float)y);
-					Color tempColor = CreateRay(i, pixelPos, scrPos);
+
+					//Ray Generation 
+					Ray ray = Ray(offsetCamera, rayDir);
+
+					Color tempColor = SendRay(i, ray, scrPos);
 					sumColor += tempColor;
 					sumColorSquared += tempColor * tempColor;
 
-					if (i >= 3)
+					if (i >= 8)
 					{
+						//Adaptive Sampling Calculation
 						float n = (float)(i + 1);
 						Color mean = sumColor / n;
 						Color meanSq = sumColor * sumColor;
@@ -110,12 +137,8 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 	}
 }
 
-Color RayTracer::CreateRay(int index, cyVec3f pixelPos, cyVec2f scrPos)
+Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos)
 {
-	//Ray Generation
-	Ray ray = Ray(camera.pos, pixelPos);
-	ray.dir = cyVec3f(cam2Wrld * cyVec4f(ray.dir, 0));
-
 	HitInfo hit;
 	hit.Init();
 	hit.node = &scene.rootNode;
@@ -159,13 +182,15 @@ void RayTracer::BeginRender()
 		threads.emplace_back([this, totalTiles, tilesX, tilesY]() { RunThread(this->nextTile, totalTiles, tilesX, tilesY); });
 	for (auto& th : threads) th.detach();
 
-	while(!renderImage.IsRenderDone())
-	{
-		continue;
-	}
-	renderImage.ComputeZBufferImage();
-	renderImage.SaveZImage("testZ.png");
-	renderImage.SaveImage("prj_8.png");
+	//while(!renderImage.IsRenderDone())
+	//{
+	//	continue;
+	//}
+	//renderImage.ComputeZBufferImage();
+	//renderImage.SaveZImage("testZ.png");
+	//renderImage.SaveImage("prj_8.png");
+	//renderImage.ComputeSampleCountImage();
+	//renderImage.SaveSampleCountImage("sampleCount.png");
 }
 
 void RayTracer::StopRender() 
