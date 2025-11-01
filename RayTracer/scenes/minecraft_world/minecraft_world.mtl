@@ -1,0 +1,1880 @@
+Wavefront OBJ material file
+# Contains 161 materials
+
+newmtl grass_block_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/grass_block_top_y.png
+map_Kd tex/grass_block_top_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl stone
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/stone.png
+map_Kd tex/stone.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl dirt
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/dirt.png
+map_Kd tex/dirt.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl grass_block_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/grass_block_side_y.png
+map_Kd tex/grass_block_side_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl oak_planks
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/oak_planks.png
+map_Kd tex/oak_planks.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl poppy
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/poppy.png
+map_Kd tex/poppy.png
+map_d tex/poppy.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl dandelion
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/dandelion.png
+map_Kd tex/dandelion.png
+map_d tex/dandelion.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cobblestone
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cobblestone.png
+map_Kd tex/cobblestone.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl sand
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/sand.png
+map_Kd tex/sand.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl gravel
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/gravel.png
+map_Kd tex/gravel.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl oak_log
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/oak_log.png
+map_Kd tex/oak_log.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl oak_log_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/oak_log_top.png
+map_Kd tex/oak_log_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MWO_chest_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MWO_chest_top.png
+map_Kd tex/MWO_chest_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MWO_chest_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MWO_chest_side.png
+map_Kd tex/MWO_chest_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MWO_chest_front
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MWO_chest_front.png
+map_Kd tex/MWO_chest_front.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl red_mushroom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/red_mushroom.png
+map_Kd tex/red_mushroom.png
+map_d tex/red_mushroom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl brown_mushroom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+Ke 0.0172133 0.0172133 0.0172133
+# map_Ka tex/brown_mushroom.png
+map_Kd tex/brown_mushroom.png
+map_d tex/brown_mushroom.png
+map_Ke tex/brown_mushroom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl iron_ore
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/iron_ore.png
+map_Kd tex/iron_ore.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl coal_ore
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/coal_ore.png
+map_Kd tex/coal_ore.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl mossy_cobblestone
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/mossy_cobblestone.png
+map_Kd tex/mossy_cobblestone.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl short_grass
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/short_grass_y.png
+map_Kd tex/short_grass_y.png
+map_d tex/short_grass_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl glass
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0.03 0.03 0.03
+# map_Ka tex/glass.png
+map_Kd tex/glass.png
+map_d tex/glass.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl oak_leaves
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/oak_leaves_y.png
+map_Kd tex/oak_leaves_y.png
+map_d tex/oak_leaves_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl stone_bricks
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/stone_bricks.png
+map_Kd tex/stone_bricks.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl fern
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/fern_y.png
+map_Kd tex/fern_y.png
+map_d tex/fern_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl white_wool
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/white_wool.png
+map_Kd tex/white_wool.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl spawner
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/spawner.png
+map_Kd tex/spawner.png
+map_d tex/spawner.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl clay
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/clay.png
+map_Kd tex/clay.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl sugar_cane
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/sugar_cane.png
+map_Kd tex/sugar_cane.png
+map_d tex/sugar_cane.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl torch
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+Ke 0.901686 0.901686 0.901686
+# map_Ka tex/torch.png
+map_Kd tex/torch.png
+map_d tex/torch.png
+map_Ke tex/torch.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl oak_door_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/oak_door_top.png
+map_Kd tex/oak_door_top.png
+map_d tex/oak_door_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl oak_trapdoor
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/oak_trapdoor.png
+map_Kd tex/oak_trapdoor.png
+map_d tex/oak_trapdoor.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl farmland_moist
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/farmland_moist.png
+map_Kd tex/farmland_moist.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl wheat_stage0
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/wheat_stage0.png
+map_Kd tex/wheat_stage0.png
+map_d tex/wheat_stage0.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl wheat_stage1
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/wheat_stage1.png
+map_Kd tex/wheat_stage1.png
+map_d tex/wheat_stage1.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl wheat_stage2
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/wheat_stage2.png
+map_Kd tex/wheat_stage2.png
+map_d tex/wheat_stage2.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl wheat_stage3
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/wheat_stage3.png
+map_Kd tex/wheat_stage3.png
+map_d tex/wheat_stage3.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl wheat_stage4
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/wheat_stage4.png
+map_Kd tex/wheat_stage4.png
+map_d tex/wheat_stage4.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl oak_door_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/oak_door_bottom.png
+map_Kd tex/oak_door_bottom.png
+map_d tex/oak_door_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl mossy_stone_bricks
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/mossy_stone_bricks.png
+map_Kd tex/mossy_stone_bricks.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cracked_stone_bricks
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cracked_stone_bricks.png
+map_Kd tex/cracked_stone_bricks.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl pumpkin_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/pumpkin_top.png
+map_Kd tex/pumpkin_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl spruce_log
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/spruce_log.png
+map_Kd tex/spruce_log.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl birch_log
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/birch_log.png
+map_Kd tex/birch_log.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl pumpkin_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/pumpkin_side.png
+map_Kd tex/pumpkin_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl spruce_leaves
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/spruce_leaves_y.png
+map_Kd tex/spruce_leaves_y.png
+map_d tex/spruce_leaves_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MW_bed_feet_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MW_bed_feet_top.png
+map_Kd tex/MW_bed_feet_top.png
+map_d tex/MW_bed_feet_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MW_bed_head_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MW_bed_head_top.png
+map_Kd tex/MW_bed_head_top.png
+map_d tex/MW_bed_head_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cauldron_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cauldron_top.png
+map_Kd tex/cauldron_top.png
+map_d tex/cauldron_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cauldron_inner
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cauldron_inner.png
+map_Kd tex/cauldron_inner.png
+map_d tex/cauldron_inner.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl vine
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/vine_y.png
+map_Kd tex/vine_y.png
+map_d tex/vine_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MW_bed_feet_end
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MW_bed_feet_end.png
+map_Kd tex/MW_bed_feet_end.png
+map_d tex/MW_bed_feet_end.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MW_bed_feet_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MW_bed_feet_side.png
+map_Kd tex/MW_bed_feet_side.png
+map_d tex/MW_bed_feet_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MW_bed_head_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MW_bed_head_side.png
+map_Kd tex/MW_bed_head_side.png
+map_d tex/MW_bed_head_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MW_bed_head_end
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MW_bed_head_end.png
+map_Kd tex/MW_bed_head_end.png
+map_d tex/MW_bed_head_end.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cauldron_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cauldron_side.png
+map_Kd tex/cauldron_side.png
+map_d tex/cauldron_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl lapis_ore
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/lapis_ore.png
+map_Kd tex/lapis_ore.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl yellow_wool
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/yellow_wool.png
+map_Kd tex/yellow_wool.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl emerald_ore
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/emerald_ore.png
+map_Kd tex/emerald_ore.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl sandstone_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/sandstone_top.png
+map_Kd tex/sandstone_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl birch_log_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/birch_log_top.png
+map_Kd tex/birch_log_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl spruce_log_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/spruce_log_top.png
+map_Kd tex/spruce_log_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl sandstone
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/sandstone.png
+map_Kd tex/sandstone.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl spruce_planks
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/spruce_planks.png
+map_Kd tex/spruce_planks.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl jungle_planks
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/jungle_planks.png
+map_Kd tex/jungle_planks.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl carrots_stage0
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/carrots_stage0.png
+map_Kd tex/carrots_stage0.png
+map_d tex/carrots_stage0.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl carrots_stage1
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/carrots_stage1.png
+map_Kd tex/carrots_stage1.png
+map_d tex/carrots_stage1.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl potatoes_stage0
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/potatoes_stage0.png
+map_Kd tex/potatoes_stage0.png
+map_d tex/potatoes_stage0.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl potatoes_stage1
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/potatoes_stage1.png
+map_Kd tex/potatoes_stage1.png
+map_d tex/potatoes_stage1.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl sandstone_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/sandstone_bottom.png
+map_Kd tex/sandstone_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl chiseled_stone_bricks
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/chiseled_stone_bricks.png
+map_Kd tex/chiseled_stone_bricks.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl birch_leaves
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/birch_leaves_y.png
+map_Kd tex/birch_leaves_y.png
+map_d tex/birch_leaves_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl water_still
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0.03 0.03 0.03
+# map_Ka tex/water_still_y.png
+map_Kd tex/water_still_y.png
+map_d tex/water_still_y.png
+# illum 4
+# d 0.535
+# Tr 0.465
+# Tf 0.465 0.465 0.465
+
+newmtl hay_block_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/hay_block_side.png
+map_Kd tex/hay_block_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl hay_block_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/hay_block_top.png
+map_Kd tex/hay_block_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl lava_still
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+Ke 1 1 1
+# map_Ka tex/lava_still.png
+map_Kd tex/lava_still.png
+map_Ke tex/lava_still.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl white_terracotta
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/white_terracotta.png
+map_Kd tex/white_terracotta.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl terracotta
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/terracotta.png
+map_Kd tex/terracotta.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl lilac_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/lilac_bottom.png
+map_Kd tex/lilac_bottom.png
+map_d tex/lilac_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl lilac_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/lilac_top.png
+map_Kd tex/lilac_top.png
+map_d tex/lilac_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl tall_grass_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/tall_grass_bottom_y.png
+map_Kd tex/tall_grass_bottom_y.png
+map_d tex/tall_grass_bottom_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl tall_grass_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/tall_grass_top_y.png
+map_Kd tex/tall_grass_top_y.png
+map_d tex/tall_grass_top_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl large_fern_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/large_fern_bottom_y.png
+map_Kd tex/large_fern_bottom_y.png
+map_d tex/large_fern_bottom_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl large_fern_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/large_fern_top_y.png
+map_Kd tex/large_fern_top_y.png
+map_d tex/large_fern_top_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl rose_bush_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/rose_bush_bottom.png
+map_Kd tex/rose_bush_bottom.png
+map_d tex/rose_bush_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl rose_bush_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/rose_bush_top.png
+map_Kd tex/rose_bush_top.png
+map_d tex/rose_bush_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl peony_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/peony_bottom.png
+map_Kd tex/peony_bottom.png
+map_d tex/peony_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl peony_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/peony_top.png
+map_Kd tex/peony_top.png
+map_d tex/peony_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl azure_bluet
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/azure_bluet.png
+map_Kd tex/azure_bluet.png
+map_d tex/azure_bluet.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl red_tulip
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/red_tulip.png
+map_Kd tex/red_tulip.png
+map_d tex/red_tulip.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl orange_tulip
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/orange_tulip.png
+map_Kd tex/orange_tulip.png
+map_d tex/orange_tulip.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl white_tulip
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/white_tulip.png
+map_Kd tex/white_tulip.png
+map_d tex/white_tulip.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl pink_tulip
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/pink_tulip.png
+map_Kd tex/pink_tulip.png
+map_d tex/pink_tulip.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl oxeye_daisy
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/oxeye_daisy.png
+map_Kd tex/oxeye_daisy.png
+map_d tex/oxeye_daisy.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl dark_oak_planks
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/dark_oak_planks.png
+map_Kd tex/dark_oak_planks.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl andesite
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/andesite.png
+map_Kd tex/andesite.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl diorite
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/diorite.png
+map_Kd tex/diorite.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl granite
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/granite.png
+map_Kd tex/granite.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl polished_granite
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/polished_granite.png
+map_Kd tex/polished_granite.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl prismarine
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/prismarine.png
+map_Kd tex/prismarine.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl sea_lantern
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+Ke 1 1 1
+# map_Ka tex/sea_lantern.png
+map_Kd tex/sea_lantern.png
+map_Ke tex/sea_lantern.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl spruce_door_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/spruce_door_bottom.png
+map_Kd tex/spruce_door_bottom.png
+map_d tex/spruce_door_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl spruce_door_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/spruce_door_top.png
+map_Kd tex/spruce_door_top.png
+map_d tex/spruce_door_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl smooth_stone
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/smooth_stone.png
+map_Kd tex/smooth_stone.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl beetroots_stage0
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/beetroots_stage0.png
+map_Kd tex/beetroots_stage0.png
+map_d tex/beetroots_stage0.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl beetroots_stage1
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/beetroots_stage1.png
+map_Kd tex/beetroots_stage1.png
+map_d tex/beetroots_stage1.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl dirt_path_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/dirt_path_top.png
+map_Kd tex/dirt_path_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl dirt_path_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/dirt_path_side.png
+map_Kd tex/dirt_path_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl magma
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+Ke 0.0894427 0.0894427 0.0894427
+# map_Ka tex/magma.png
+map_Kd tex/magma.png
+map_Ke tex/magma.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl MWO_chest_latch
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/MWO_chest_latch.png
+map_Kd tex/MWO_chest_latch.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl water_flow
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0.03 0.03 0.03
+# map_Ka tex/water_flow_y.png
+map_Kd tex/water_flow_y.png
+map_d tex/water_flow_y.png
+# illum 4
+# d 0.535
+# Tr 0.465
+# Tf 0.465 0.465 0.465
+
+newmtl lava_flow
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+Ke 1 1 1
+# map_Ka tex/lava_flow.png
+map_Kd tex/lava_flow.png
+map_Ke tex/lava_flow.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl kelp
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/kelp.png
+map_Kd tex/kelp.png
+map_d tex/kelp.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl kelp_plant
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/kelp_plant.png
+map_Kd tex/kelp_plant.png
+map_d tex/kelp_plant.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl tall_seagrass_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/tall_seagrass_bottom.png
+map_Kd tex/tall_seagrass_bottom.png
+map_d tex/tall_seagrass_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl tall_seagrass_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/tall_seagrass_top.png
+map_Kd tex/tall_seagrass_top.png
+map_d tex/tall_seagrass_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl stripped_oak_log
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/stripped_oak_log.png
+map_Kd tex/stripped_oak_log.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl spruce_trapdoor
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/spruce_trapdoor.png
+map_Kd tex/spruce_trapdoor.png
+map_d tex/spruce_trapdoor.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cornflower
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cornflower.png
+map_Kd tex/cornflower.png
+map_d tex/cornflower.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl lily_of_the_valley
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/lily_of_the_valley.png
+map_Kd tex/lily_of_the_valley.png
+map_d tex/lily_of_the_valley.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl sweet_berry_bush_stage3
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/sweet_berry_bush_stage3.png
+map_Kd tex/sweet_berry_bush_stage3.png
+map_d tex/sweet_berry_bush_stage3.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl bell_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/bell_top.png
+map_Kd tex/bell_top.png
+map_d tex/bell_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl bell_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/bell_side.png
+map_Kd tex/bell_side.png
+map_d tex/bell_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl bell_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/bell_bottom.png
+map_Kd tex/bell_bottom.png
+map_d tex/bell_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl composter_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/composter_top.png
+map_Kd tex/composter_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl composter_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/composter_side.png
+map_Kd tex/composter_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl composter_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/composter_bottom.png
+map_Kd tex/composter_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cartography_table_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cartography_table_top.png
+map_Kd tex/cartography_table_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cartography_table_side1
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cartography_table_side1.png
+map_Kd tex/cartography_table_side1.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cartography_table_side2
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cartography_table_side2.png
+map_Kd tex/cartography_table_side2.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl cartography_table_side3
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/cartography_table_side3.png
+map_Kd tex/cartography_table_side3.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl stonecutter_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/stonecutter_top.png
+map_Kd tex/stonecutter_top.png
+map_d tex/stonecutter_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl stonecutter_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/stonecutter_side.png
+map_Kd tex/stonecutter_side.png
+map_d tex/stonecutter_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl stonecutter_saw
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/stonecutter_saw.png
+map_Kd tex/stonecutter_saw.png
+map_d tex/stonecutter_saw.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl bee_nest_bottom
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/bee_nest_bottom.png
+map_Kd tex/bee_nest_bottom.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl bee_nest_front
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/bee_nest_front.png
+map_Kd tex/bee_nest_front.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl bee_nest_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/bee_nest_side.png
+map_Kd tex/bee_nest_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl bee_nest_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/bee_nest_top.png
+map_Kd tex/bee_nest_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl dripstone_block
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/dripstone_block.png
+map_Kd tex/dripstone_block.png
+map_d tex/dripstone_block.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl pointed_dripstone_up_tip
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/pointed_dripstone_up_tip.png
+map_Kd tex/pointed_dripstone_up_tip.png
+map_d tex/pointed_dripstone_up_tip.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl pointed_dripstone_up_frustum
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/pointed_dripstone_up_frustum.png
+map_Kd tex/pointed_dripstone_up_frustum.png
+map_d tex/pointed_dripstone_up_frustum.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl pointed_dripstone_up_base
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/pointed_dripstone_up_base.png
+map_Kd tex/pointed_dripstone_up_base.png
+map_d tex/pointed_dripstone_up_base.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl pointed_dripstone_down_tip
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/pointed_dripstone_down_tip.png
+map_Kd tex/pointed_dripstone_down_tip.png
+map_d tex/pointed_dripstone_down_tip.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl pointed_dripstone_down_frustum
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/pointed_dripstone_down_frustum.png
+map_Kd tex/pointed_dripstone_down_frustum.png
+map_d tex/pointed_dripstone_down_frustum.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl pointed_dripstone_down_base
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/pointed_dripstone_down_base.png
+map_Kd tex/pointed_dripstone_down_base.png
+map_d tex/pointed_dripstone_down_base.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl copper_ore
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/copper_ore.png
+map_Kd tex/copper_ore.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl azalea_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/azalea_top.png
+map_Kd tex/azalea_top.png
+map_d tex/azalea_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl azalea_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/azalea_side.png
+map_Kd tex/azalea_side.png
+map_d tex/azalea_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl azalea_plant
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/azalea_plant.png
+map_Kd tex/azalea_plant.png
+map_d tex/azalea_plant.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl moss_block
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/moss_block.png
+map_Kd tex/moss_block.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl big_dripleaf_top
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/big_dripleaf_top.png
+map_Kd tex/big_dripleaf_top.png
+map_d tex/big_dripleaf_top.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl big_dripleaf_side
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/big_dripleaf_side.png
+map_Kd tex/big_dripleaf_side.png
+map_d tex/big_dripleaf_side.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl big_dripleaf_tip
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/big_dripleaf_tip.png
+map_Kd tex/big_dripleaf_tip.png
+map_d tex/big_dripleaf_tip.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl big_dripleaf_stem
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/big_dripleaf_stem.png
+map_Kd tex/big_dripleaf_stem.png
+map_d tex/big_dripleaf_stem.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl glow_lichen
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+Ke 0.318794 0.318794 0.318794
+# map_Ka tex/glow_lichen.png
+map_Kd tex/glow_lichen.png
+map_d tex/glow_lichen.png
+map_Ke tex/glow_lichen.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl suspicious_gravel_0
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/suspicious_gravel_0.png
+map_Kd tex/suspicious_gravel_0.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl bush
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/bush_y.png
+map_Kd tex/bush_y.png
+map_d tex/bush_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl firefly_bush
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/firefly_bush.png
+map_Kd tex/firefly_bush.png
+map_d tex/firefly_bush.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl leaf_litter
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/leaf_litter_y.png
+map_Kd tex/leaf_litter_y.png
+map_d tex/leaf_litter_y.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl wildflowers
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/wildflowers.png
+map_Kd tex/wildflowers.png
+map_d tex/wildflowers.png
+# illum 2
+# d 1
+# Tr 0
+
+newmtl wildflowers_stem
+# Ns 0
+# Ka 0.2 0.2 0.2
+Kd 1 1 1
+Ks 0 0 0
+# map_Ka tex/wildflowers_stem.png
+map_Kd tex/wildflowers_stem.png
+map_d tex/wildflowers_stem.png
+# illum 2
+# d 1
+# Tr 0

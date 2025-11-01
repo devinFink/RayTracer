@@ -101,7 +101,7 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 					sumColor += tempColor;
 					sumColorSquared += tempColor * tempColor;
 
-					if (i >= 8)
+					if (i >= 4)
 					{
 						//Adaptive Sampling Calculation
 						float n = (float)(i + 1);
@@ -145,7 +145,8 @@ Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos)
 
 	if (TraceRay(ray, hit, HIT_FRONT))
 	{
-		ShadowInfo info = ShadowInfo(scene.lights, scene.environment, this);
+		RNG rng(index);
+		ShadowInfo info = ShadowInfo(scene.lights, scene.environment, rng, this);
 		info.SetHit(ray, hit);
 
 		if (hit.node->GetMaterial())
@@ -187,10 +188,10 @@ void RayTracer::BeginRender()
 	//	continue;
 	//}
 	//renderImage.ComputeZBufferImage();
-	//renderImage.SaveZImage("testZ.png");
-	//renderImage.SaveImage("prj_8.png");
+	//renderImage.SaveZImage("outputs/testZ.png");
+	//renderImage.SaveImage("outputs/minecraft2.png");
 	//renderImage.ComputeSampleCountImage();
-	//renderImage.SaveSampleCountImage("sampleCount.png");
+	//renderImage.SaveSampleCountImage("outputs/sampleCount.png");
 }
 
 void RayTracer::StopRender() 

@@ -11,6 +11,17 @@
 #include "raytracer.h"
 #include "shadowInfo.h"
 
+
+Color PointLight::Illuminate(ShadeInfo const& sInfo, Vec3f& dir)  const
+{
+	return Color(255, 255, 255);
+}
+
+bool PointLight::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
+{
+	return true;
+}
+
 /**
  * Determines whether a point is shadowed along a given ray.
  * Casts a shadow ray and checks for intersections up to a maximum distance.
@@ -28,10 +39,10 @@ float ShadowInfo::TraceShadowRay(Ray const& ray, float t_max) const
 
 bool ShadowInfo::CanBounce() const
 {
-	return bounceS < renderer->bounceCount;
+	return bounceC < renderer->bounceCount;
 }
 
-Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist) const
+Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist, bool reflection) const
 {
 	HitInfo hit;
 	hit.Init();
@@ -43,7 +54,7 @@ Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist) const
 		{
 			ShadowInfo si = *this;
 			si.SetHit(ray, hit);
-			si.IncrementBounce();
+			si.bounceC++;
 			si.IsFront() ? dist = si.Depth() : dist = 0;
 			return mat->Shade(si);
 		}
@@ -85,7 +96,7 @@ TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption)
 	Ray reflect(info.P(), reflectionDir);
 	float dist;
 
-	reflectCol = info.TraceSecondaryRay(reflect, dist);
+	reflectCol = info.TraceSecondaryRay(reflect, dist, true);
 	reflectCol.r *= exp(-absorption.r * dist);
 	reflectCol.g *= exp(-absorption.g * dist);
 	reflectCol.b *= exp(-absorption.b * dist);
@@ -138,7 +149,7 @@ TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption)
 	}
 
 	float dist;
-	refractCol = info.TraceSecondaryRay(refract, dist);
+	refractCol = info.TraceSecondaryRay(refract, dist, false);
 	refractCol.r *= exp(-absorption.r * dist);
 	refractCol.g *= exp(-absorption.g * dist);
 	refractCol.b *= exp(-absorption.b * dist);

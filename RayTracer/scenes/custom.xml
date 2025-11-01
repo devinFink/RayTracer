@@ -1,0 +1,283 @@
+<xml>
+	<scene>
+		<!-- Ground (large sphere as floor) -->
+		<object type="sphere" name="floor" material="floorMat">
+			<scale value="200"/>
+			<translate z="-200"/>
+		</object>
+
+		<!-- Exponentially tapering helix of spheres forming a conical tunnel -->
+		<object name="helix">
+			<!-- Generated along z, exponential taper in radius -->
+			<!-- Equation: 
+			     radius = baseRadius * exp(-z * falloff)
+			     angle = z * freq
+			     x = radius * cos(angle)
+			     y = radius * sin(angle)
+			-->
+			<!-- Parameters used:
+			     baseRadius = 30
+			     falloff = 0.025
+			     freq = 0.4
+			     z step = 5
+			     total spheres = 48
+			-->
+
+			<!-- Start wide and tighten exponentially -->
+			<object type="sphere" material="glassClear" name="s1">
+				<scale value="3"/>
+				<translate x="30" y="0" z="0"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s2">
+				<scale value="3"/>
+				<translate x="26.6" y="12.3" z="5"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s3">
+				<scale value="3"/>
+				<translate x="18.4" y="22.7" z="10"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s4">
+				<scale value="3"/>
+				<translate x="7.2" y="29.2" z="15"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s5">
+				<scale value="3"/>
+				<translate x="-6.2" y="30.9" z="20"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s6">
+				<scale value="3"/>
+				<translate x="-18.4" y="27.3" z="25"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s7">
+				<scale value="3"/>
+				<translate x="-27.1" y="19.1" z="30"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s8">
+				<scale value="3"/>
+				<translate x="-30" y="7.5" z="35"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s9">
+				<scale value="3"/>
+				<translate x="-26.8" y="-5.9" z="40"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s10">
+				<scale value="3"/>
+				<translate x="-17.8" y="-17.9" z="45"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s11">
+				<scale value="3"/>
+				<translate x="-4.6" y="-26.5" z="50"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s12">
+				<scale value="3"/>
+				<translate x="10.5" y="-30" z="55"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s13">
+				<scale value="3"/>
+				<translate x="24.1" y="-27.6" z="60"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s14">
+				<scale value="3"/>
+				<translate x="33.3" y="-20.1" z="65"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s15">
+				<scale value="3"/>
+				<translate x="36" y="-8.6" z="70"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s16">
+				<scale value="3"/>
+				<translate x="32.0" y="4.4" z="75"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s17">
+				<scale value="3"/>
+				<translate x="21.9" y="16.0" z="80"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s18">
+				<scale value="3"/>
+				<translate x="7.4" y="23.8" z="85"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s19">
+				<scale value="3"/>
+				<translate x="-9.5" y="26.3" z="90"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s20">
+				<scale value="3"/>
+				<translate x="-24.6" y="23.0" z="95"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s21">
+				<scale value="3"/>
+				<translate x="-34.3" y="14.6" z="100"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s22">
+				<scale value="3"/>
+				<translate x="-36.7" y="2.9" z="105"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s23">
+				<scale value="3"/>
+				<translate x="-31.4" y="-9.9" z="110"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s24">
+				<scale value="3"/>
+				<translate x="-19.4" y="-21.0" z="115"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s25">
+				<scale value="3"/>
+				<translate x="-3.0" y="-28.0" z="120"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s26">
+				<scale value="3"/>
+				<translate x="15.1" y="-29.0" z="125"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s27">
+				<scale value="3"/>
+				<translate x="31.0" y="-23.6" z="130"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s28">
+				<scale value="3"/>
+				<translate x="40.5" y="-12.7" z="135"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s29">
+				<scale value="3"/>
+				<translate x="42.0" y="2.3" z="140"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s30">
+				<scale value="3"/>
+				<translate x="35.0" y="17.6" z="145"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s31">
+				<scale value="3"/>
+				<translate x="21.0" y="29.0" z="150"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s32">
+				<scale value="3"/>
+				<translate x="3.1" y="34.6" z="155"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s33">
+				<scale value="3"/>
+				<translate x="-15.9" y="33.0" z="160"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s34">
+				<scale value="3"/>
+				<translate x="-31.4" y="24.2" z="165"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s35">
+				<scale value="3"/>
+				<translate x="-40.0" y="10.2" z="170"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s36">
+				<scale value="3"/>
+				<translate x="-39.7" y="-6.4" z="175"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s37">
+				<scale value="3"/>
+				<translate x="-30.4" y="-21.3" z="180"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s38">
+				<scale value="3"/>
+				<translate x="-13.9" y="-31.1" z="185"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s39">
+				<scale value="3"/>
+				<translate x="6.6" y="-33.7" z="190"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s40">
+				<scale value="3"/>
+				<translate x="25.9" y="-28.6" z="195"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s41">
+				<scale value="3"/>
+				<translate x="39.3" y="-16.8" z="200"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s42">
+				<scale value="3"/>
+				<translate x="44.3" y="-0.5" z="205"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s43">
+				<scale value="3"/>
+				<translate x="40.3" y="15.8" z="210"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s44">
+				<scale value="3"/>
+				<translate x="28.4" y="28.1" z="215"/>
+			</object>
+			<object type="sphere" material="glassClear" name="s45">
+				<scale value="3"/>
+				<translate x="11.6" y="33.9" z="220"/>
+			</object>
+			<object type="sphere" material="glassRed"   name="s46">
+				<scale value="3"/>
+				<translate x="-7.8" y="32.0" z="225"/>
+			</object>
+			<object type="sphere" material="glassBlue"  name="s47">
+				<scale value="3"/>
+				<translate x="-25.4" y="22.9" z="230"/>
+			</object>
+			<object type="sphere" material="glassGold"  name="s48">
+				<scale value="3"/>
+				<translate x="-37.0" y="8.5" z="235"/>
+			</object>
+		</object>
+
+		<!-- Materials -->
+		<material type="blinn" name="floorMat">
+			<diffuse r="0.9" g="0.9" b="0.9" value="0.7"/>
+			<specular r="1" g="1" b="1" value="0.1"/>
+		</material>
+
+		<!-- Glass materials same as before -->
+		<material type="blinn" name="glassClear">
+			<diffuse r="0.05" g="0.05" b="0.05"/>
+			<specular r="1" g="1" b="1" value="1.0"/>
+			<glossiness value="100"/>
+			<refraction value="1.0" index="1.52"/>
+			<reflection value="0.2"/>
+			<absorption r="0.001" g="0.001" b="0.001"/>
+		</material>
+
+		<material type="blinn" name="glassRed">
+			<diffuse r="0.1" g="0.02" b="0.02"/>
+			<specular r="1" g="0.8" b="0.8" value="0.9"/>
+			<glossiness value="80"/>
+			<refraction value="1.0" index="1.52"/>
+			<reflection value="0.25"/>
+			<absorption r="0.01" g="0.002" b="0.002"/>
+		</material>
+
+		<material type="blinn" name="glassBlue">
+			<diffuse r="0.02" g="0.05" b="0.1"/>
+			<specular r="0.8" g="0.8" b="1.0" value="0.9"/>
+			<glossiness value="80"/>
+			<refraction value="1.0" index="1.52"/>
+			<reflection value="0.25"/>
+			<absorption r="0.002" g="0.003" b="0.01"/>
+		</material>
+
+		<material type="blinn" name="glassGold">
+			<diffuse r="0.1" g="0.08" b="0.02"/>
+			<specular r="1.0" g="0.9" b="0.6" value="0.95"/>
+			<glossiness value="90"/>
+			<refraction value="1.0" index="1.52"/>
+			<reflection value="0.3"/>
+			<absorption r="0.01" g="0.008" b="0.002"/>
+		</material>
+
+		<!-- Lights -->
+		<light type="ambient" name="ambientLight">
+			<intensity value="0.8"/>
+		</light>
+		<light type="point" name="backLight">
+			<intensity value="1" r="0" g="1" b="0"/>
+			<position x="0" y="0" z="250"/>
+		</light>
+	</scene>
+
+	<!-- Camera -->
+	<camera>
+		<position x="0" y="-10" z="0"/>
+		<target x="0" y="0" z="250"/>
+		<up x="0" y="0" z="1"/>
+		<fov value="45"/>
+		<width value="1920"/>
+		<height value="1080"/>
+	</camera>
+</xml>

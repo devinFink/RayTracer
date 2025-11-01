@@ -28,7 +28,7 @@
 				<translate x="15"/>
 			</object>
 		</object>
-		<object type="obj" name="dragon-mesh.obj" material="obsidianDragon">
+		<object type="obj" name="hollow_teapot.obj" material="obsidianDragon">
 			<scale value="2.5"/>
 			<rotate angle="-250" z="1"/>
 			<translate x="2" y="5" z="0"/>

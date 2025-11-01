@@ -216,16 +216,21 @@
     <ClInclude Include="xmlload.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="custom.xml" />
-    <Xml Include="havingFun.xml" />
-    <Xml Include="project_1_scene.xml" />
-    <Xml Include="project_2_scene.xml" />
-    <Xml Include="scene6.xml" />
-    <Xml Include="scene3.xml" />
-    <Xml Include="scene_4.xml" />
-    <Xml Include="scene_5.xml" />
-    <Xml Include="scene_textures.xml" />
-    <Xml Include="simple_scene.xml" />
+    <Xml Include="scenes\custom.xml" />
+    <Xml Include="scenes\havingFun.xml" />
+    <Xml Include="scenes\mc.xml" />
+    <Xml Include="scenes\project_1_scene.xml" />
+    <Xml Include="scenes\project_2_scene.xml" />
+    <Xml Include="scenes\scene3.xml" />
+    <Xml Include="scenes\scene3_2.xml" />
+    <Xml Include="scenes\scene6.xml" />
+    <Xml Include="scenes\scene_4.xml" />
+    <Xml Include="scenes\scene_5.xml" />
+    <Xml Include="scenes\scene_textures.xml" />
+    <Xml Include="scenes\simple_scene.xml" />
+    <Xml Include="scenes\soft_shadow_scene.xml" />
+    <Xml Include="scenes\volumetric_spiral.xml" />
+    <Xml Include="scenes\weirdhorsething.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -9,6 +9,6 @@
 int main()
 {
 	Renderer* theRenderer = new RayTracer();
-	theRenderer->LoadScene("scene6.xml");
+	theRenderer->LoadScene("scenes/soft_shadow_scene.xml");
     ShowViewport(theRenderer);
 }

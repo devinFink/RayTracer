@@ -1,0 +1,663 @@
+<xml>
+  <scene>
+    <background r="0.49" g="0.659" b="0.973" />
+    
+    <!-- Objects -->
+    <object>
+      <scale value="0.1"/>
+      <!-- <rotate angle="30" z="1"/> -->
+
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MWO_chest_front.obj" material="MWO_chest_front" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MWO_chest_latch.obj" material="MWO_chest_latch" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MWO_chest_side.obj" material="MWO_chest_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MWO_chest_top.obj" material="MWO_chest_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MW_bed_feet_end.obj" material="MW_bed_feet_end" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MW_bed_feet_side.obj" material="MW_bed_feet_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MW_bed_feet_top.obj" material="MW_bed_feet_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MW_bed_head_end.obj" material="MW_bed_head_end" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MW_bed_head_side.obj" material="MW_bed_head_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_MW_bed_head_top.obj" material="MW_bed_head_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_andesite.obj" material="andesite" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_azalea_plant.obj" material="azalea_plant" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_azalea_side.obj" material="azalea_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_azalea_top.obj" material="azalea_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_bee_nest_bottom.obj" material="bee_nest_bottom" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_bee_nest_front.obj" material="bee_nest_front" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_bee_nest_side.obj" material="bee_nest_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_bee_nest_top.obj" material="bee_nest_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_bell_bottom.obj" material="bell_bottom" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_bell_side.obj" material="bell_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_bell_top.obj" material="bell_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_big_dripleaf_side.obj" material="big_dripleaf_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_big_dripleaf_stem.obj" material="big_dripleaf_stem" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_big_dripleaf_tip.obj" material="big_dripleaf_tip" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_big_dripleaf_top.obj" material="big_dripleaf_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_birch_leaves.obj" material="birch_leaves" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_birch_log.obj" material="birch_log" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_birch_log_top.obj" material="birch_log_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_cartography_table_side1.obj" material="cartography_table_side1" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_cartography_table_side2.obj" material="cartography_table_side2" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_cartography_table_side3.obj" material="cartography_table_side3" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_cartography_table_top.obj" material="cartography_table_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_cauldron_inner.obj" material="cauldron_inner" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_cauldron_side.obj" material="cauldron_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_cauldron_top.obj" material="cauldron_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_chiseled_stone_bricks.obj" material="chiseled_stone_bricks" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_clay.obj" material="clay" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_coal_ore.obj" material="coal_ore" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_cobblestone.obj" material="cobblestone" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_composter_bottom.obj" material="composter_bottom" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_composter_side.obj" material="composter_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_composter_top.obj" material="composter_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_copper_ore.obj" material="copper_ore" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_cracked_stone_bricks.obj" material="cracked_stone_bricks" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_dark_oak_planks.obj" material="dark_oak_planks" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_diorite.obj" material="diorite" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_dirt.obj" material="dirt" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_dirt_path_side.obj" material="dirt_path_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_dirt_path_top.obj" material="dirt_path_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_dripstone_block.obj" material="dripstone_block" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_emerald_ore.obj" material="emerald_ore" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_farmland_moist.obj" material="farmland_moist" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_glass.obj" material="glass" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_glow_lichen.obj" material="glow_lichen" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_granite.obj" material="granite" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_grass_block_side.obj" material="grass_block_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_grass_block_top.obj" material="grass_block_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_gravel.obj" material="gravel" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_hay_block_side.obj" material="hay_block_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_hay_block_top.obj" material="hay_block_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_iron_ore.obj" material="iron_ore" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_jungle_planks.obj" material="jungle_planks" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_kelp.obj" material="kelp" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_kelp_plant.obj" material="kelp_plant" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_lapis_ore.obj" material="lapis_ore" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_lava_flow.obj" material="lava_flow" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_lava_still.obj" material="lava_still" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_leaf_litter.obj" material="leaf_litter" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_magma.obj" material="magma" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_moss_block.obj" material="moss_block" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_mossy_cobblestone.obj" material="mossy_cobblestone" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_mossy_stone_bricks.obj" material="mossy_stone_bricks" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_oak_door_bottom.obj" material="oak_door_bottom" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_oak_door_top.obj" material="oak_door_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_oak_leaves.obj" material="oak_leaves" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_oak_log.obj" material="oak_log" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_oak_log_top.obj" material="oak_log_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_oak_planks.obj" material="oak_planks" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_oak_trapdoor.obj" material="oak_trapdoor" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_pointed_dripstone_down_base.obj" material="pointed_dripstone_down_base" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_pointed_dripstone_down_frustum.obj" material="pointed_dripstone_down_frustum" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_pointed_dripstone_down_tip.obj" material="pointed_dripstone_down_tip" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_pointed_dripstone_up_base.obj" material="pointed_dripstone_up_base" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_pointed_dripstone_up_frustum.obj" material="pointed_dripstone_up_frustum" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_pointed_dripstone_up_tip.obj" material="pointed_dripstone_up_tip" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_polished_granite.obj" material="polished_granite" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_prismarine.obj" material="prismarine" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_pumpkin_side.obj" material="pumpkin_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_pumpkin_top.obj" material="pumpkin_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_sand.obj" material="sand" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_sandstone.obj" material="sandstone" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_sandstone_bottom.obj" material="sandstone_bottom" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_sandstone_top.obj" material="sandstone_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_sea_lantern.obj" material="sea_lantern" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_smooth_stone.obj" material="smooth_stone" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_spawner.obj" material="spawner" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_spruce_door_bottom.obj" material="spruce_door_bottom" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_spruce_door_top.obj" material="spruce_door_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_spruce_leaves.obj" material="spruce_leaves" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_spruce_log.obj" material="spruce_log" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_spruce_log_top.obj" material="spruce_log_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_spruce_planks.obj" material="spruce_planks" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_spruce_trapdoor.obj" material="spruce_trapdoor" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_stone.obj" material="stone" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_stone_bricks.obj" material="stone_bricks" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_stonecutter_saw.obj" material="stonecutter_saw" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_stonecutter_side.obj" material="stonecutter_side" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_stonecutter_top.obj" material="stonecutter_top" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_stripped_oak_log.obj" material="stripped_oak_log" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_sugar_cane.obj" material="sugar_cane" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_suspicious_gravel_0.obj" material="suspicious_gravel_0" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_terracotta.obj" material="terracotta" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_torch.obj" material="torch" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_water_flow.obj" material="water_flow" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_water_still.obj" material="water_still" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_white_terracotta.obj" material="white_terracotta" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_white_tulip.obj" material="white_tulip" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_white_wool.obj" material="white_wool" />
+      <object type="obj" name="scenes/minecraft_world/minecraft_world_yellow_wool.obj" material="yellow_wool" />
+    </object>
+
+    <object>
+      <scale value="0.02" />
+      <!-- <rotate z="90" /> -->
+
+      <object type="obj" name="scenes/teapot.obj" material="prismarine">
+        <translate x="-180" y="80" z="90" />
+        <rotate angle="-10" z="1"/>
+      </object>
+    </object>
+
+    <!-- Materials -->
+    <material type="blinn" name="MWO_chest_front">
+      <diffuse texture="scenes/minecraft_world/tex/MWO_chest_front.png"/>
+    </material>
+    <material type="blinn" name="MWO_chest_latch">
+      <diffuse texture="scenes/minecraft_world/tex/MWO_chest_latch.png"/>
+    </material>
+    <material type="blinn" name="MWO_chest_side">
+      <diffuse texture="scenes/minecraft_world/tex/MWO_chest_side.png"/>
+    </material>
+    <material type="blinn" name="MWO_chest_top">
+      <diffuse texture="scenes/minecraft_world/tex/MWO_chest_top.png"/>
+    </material>
+    <material type="blinn" name="MW_bed_feet_end">
+      <diffuse texture="scenes/minecraft_world/tex/MW_bed_feet_end.png"/>
+    </material>
+    <material type="blinn" name="MW_bed_feet_side">
+      <diffuse texture="scenes/minecraft_world/tex/MW_bed_feet_side.png"/>
+    </material>
+    <material type="blinn" name="MW_bed_feet_top">
+      <diffuse texture="scenes/minecraft_world/tex/MW_bed_feet_top.png"/>
+    </material>
+    <material type="blinn" name="MW_bed_head_end">
+      <diffuse texture="scenes/minecraft_world/tex/MW_bed_head_end.png"/>
+    </material>
+    <material type="blinn" name="MW_bed_head_side">
+      <diffuse texture="scenes/minecraft_world/tex/MW_bed_head_side.png"/>
+    </material>
+    <material type="blinn" name="MW_bed_head_top">
+      <diffuse texture="scenes/minecraft_world/tex/MW_bed_head_top.png"/>
+    </material>
+    <material type="blinn" name="andesite">
+      <diffuse texture="scenes/minecraft_world/tex/andesite.png"/>
+    </material>
+    <material type="blinn" name="azalea_plant">
+      <diffuse texture="scenes/minecraft_world/tex/azalea_plant.png"/>
+    </material>
+    <material type="blinn" name="azalea_side">
+      <diffuse texture="scenes/minecraft_world/tex/azalea_side.png"/>
+    </material>
+    <material type="blinn" name="azalea_top">
+      <diffuse texture="scenes/minecraft_world/tex/azalea_top.png"/>
+    </material>
+    <material type="blinn" name="azure_bluet">
+      <diffuse texture="scenes/minecraft_world/tex/azure_bluet.png"/>
+    </material>
+    <material type="blinn" name="bee_nest_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/bee_nest_bottom.png"/>
+    </material>
+    <material type="blinn" name="bee_nest_front">
+      <diffuse texture="scenes/minecraft_world/tex/bee_nest_front.png"/>
+    </material>
+    <material type="blinn" name="bee_nest_side">
+      <diffuse texture="scenes/minecraft_world/tex/bee_nest_side.png"/>
+    </material>
+    <material type="blinn" name="bee_nest_top">
+      <diffuse texture="scenes/minecraft_world/tex/bee_nest_top.png"/>
+    </material>
+    <material type="blinn" name="beetroots_stage0">
+      <diffuse texture="scenes/minecraft_world/tex/beetroots_stage0.png"/>
+    </material>
+    <material type="blinn" name="beetroots_stage1">
+      <diffuse texture="scenes/minecraft_world/tex/beetroots_stage1.png"/>
+    </material>
+    <material type="blinn" name="bell_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/bell_bottom.png"/>
+    </material>
+    <material type="blinn" name="bell_side">
+      <diffuse texture="scenes/minecraft_world/tex/bell_side.png"/>
+    </material>
+    <material type="blinn" name="bell_top">
+      <diffuse texture="scenes/minecraft_world/tex/bell_top.png"/>
+    </material>
+    <material type="blinn" name="big_dripleaf_side">
+      <diffuse texture="scenes/minecraft_world/tex/big_dripleaf_side.png"/>
+    </material>
+    <material type="blinn" name="big_dripleaf_stem">
+      <diffuse texture="scenes/minecraft_world/tex/big_dripleaf_stem.png"/>
+    </material>
+    <material type="blinn" name="big_dripleaf_tip">
+      <diffuse texture="scenes/minecraft_world/tex/big_dripleaf_tip.png"/>
+    </material>
+    <material type="blinn" name="big_dripleaf_top">
+      <diffuse texture="scenes/minecraft_world/tex/big_dripleaf_top.png"/>
+    </material>
+    <material type="blinn" name="birch_leaves">
+      <diffuse texture="scenes/minecraft_world/tex/oak_leaves.png"/>
+    </material>
+    <material type="blinn" name="birch_log">
+      <diffuse texture="scenes/minecraft_world/tex/birch_log.png"/>
+    </material>
+    <material type="blinn" name="birch_log_top">
+      <diffuse texture="scenes/minecraft_world/tex/birch_log_top.png"/>
+    </material>
+    <material type="blinn" name="brown_mushroom">
+      <diffuse texture="scenes/minecraft_world/tex/brown_mushroom.png"/>
+    </material>
+    <material type="blinn" name="bush">
+      <diffuse texture="scenes/minecraft_world/tex/bush_y.png"/>
+    </material>
+    <material type="blinn" name="carrots_stage0">
+      <diffuse texture="scenes/minecraft_world/tex/carrots_stage0.png"/>
+    </material>
+    <material type="blinn" name="carrots_stage1">
+      <diffuse texture="scenes/minecraft_world/tex/carrots_stage1.png"/>
+    </material>
+    <material type="blinn" name="cartography_table_side1">
+      <diffuse texture="scenes/minecraft_world/tex/cartography_table_side1.png"/>
+    </material>
+    <material type="blinn" name="cartography_table_side2">
+      <diffuse texture="scenes/minecraft_world/tex/cartography_table_side2.png"/>
+    </material>
+    <material type="blinn" name="cartography_table_side3">
+      <diffuse texture="scenes/minecraft_world/tex/cartography_table_side3.png"/>
+    </material>
+    <material type="blinn" name="cartography_table_top">
+      <diffuse texture="scenes/minecraft_world/tex/cartography_table_top.png"/>
+    </material>
+    <material type="blinn" name="cauldron_inner">
+      <diffuse texture="scenes/minecraft_world/tex/cauldron_inner.png"/>
+    </material>
+    <material type="blinn" name="cauldron_side">
+      <diffuse texture="scenes/minecraft_world/tex/cauldron_side.png"/>
+    </material>
+    <material type="blinn" name="cauldron_top">
+      <diffuse texture="scenes/minecraft_world/tex/cauldron_top.png"/>
+    </material>
+    <material type="blinn" name="chiseled_stone_bricks">
+      <diffuse texture="scenes/minecraft_world/tex/chiseled_stone_bricks.png"/>
+    </material>
+    <material type="blinn" name="clay">
+      <diffuse texture="scenes/minecraft_world/tex/clay.png"/>
+    </material>
+    <material type="blinn" name="coal_ore">
+      <diffuse texture="scenes/minecraft_world/tex/coal_ore.png"/>
+    </material>
+    <material type="blinn" name="cobblestone">
+      <diffuse texture="scenes/minecraft_world/tex/cobblestone.png"/>
+    </material>
+    <material type="blinn" name="composter_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/composter_bottom.png"/>
+    </material>
+    <material type="blinn" name="composter_side">
+      <diffuse texture="scenes/minecraft_world/tex/composter_side.png"/>
+    </material>
+    <material type="blinn" name="composter_top">
+      <diffuse texture="scenes/minecraft_world/tex/composter_top.png"/>
+    </material>
+    <material type="blinn" name="copper_ore">
+      <diffuse texture="scenes/minecraft_world/tex/copper_ore.png"/>
+    </material>
+    <material type="blinn" name="cornflower">
+      <diffuse texture="scenes/minecraft_world/tex/cornflower.png"/>
+    </material>
+    <material type="blinn" name="cracked_stone_bricks">
+      <diffuse texture="scenes/minecraft_world/tex/cracked_stone_bricks.png"/>
+    </material>
+    <material type="blinn" name="dandelion">
+      <diffuse texture="scenes/minecraft_world/tex/dandelion.png"/>
+    </material>
+    <material type="blinn" name="dark_oak_planks">
+      <diffuse texture="scenes/minecraft_world/tex/dark_oak_planks.png"/>
+    </material>
+    <material type="blinn" name="diorite">
+      <diffuse texture="scenes/minecraft_world/tex/diorite.png"/>
+    </material>
+    <material type="blinn" name="dirt">
+      <diffuse texture="scenes/minecraft_world/tex/dirt.png"/>
+    </material>
+    <material type="blinn" name="dirt_path_side">
+      <diffuse texture="scenes/minecraft_world/tex/dirt_path_side.png"/>
+    </material>
+    <material type="blinn" name="dirt_path_top">
+      <diffuse texture="scenes/minecraft_world/tex/dirt_path_top.png"/>
+    </material>
+    <material type="blinn" name="dripstone_block">
+      <diffuse texture="scenes/minecraft_world/tex/dripstone_block.png"/>
+    </material>
+    <material type="blinn" name="emerald_ore">
+      <diffuse texture="scenes/minecraft_world/tex/emerald_ore.png"/>
+    </material>
+    <material type="blinn" name="farmland_moist">
+      <diffuse texture="scenes/minecraft_world/tex/farmland_moist.png"/>
+    </material>
+    <material type="blinn" name="fern">
+      <diffuse texture="scenes/minecraft_world/tex/fern_y.png"/>
+    </material>
+    <material type="blinn" name="firefly_bush">
+      <diffuse texture="scenes/minecraft_world/tex/firefly_bush.png"/>
+    </material>
+    <material type="blinn" name="glass">
+      <diffuse texture="scenes/minecraft_world/tex/glass.png" r="0.1" g="0.1" b="0.1"/>
+      <specular r="1.0" g="1.0" b="1.0" value="1.0"/>
+			<glossiness value="500"/>
+      <refraction value="1" index="1.52"/>
+			<absorption r="0.001" g="0.001" b="0.001"/>
+    </material>
+    <material type="blinn" name="glow_lichen">
+      <diffuse texture="scenes/minecraft_world/tex/glow_lichen.png"/>
+    </material>
+    <material type="blinn" name="granite">
+      <diffuse texture="scenes/minecraft_world/tex/granite.png"/>
+    </material>
+    <material type="blinn" name="grass_block_side">
+      <diffuse texture="scenes/minecraft_world/tex/grass_block_side.png"/>
+    </material>
+    <material type="blinn" name="grass_block_top">
+      <diffuse texture="scenes/minecraft_world/tex/grass_block_top.png"/>
+    </material>
+    <material type="blinn" name="gravel">
+      <diffuse texture="scenes/minecraft_world/tex/gravel.png"/>
+    </material>
+    <material type="blinn" name="hay_block_side">
+      <diffuse texture="scenes/minecraft_world/tex/hay_block_side.png"/>
+    </material>
+    <material type="blinn" name="hay_block_top">
+      <diffuse texture="scenes/minecraft_world/tex/hay_block_top.png"/>
+    </material>
+    <material type="blinn" name="iron_ore">
+      <diffuse texture="scenes/minecraft_world/tex/iron_ore.png"/>
+    </material>
+    <material type="blinn" name="jungle_planks">
+      <diffuse texture="scenes/minecraft_world/tex/jungle_planks.png"/>
+    </material>
+    <material type="blinn" name="kelp">
+      <diffuse texture="scenes/minecraft_world/tex/kelp.png"/>
+    </material>
+    <material type="blinn" name="kelp_plant">
+      <diffuse texture="scenes/minecraft_world/tex/kelp_plant.png"/>
+    </material>
+    <material type="blinn" name="lapis_ore">
+      <diffuse texture="scenes/minecraft_world/tex/lapis_ore.png"/>
+    </material>
+    <material type="blinn" name="large_fern_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/large_fern_bottom_y.png"/>
+    </material>
+    <material type="blinn" name="large_fern_top">
+      <diffuse texture="scenes/minecraft_world/tex/large_fern_top_y.png"/>
+    </material>
+    <material type="blinn" name="lava_flow">
+      <diffuse texture="scenes/minecraft_world/tex/lava_flow.png"/>
+    </material>
+    <material type="blinn" name="lava_still">
+      <diffuse texture="scenes/minecraft_world/tex/lava_still.png"/>
+    </material>
+    <material type="blinn" name="leaf_litter">
+      <diffuse texture="scenes/minecraft_world/tex/leaf_litter_y.png"/>
+    </material>
+    <material type="blinn" name="lilac_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/lilac_bottom.png"/>
+    </material>
+    <material type="blinn" name="lilac_top">
+      <diffuse texture="scenes/minecraft_world/tex/lilac_top.png"/>
+    </material>
+    <material type="blinn" name="lily_of_the_valley">
+      <diffuse texture="scenes/minecraft_world/tex/lily_of_the_valley.png"/>
+    </material>
+    <material type="blinn" name="magma">
+      <diffuse texture="scenes/minecraft_world/tex/magma.png"/>
+    </material>
+    <material type="blinn" name="moss_block">
+      <diffuse texture="scenes/minecraft_world/tex/moss_block.png"/>
+    </material>
+    <material type="blinn" name="mossy_cobblestone">
+      <diffuse texture="scenes/minecraft_world/tex/mossy_cobblestone.png"/>
+    </material>
+    <material type="blinn" name="mossy_stone_bricks">
+      <diffuse texture="scenes/minecraft_world/tex/mossy_stone_bricks.png"/>
+    </material>
+    <material type="blinn" name="oak_door_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/oak_door_bottom.png"/>
+    </material>
+    <material type="blinn" name="oak_door_top">
+      <diffuse texture="scenes/minecraft_world/tex/oak_door_top.png"/>
+    </material>
+    <material type="blinn" name="oak_leaves">
+      <diffuse texture="scenes/minecraft_world/tex/oak_leaves.png"/>
+    </material>
+    <material type="blinn" name="oak_log">
+      <diffuse texture="scenes/minecraft_world/tex/oak_log.png"/>
+    </material>
+    <material type="blinn" name="oak_log_top">
+      <diffuse texture="scenes/minecraft_world/tex/oak_log_top.png"/>
+    </material>
+    <material type="blinn" name="oak_planks">
+      <diffuse texture="scenes/minecraft_world/tex/oak_planks.png"/>
+    </material>
+    <material type="blinn" name="oak_trapdoor">
+      <diffuse texture="scenes/minecraft_world/tex/oak_trapdoor.png"/>
+    </material>
+    <material type="blinn" name="orange_tulip">
+      <diffuse texture="scenes/minecraft_world/tex/orange_tulip.png"/>
+    </material>
+    <material type="blinn" name="oxeye_daisy">
+      <diffuse texture="scenes/minecraft_world/tex/oxeye_daisy.png"/>
+    </material>
+    <material type="blinn" name="peony_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/peony_bottom.png"/>
+    </material>
+    <material type="blinn" name="peony_top">
+      <diffuse texture="scenes/minecraft_world/tex/peony_top.png"/>
+    </material>
+    <material type="blinn" name="pink_tulip">
+      <diffuse texture="scenes/minecraft_world/tex/pink_tulip.png"/>
+    </material>
+    <material type="blinn" name="pointed_dripstone_down_base">
+      <diffuse texture="scenes/minecraft_world/tex/pointed_dripstone_down_base.png"/>
+    </material>
+    <material type="blinn" name="pointed_dripstone_down_frustum">
+      <diffuse texture="scenes/minecraft_world/tex/pointed_dripstone_down_frustum.png"/>
+    </material>
+    <material type="blinn" name="pointed_dripstone_down_tip">
+      <diffuse texture="scenes/minecraft_world/tex/pointed_dripstone_down_tip.png"/>
+    </material>
+    <material type="blinn" name="pointed_dripstone_up_base">
+      <diffuse texture="scenes/minecraft_world/tex/pointed_dripstone_up_base.png"/>
+    </material>
+    <material type="blinn" name="pointed_dripstone_up_frustum">
+      <diffuse texture="scenes/minecraft_world/tex/pointed_dripstone_up_frustum.png"/>
+    </material>
+    <material type="blinn" name="pointed_dripstone_up_tip">
+      <diffuse texture="scenes/minecraft_world/tex/pointed_dripstone_up_tip.png"/>
+    </material>
+    <material type="blinn" name="polished_granite">
+      <diffuse texture="scenes/minecraft_world/tex/polished_granite.png"/>
+    </material>
+    <material type="blinn" name="poppy">
+      <diffuse texture="scenes/minecraft_world/tex/poppy.png"/>
+    </material>
+    <material type="blinn" name="potatoes_stage0">
+      <diffuse texture="scenes/minecraft_world/tex/potatoes_stage0.png"/>
+    </material>
+    <material type="blinn" name="potatoes_stage1">
+      <diffuse texture="scenes/minecraft_world/tex/potatoes_stage1.png"/>
+    </material>
+    <material type="blinn" name="prismarine">
+      <diffuse texture="scenes/minecraft_world/tex/prismarine.png"/>
+    </material>
+    <material type="blinn" name="pumpkin_side">
+      <diffuse texture="scenes/minecraft_world/tex/pumpkin_side.png"/>
+    </material>
+    <material type="blinn" name="pumpkin_top">
+      <diffuse texture="scenes/minecraft_world/tex/pumpkin_top.png"/>
+    </material>
+    <material type="blinn" name="red_mushroom">
+      <diffuse texture="scenes/minecraft_world/tex/red_mushroom.png"/>
+    </material>
+    <material type="blinn" name="red_tulip">
+      <diffuse texture="scenes/minecraft_world/tex/red_tulip.png"/>
+    </material>
+    <material type="blinn" name="rose_bush_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/rose_bush_bottom.png"/>
+    </material>
+    <material type="blinn" name="rose_bush_top">
+      <diffuse texture="scenes/minecraft_world/tex/rose_bush_top.png"/>
+    </material>
+    <material type="blinn" name="sand">
+      <diffuse texture="scenes/minecraft_world/tex/sand.png"/>
+    </material>
+    <material type="blinn" name="sandstone">
+      <diffuse texture="scenes/minecraft_world/tex/sandstone.png"/>
+    </material>
+    <material type="blinn" name="sandstone_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/sandstone_bottom.png"/>
+    </material>
+    <material type="blinn" name="sandstone_top">
+      <diffuse texture="scenes/minecraft_world/tex/sandstone_top.png"/>
+    </material>
+    <material type="blinn" name="sea_lantern">
+      <diffuse texture="scenes/minecraft_world/tex/sea_lantern.png"/>
+    </material>
+    <material type="blinn" name="short_grass">
+      <diffuse texture="scenes/minecraft_world/tex/short_grass.png"/>
+    </material>
+    <material type="blinn" name="smooth_stone">
+      <diffuse texture="scenes/minecraft_world/tex/smooth_stone.png"/>
+    </material>
+    <material type="blinn" name="spawner">
+      <diffuse texture="scenes/minecraft_world/tex/spawner.png"/>
+    </material>
+    <material type="blinn" name="spruce_door_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/spruce_door_bottom.png"/>
+    </material>
+    <material type="blinn" name="spruce_door_top">
+      <diffuse texture="scenes/minecraft_world/tex/spruce_door_top.png"/>
+    </material>
+    <material type="blinn" name="spruce_leaves">
+      <diffuse texture="scenes/minecraft_world/tex/oak_leaves.png"/>
+    </material>
+    <material type="blinn" name="spruce_log">
+      <diffuse texture="scenes/minecraft_world/tex/spruce_log.png"/>
+    </material>
+    <material type="blinn" name="spruce_log_top">
+      <diffuse texture="scenes/minecraft_world/tex/spruce_log_top.png"/>
+    </material>
+    <material type="blinn" name="spruce_planks">
+      <diffuse texture="scenes/minecraft_world/tex/spruce_planks.png"/>
+    </material>
+    <material type="blinn" name="spruce_trapdoor">
+      <diffuse texture="scenes/minecraft_world/tex/spruce_trapdoor.png"/>
+    </material>
+    <material type="blinn" name="stone">
+      <diffuse texture="scenes/minecraft_world/tex/stone.png"/>
+    </material>
+    <material type="blinn" name="stone_bricks">
+      <diffuse texture="scenes/minecraft_world/tex/stone_bricks.png"/>
+    </material>
+    <material type="blinn" name="stonecutter_saw">
+      <diffuse texture="scenes/minecraft_world/tex/stonecutter_saw.png"/>
+    </material>
+    <material type="blinn" name="stonecutter_side">
+      <diffuse texture="scenes/minecraft_world/tex/stonecutter_side.png"/>
+    </material>
+    <material type="blinn" name="stonecutter_top">
+      <diffuse texture="scenes/minecraft_world/tex/stonecutter_top.png"/>
+    </material>
+    <material type="blinn" name="stripped_oak_log">
+      <diffuse texture="scenes/minecraft_world/tex/stripped_oak_log.png"/>
+    </material>
+    <material type="blinn" name="sugar_cane">
+      <diffuse texture="scenes/minecraft_world/tex/sugar_cane.png"/>
+    </material>
+    <material type="blinn" name="suspicious_gravel_0">
+      <diffuse texture="scenes/minecraft_world/tex/suspicious_gravel_0.png"/>
+    </material>
+    <material type="blinn" name="sweet_berry_bush_stage3">
+      <diffuse texture="scenes/minecraft_world/tex/sweet_berry_bush_stage3.png"/>
+    </material>
+    <material type="blinn" name="tall_grass_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/tall_grass_bottom.png"/>
+    </material>
+    <material type="blinn" name="tall_grass_top">
+      <diffuse texture="scenes/minecraft_world/tex/tall_grass_top.png"/>
+    </material>
+    <material type="blinn" name="tall_seagrass_bottom">
+      <diffuse texture="scenes/minecraft_world/tex/tall_seagrass_bottom.png"/>
+    </material>
+    <material type="blinn" name="tall_seagrass_top">
+      <diffuse texture="scenes/minecraft_world/tex/tall_seagrass_top.png"/>
+    </material>
+    <material type="blinn" name="terracotta">
+      <diffuse texture="scenes/minecraft_world/tex/terracotta.png"/>
+    </material>
+    <material type="blinn" name="torch">
+      <diffuse texture="scenes/minecraft_world/tex/torch.png"/>
+    </material>
+    <material type="blinn" name="vine">
+      <diffuse texture="scenes/minecraft_world/tex/vine_y.png"/>
+    </material>
+    <material type="blinn" name="water_flow">
+      <diffuse texture="scenes/minecraft_world/tex/water_flow.png"/>
+      <specular r="1.0" g="1.0" b="1.0" value="1.0"/>
+			<glossiness value="500"/>
+      <refraction value="1" index="1.33"/>
+			<absorption r="0.001" g="0.001" b="0.001"/>
+    </material>
+    <material type="blinn" name="water_still">
+      <diffuse texture="scenes/minecraft_world/tex/water_still.png"/>
+      <specular r="1.0" g="1.0" b="1.0" value="1.0"/>
+			<glossiness value="500"/>
+      <refraction value="1" index="1.33"/>
+			<absorption r="0.001" g="0.001" b="0.001"/>
+    </material>
+    <material type="blinn" name="wheat_stage0">
+      <diffuse texture="scenes/minecraft_world/tex/wheat_stage0.png"/>
+    </material>
+    <material type="blinn" name="wheat_stage1">
+      <diffuse texture="scenes/minecraft_world/tex/wheat_stage1.png"/>
+    </material>
+    <material type="blinn" name="wheat_stage2">
+      <diffuse texture="scenes/minecraft_world/tex/wheat_stage2.png"/>
+    </material>
+    <material type="blinn" name="wheat_stage3">
+      <diffuse texture="scenes/minecraft_world/tex/wheat_stage3.png"/>
+    </material>
+    <material type="blinn" name="wheat_stage4">
+      <diffuse texture="scenes/minecraft_world/tex/wheat_stage4.png"/>
+    </material>
+    <material type="blinn" name="white_terracotta">
+      <diffuse texture="scenes/minecraft_world/tex/white_terracotta.png"/>
+    </material>
+    <material type="blinn" name="white_tulip">
+      <diffuse texture="scenes/minecraft_world/tex/white_tulip.png"/>
+    </material>
+    <material type="blinn" name="white_wool">
+      <diffuse texture="scenes/minecraft_world/tex/white_wool.png"/>
+    </material>
+    <material type="blinn" name="wildflowers">
+      <diffuse texture="scenes/minecraft_world/tex/wildflowers.png"/>
+    </material>
+    <material type="blinn" name="wildflowers_stem">
+      <diffuse texture="scenes/minecraft_world/tex/wildflowers_stem.png"/>
+    </material>
+    <material type="blinn" name="yellow_wool">
+      <diffuse texture="scenes/minecraft_world/tex/yellow_wool.png"/>
+    </material>
+
+    <!-- Lights -->
+    <light type="ambient" name="ambientLight">
+      <intensity value="0.2"/>
+    </light>
+    <light type="direct" name="directLight">
+      <intensity value="0.6"/>
+      <direction x="-1" y="0.2" z="-1"/>
+    </light>
+    <light type="direct" name="directLight">
+      <intensity value="0.4"/>
+      <direction x="1" y="-0.3" z="-1"/>
+    </light>
+  </scene>
+
+  <camera>
+    <!-- <position x="0" y="-20" z="10"/> -->
+    <!-- <target x="0" y="0" z="0"/> -->
+    
+    <position x="-4" y="4" z="2.2"/>
+    <target x="-1" y="0" z="2.25"/>
+    <up x="0" y="0" z="1"/>
+    <fov value="30"/>
+    <width value="1920"/>
+    <height value="1080"/>
+  </camera>
+</xml>
