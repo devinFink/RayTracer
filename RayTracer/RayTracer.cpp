@@ -149,7 +149,7 @@ Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos)
 		ShadowInfo info = ShadowInfo(scene.lights, scene.environment, rng, this);
 		info.SetHit(ray, hit);
 
-		if (hit.node->GetMaterial())
+		if (!hit.light)
 		{
 			return (Color)hit.node->GetMaterial()->Shade(info);
 		}
@@ -274,6 +274,27 @@ bool RayTracer::TraverseTree(const Ray& ray, const Node* node, HitInfo& hitInfo,
 				hitInfo = localHit;
 				hit = true;
 				node->FromNodeCoords(hitInfo);
+			}
+		}
+	}
+
+	if(node == &scene.rootNode)
+	{
+		for(const auto& light : scene.lights)
+		{
+			if (light->IsRenderable())
+			{
+				HitInfo localHit;
+				localHit.Init();
+				if (light->IntersectRay(ray, localHit, HIT_FRONT_AND_BACK))
+				{
+					if (localHit.z < hitInfo.z)
+					{
+						hitInfo = localHit;
+						hit = true;
+						hitInfo.light = true;
+					}
+				}
 			}
 		}
 	}

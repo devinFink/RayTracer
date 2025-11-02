@@ -6,6 +6,9 @@
 /// \Implementation of the materials.h file functions
 ///
 
+
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "materials.h"
 #include "lights.h"
 #include "raytracer.h"
@@ -14,12 +17,48 @@
 
 Color PointLight::Illuminate(ShadeInfo const& sInfo, Vec3f& dir)  const
 {
-	return Color(255, 255, 255);
-}
+	Vec3f toShadingPoint = sInfo.P() - position;
+	toShadingPoint.Normalize();
+	HaltonSeq<64> haltonX(2);
+	HaltonSeq<64> haltonY(3);
+	float randXOffset = sInfo.RandomFloat();
+	float randYOffset = sInfo.RandomFloat();
+	int numSamples = 0;
 
-bool PointLight::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
-{
-	return true;
+	float summedLight = 0.0f;
+	Vec3f tangent, bitangent;
+	toShadingPoint.GetOrthonormals(tangent, bitangent);
+
+	for (int i = 0; i < maxSamples; i++)
+	{
+		float discX = haltonX[i] + randXOffset;
+		float discY = haltonY[i] + randYOffset;
+		if (discX > 1.0f) discX -= 1.0f;
+		if (discY > 1.0f) discY -= 1.0f;
+
+		float r = sqrt(discX) * size;
+		float angle = 2.0f * M_PI * discY;
+		float offsetU = r * cos(angle);
+		float offsetV = r * sin(angle);
+
+		Vec3f lightSamplePoint = position + (tangent * offsetU) + (bitangent * offsetV);
+
+		Vec3f toLight = lightSamplePoint - sInfo.P();
+		Vec3f shadowRayDir = toLight.GetNormalized();
+
+		summedLight += sInfo.TraceShadowRay(Ray(sInfo.P(), shadowRayDir), toLight.Length());
+		numSamples++;
+
+		if (numSamples == minSamples && summedLight == numSamples)
+		{
+			break;
+		}
+	}
+
+	dir = position - sInfo.P();
+	dir.Normalize();
+	summedLight /= (float)numSamples;
+	return intensity * summedLight;
 }
 
 /**
@@ -49,14 +88,20 @@ Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist, bool reflection
 
 	if (renderer->TraceRay(ray, hit, HIT_FRONT_AND_BACK))
 	{
-		auto* mat = hit.node->GetMaterial();
-		if (mat)
-		{
-			ShadowInfo si = *this;
-			si.SetHit(ray, hit);
-			si.bounceC++;
-			si.IsFront() ? dist = si.Depth() : dist = 0;
-			return mat->Shade(si);
+		if (!hit.light) {
+			auto* mat = hit.node->GetMaterial();
+			if (mat)
+			{
+				ShadowInfo si = *this;
+				si.SetHit(ray, hit);
+				si.bounceC++;
+				si.IsFront() ? dist = si.Depth() : dist = 0;
+				return mat->Shade(si);
+			}
+		}
+		else {
+			dist = hit.z;
+			return Color(255, 255, 255);
 		}
 	}
 	else
@@ -200,7 +245,7 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	for (int i = 0; i < info.NumLights(); i++)
 	{
 		const Light* light = info.GetLight(i);
-		cyVec3f lightDir{};
+		cyVec3f lightDir;
 		Color lightIntensity = light->Illuminate(info, lightDir);
 		if (light->IsAmbient())
 		{

@@ -68,6 +68,8 @@ protected:
     Color intensity = Color(0, 0, 0);
     Vec3f position = Vec3f(0, 0, 0);
     float size = 0.0f;
+	float maxSamples = 64.0f;
+    float minSamples = 8.0f;
 };
 
 //-------------------------------------------------------------------------------

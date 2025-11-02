@@ -11,6 +11,7 @@
 #include <cmath>
 #include <limits>
 #include "objects.h"
+#include "lights.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Sphere
@@ -331,4 +332,43 @@ bool TriObj::TraceBVHNodeShadow(Ray const& ray, float t_max, unsigned int nodeID
         bool hit2 = TraceBVHNodeShadow(ray, t_max, child2);
         return hit2;
     }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// Lights
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+bool PointLight::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
+{
+    cyVec3f q(position);
+    int r = size;
+    cyVec3f oc = ray.p - q;
+    float eps = 0.002f;
+    double a = ray.dir.Dot(ray.dir);
+    double b = 2.0 * oc.Dot(ray.dir);
+    double c = oc.Dot(oc) - r * r;
+    double discriminant = b * b - 4 * a * c;
+    if (discriminant < 0) return false;
+
+    double t1 = (-b - sqrt(discriminant)) / (2 * a);
+    double t2 = (-b + sqrt(discriminant)) / (2 * a);
+
+    if (t1 > eps && hitSide & HIT_FRONT) {
+        if (hInfo.z > t1) {
+            hInfo.z = t1;
+            hInfo.p = ray.p + (ray.dir * t1);
+            hInfo.front = true;
+            return true;
+        }
+    }
+    else if (t2 >= eps && hitSide & HIT_BACK) {
+        if (hInfo.z > t2) {
+            hInfo.z = t2;
+            hInfo.p = ray.p + (ray.dir * t2);
+            hInfo.front = false;
+            return true;
+        }
+    }
+
+    return false;
 }
