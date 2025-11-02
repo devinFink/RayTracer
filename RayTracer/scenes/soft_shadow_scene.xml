@@ -15,7 +15,6 @@
       <rotate angle="90" x="1"/>
       <translate y="10"/>
     </object>
-	  <!--
     <object type="sphere" name="sphere1" material="smooth">
       <scale value="6"/>
       <translate x="-28" y="0" z="6"/>
@@ -37,7 +36,6 @@
       <rotate angle="-140" z="1"/>
       <translate x="2" y="-25" z="0"/>
     </object>
-	-->
     <object type="sphere" name="sphere5" material="glossy4">
       <scale value="3"/>
       <translate x="-15" y="-28" z="3"/>

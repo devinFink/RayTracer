@@ -101,7 +101,7 @@ Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist, bool reflection
 		}
 		else {
 			dist = hit.z;
-			return Color(255, 255, 255);
+			return Color::White();
 		}
 	}
 	else
