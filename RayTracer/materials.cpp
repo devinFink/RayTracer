@@ -24,6 +24,7 @@ Color PointLight::Illuminate(ShadeInfo const& sInfo, Vec3f& dir)  const
 	float randXOffset = sInfo.RandomFloat();
 	float randYOffset = sInfo.RandomFloat();
 	int numSamples = 0;
+	const float twoPi = 2 * M_PI;
 
 	float summedLight = 0.0f;
 	Vec3f tangent, bitangent;
@@ -33,20 +34,22 @@ Color PointLight::Illuminate(ShadeInfo const& sInfo, Vec3f& dir)  const
 	{
 		float discX = haltonX[i] + randXOffset;
 		float discY = haltonY[i] + randYOffset;
-		if (discX > 1.0f) discX -= 1.0f;
-		if (discY > 1.0f) discY -= 1.0f;
+		discX -= (discX > 1.0f) ? 1.0f : 0.0f;
+		discY -= (discY > 1.0f) ? 1.0f : 0.0f;
+
 
 		float r = sqrt(discX) * size;
-		float angle = 2.0f * M_PI * discY;
-		float offsetU = r * cos(angle);
-		float offsetV = r * sin(angle);
+		float angle = twoPi * discY;
+		float offsetU = r * cosf(angle);
+		float offsetV = r * sinf(angle);
 
 		Vec3f lightSamplePoint = position + (tangent * offsetU) + (bitangent * offsetV);
 
 		Vec3f toLight = lightSamplePoint - sInfo.P();
-		Vec3f shadowRayDir = toLight.GetNormalized();
+		float dist = toLight.Length();
+		Vec3f shadowRayDir = toLight / dist;
 
-		summedLight += sInfo.TraceShadowRay(Ray(sInfo.P(), shadowRayDir), toLight.Length());
+		summedLight += sInfo.TraceShadowRay(Ray(sInfo.P(), shadowRayDir), dist);
 		numSamples++;
 
 		if (numSamples == minSamples && summedLight == numSamples)
@@ -132,7 +135,6 @@ Color MtlPhong::Shade(ShadeInfo const& info) const
 // */
 TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption)
 {
-	Color reflectCol(0, 0, 0);
 	cyVec3f reflectView = info.V();
 	float dot = info.N().Dot(reflectView);
 	cyVec3f reflectionDir = (2 * dot) * info.N() - reflectView;
@@ -141,10 +143,12 @@ TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption)
 	Ray reflect(info.P(), reflectionDir);
 	float dist;
 
-	reflectCol = info.TraceSecondaryRay(reflect, dist, true);
-	reflectCol.r *= exp(-absorption.r * dist);
-	reflectCol.g *= exp(-absorption.g * dist);
-	reflectCol.b *= exp(-absorption.b * dist);
+	Color reflectCol = info.TraceSecondaryRay(reflect, dist, true);
+	if (dist > 0.0f && (absorption.r > 0.0f || absorption.g > 0.0f || absorption.b > 0.0f)) {
+		reflectCol.r *= expf(-absorption.r * dist);
+		reflectCol.g *= expf(-absorption.g * dist);
+		reflectCol.b *= expf(-absorption.b * dist);
+	}
 
 	return reflectCol;
 }
@@ -160,8 +164,6 @@ TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption)
  */
 TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption)
 {
-	Color refractCol(0, 0, 0);
-
 	cyVec3f refractView = info.V();
 	float eta;
 	float cosThetaT;
@@ -172,32 +174,41 @@ TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption)
 	if (info.IsFront())
 	{
 		eta = 1 / ior;
-		cosThetaT = sqrt(1 - pow(eta, 2) * (1 - pow(refractView.Dot(info.N()), 2)));
-		refractDir = -eta * refractView - (cosThetaT - eta * (refractView.Dot(info.N()))) * info.N();
+		float etaSq = eta * eta;
+		float NdotV = refractView.Dot(info.N());
+		cosThetaT = sqrtf(1 - etaSq * (1 - NdotV * NdotV));
+		refractDir = -eta * refractView - (cosThetaT - eta * NdotV) * info.N();
 		refract = Ray(info.P(), refractDir.GetNormalized());
 		float sign = refract.dir.Dot(info.N()) > 0.0f ? 1.0f : -1.0f;
 		refract.p += info.N() * (eps * sign);
 	}
 	else
 	{
-		eta = ior / 1;
-		float cosThetaSquared = (1 - pow(eta, 2) * (1 - pow(refractView.Dot(-info.N()), 2)));
+		eta = ior;
+		cyVec3f negN = -info.N();
+		float NdotV = refractView.Dot(negN);
+		float etaSq = eta * eta;
+		float cosThetaSquared = (1 - etaSq * (1 - NdotV * NdotV));
+
 		if (cosThetaSquared < 0.0f)
 		{
 			return ReflectRay(info, HIT_FRONT_AND_BACK, absorption);
 		}
-		cosThetaT = sqrt(cosThetaSquared);
-		refractDir = -eta * refractView - (cosThetaT - eta * (refractView.Dot(-info.N()))) * -info.N();
+
+		cosThetaT = sqrtf(cosThetaSquared);
+		refractDir = -eta * refractView - (cosThetaT - eta * NdotV) * negN;
 		refract = Ray(info.P(), refractDir.GetNormalized());
-		float sign = refract.dir.Dot(-info.N()) > 0.0f ? 1.0f : -1.0f;
-		refract.p += -info.N() * (eps * sign);
+		float sign = refract.dir.Dot(negN) > 0.0f ? 1.0f : -1.0f;
+		refract.p += negN * (eps * sign);
 	}
 
 	float dist;
-	refractCol = info.TraceSecondaryRay(refract, dist, false);
-	refractCol.r *= exp(-absorption.r * dist);
-	refractCol.g *= exp(-absorption.g * dist);
-	refractCol.b *= exp(-absorption.b * dist);
+	Color refractCol = info.TraceSecondaryRay(refract, dist, false);
+	if (dist > 0.0f && (absorption.r > 0.0f || absorption.g > 0.0f || absorption.b > 0.0f)) {
+		refractCol.r *= expf(-absorption.r * dist);
+		refractCol.g *= expf(-absorption.g * dist);
+		refractCol.b *= expf(-absorption.b * dist);
+	}
 	return refractCol;
 }
 
@@ -218,30 +229,32 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	Color fresnel(0, 0, 0);
 	Color reflection = this->Reflection().Eval(info.UVW());
 	Color refraction = this->Refraction().Eval(info.UVW());
+	Color kd = this->Diffuse().Eval(info.UVW());
+	Color ks = this->Specular().Eval(info.UVW());
+	float alpha = this->Glossiness().Eval(info.UVW());
 
 	
-	Color fullReflection = reflection;;
+	Color fullReflection = reflection;
 	float matior = this->ior;
-	if (matior > 0.0f && info.CanBounce())
+
+	bool needsRefraction = (matior > 0.0f && info.CanBounce() && refraction != Color(0, 0, 0));
+
+	if (needsRefraction)
 	{
 		refractCol = refraction * RefractRay(this->ior, info, this->absorption).Eval(info.UVW());
 
 		//Fresnel Effect
-		fresnel = refraction * pow((1 - matior) / (1 + matior), 2);
+		float iorRatio = (1.0f - matior) / (1.0f + matior);
+		Color fresnel = refraction * (iorRatio * iorRatio);
 		fullReflection = fullReflection + fresnel;
 		refractCol = refractCol * (Color(1, 1, 1) - fullReflection);
 	}
 
-	if (fullReflection != Color(0, 0, 0) && info.CanBounce())
+	if (fullReflection != Color(0,0,0) && info.CanBounce())
 	{
 		reflectCol = fullReflection * ReflectRay(info, HIT_FRONT_AND_BACK, this->absorption).Eval(info.UVW());
 	}
 	
-
-	float alpha = this->Glossiness().Eval(info.UVW());
-	Color kd = this->Diffuse().Eval(info.UVW());
-	Color ks = this->Specular().Eval(info.UVW());
-
 	for (int i = 0; i < info.NumLights(); i++)
 	{
 		const Light* light = info.GetLight(i);

@@ -52,10 +52,13 @@ typedef ItemList<Texture>  TextureFileList;
 
 struct Ray
 {
-    Vec3f p, dir;
+    Vec3f p, dir, invDir;
 
     Ray() = default;
-    Ray(Vec3f const& _p, Vec3f const& _dir) : p(_p), dir(_dir) {}
+    Ray(Vec3f const& _p, Vec3f const& _dir) : p(_p), dir(_dir) {
+        invDir = { 1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z };
+    }
+
 };
 
 //-------------------------------------------------------------------------------

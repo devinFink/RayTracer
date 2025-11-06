@@ -69,6 +69,7 @@ public:
 private:
     BVHTriMesh bvh;
     bool IntersectTriangle(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int faceID, cyVec2f& baryCoords) const;
+    bool IntersectTriangleShadow(Ray const& ray, int hitside, unsigned int faceID, float max) const;
     bool TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int nodeID) const;
 	bool TraceBVHNodeShadow(Ray const& ray, float t_max, unsigned int nodeID) const;
 };

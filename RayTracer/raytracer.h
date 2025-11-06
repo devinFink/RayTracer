@@ -27,7 +27,7 @@ class RayTracer : public Renderer
 		Color SendRay(int i, Ray ray, cyVec2f scrPos);
 
 	private:
-		const int tileSize = 64;
+		const int tileSize = 32;
 		std::atomic<int> nextTile{ 0 };
 		float tValues[71] = { 0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228,
 								   2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086,

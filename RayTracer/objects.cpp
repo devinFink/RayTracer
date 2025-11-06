@@ -19,16 +19,18 @@
 
 bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
     cyVec3f q(0.0f, 0.0f, 0.0f);
-    int r = 1;
-	float eps = 0.002f;
-    double a = ray.dir.Dot(ray.dir);
-    double b = 2.0 * ray.dir.Dot(ray.p - q);
-    double c = ray.p.Dot(ray.p) - r * r;
-    double discriminant = b * b - 4 * a * c;
+    constexpr int r = 1;
+	constexpr float eps = 0.002f;
+    float a = ray.dir.Dot(ray.dir);
+    float b = 2.0 * ray.dir.Dot(ray.p - q);
+    float c = ray.p.Dot(ray.p) - r * r;
+    float discriminant = b * b - 4 * a * c;
     if (discriminant < 0) return false;
 
-    double t1 = (-b - sqrt(discriminant)) / (2 * a);
-    double t2 = (-b + sqrt(discriminant)) / (2 * a);
+    float sqrt_disc = sqrtf(discriminant);
+    float twoA = 2 * a;
+    float t1 = (-b - sqrt_disc) / (twoA);
+    float t2 = (-b + sqrt_disc) / (twoA);
 
     if (t1 > eps && hitSide & HIT_FRONT) {
         if (hInfo.z > t1) {
@@ -60,16 +62,18 @@ bool Sphere::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
 
 bool Sphere::ShadowRay(Ray const& ray, float t_max) const {
     cyVec3f q(0.0f, 0.0f, 0.0f);
-    int r = 1;
+    constexpr int r = 1;
 
-    double a = ray.dir.Dot(ray.dir);
-    double b = 2.0 * ray.dir.Dot(ray.p - q);
-    double c = ray.p.Dot(ray.p) - r * r;
-    double discriminant = b * b - 4 * a * c;
+    float a = ray.dir.Dot(ray.dir);
+    float b = 2.0 * ray.dir.Dot(ray.p - q);
+    float c = ray.p.Dot(ray.p) - r * r;
+    float discriminant = b * b - 4 * a * c;
     if (discriminant < 0) return false;
 
-    double t1 = (-b - sqrt(discriminant)) / (2 * a);
-    double t2 = (-b + sqrt(discriminant)) / (2 * a);
+    float sqrt_disc = sqrtf(discriminant);
+    float twoA = 2 * a;
+    float t1 = (-b - sqrt_disc) / (twoA);
+    float t2 = (-b + sqrt_disc) / (twoA);
 
     if (t1 > 0.01 && t1 < t_max) return true;
     if (t2 > 0.01 && t2 < t_max) return true;
@@ -80,41 +84,40 @@ bool Sphere::ShadowRay(Ray const& ray, float t_max) const {
 ////////////////////////////////////////////////////////////////////////////////
 // Box
 ////////////////////////////////////////////////////////////////////////////////
-cyVec3f vecMin(const cyVec3f& a, const cyVec3f& b) {
-    return {
-        std::min(a.x, b.x),
-        std::min(a.y, b.y),
-        std::min(a.z, b.z)
-    };
-}
-
-cyVec3f vecMax(const cyVec3f& a, const cyVec3f& b) {
-    return {
-        std::max(a.x, b.x),
-        std::max(a.y, b.y),
-        std::max(a.z, b.z)
-    };
-}
 
 /// Ray-AABB intersection
 /// TODO: Switch to return a struct with bool hit, float tmin, float tmax if needed
 /// 
-bool hitAABB(Ray ray, cyVec3f boxMin, cyVec3f boxMax) {
-    auto safeInv = [](float d) {
-        return (fabs(d) > 1e-8f) ? (1.0f / d) : std::numeric_limits<float>::infinity();
-        };
+#define FAST_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define FAST_MAX(a, b) ((a) > (b) ? (a) : (b))
 
-    cyVec3f invR = cyVec3f(safeInv(ray.dir.x), safeInv(ray.dir.y), safeInv(ray.dir.z));
-    cyVec3f tbot = invR * (boxMin - ray.p);
-    cyVec3f ttop = invR * (boxMax - ray.p);
-    cyVec3f tmin = vecMin(ttop, tbot);
-    cyVec3f tmax = vecMax(ttop, tbot);
 
-    float t0 = std::max({ tmin.x, tmin.y, tmin.z });
+inline bool hitAABB(Ray ray, const float* bounds) {
+    float b0 = bounds[0], b1 = bounds[1], b2 = bounds[2];
+    float b3 = bounds[3], b4 = bounds[4], b5 = bounds[5];
 
-    float t1 = std::min({ tmax.x, tmax.y, tmax.z });
+    float invDirX = ray.invDir.x;
+    float invDirY = ray.invDir.y;
+    float invDirZ = ray.invDir.z;
 
-    return t0 <= t1 && t1 >= 0.0f;
+    float t1 = (b0 - ray.p.x) * invDirX;
+    float t2 = (b3 - ray.p.x) * invDirX;
+    float t3 = (b1 - ray.p.y) * invDirY;
+    float t4 = (b4 - ray.p.y) * invDirY;
+    float t5 = (b2 - ray.p.z) * invDirZ;
+    float t6 = (b5 - ray.p.z) * invDirZ;
+
+    float tminX = FAST_MIN(t1, t2);
+    float tmaxX = FAST_MAX(t1, t2);
+    float tminY = FAST_MIN(t3, t4);
+    float tmaxY = FAST_MAX(t3, t4);
+    float tminZ = FAST_MIN(t5, t6);
+    float tmaxZ = FAST_MAX(t5, t6);
+
+    float tmin = FAST_MAX(FAST_MAX(tminX, tminY), tminZ);
+    float tmax = FAST_MIN(FAST_MIN(tmaxX, tmaxY), tmaxZ);
+
+    return tmax >= tmin && tmax >= 0.0f;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -123,6 +126,10 @@ bool hitAABB(Ray ray, cyVec3f boxMin, cyVec3f boxMax) {
 
 bool Plane::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const {
     cyVec3f planeNorm(0.0f, 0.0f, 1.0f);
+
+    //Exit early if ray parallel
+    if (fabsf(ray.dir.z) < 1e-8f) return false;
+
     float t = -(ray.p.z / ray.dir.z);
 
     if (t > 0.0002 && hInfo.z > t) {
@@ -224,12 +231,45 @@ bool TriObj::IntersectTriangle(Ray const& ray, HitInfo& hInfo, int hitSide, unsi
     return true;
 }
 
-bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int nodeID) const {
-    float const* bounds = bvh.GetNodeBounds(nodeID);
-    cyVec3f boxMin(bounds[0], bounds[1], bounds[2]);
-    cyVec3f boxMax(bounds[3], bounds[4], bounds[5]);
+bool TriObj::IntersectTriangleShadow(Ray const& ray, int hitside, unsigned int faceID, float max) const {
+    const float epsilon = 0.002;
+    TriFace const& face = F(faceID);
 
-    if (!hitAABB(ray, boxMin, boxMax)) {
+    const cyVec3f& v0 = V(face.v[0]);
+    const cyVec3f& v1 = V(face.v[1]);
+    const cyVec3f& v2 = V(face.v[2]);
+
+    cyVec3f edge1 = v1 - v0;
+    cyVec3f edge2 = v2 - v0;
+
+    cyVec3f h = ray.dir.Cross(edge2);
+    float det = edge1.Dot(h);
+
+    if (fabsf(det) < epsilon) return false;
+
+    float inv_det = 1.0f / det;
+    cyVec3f s = ray.p - v0;
+    float u = inv_det * s.Dot(h);
+
+    if (u < 0.0f || u > 1.0f) return false;
+
+    cyVec3f q = s.Cross(edge1);
+    float v = inv_det * ray.dir.Dot(q);
+
+    if (v < 0.0f || (u + v) > 1.0f) return false;
+
+    float t = inv_det * edge2.Dot(q);
+
+    if (t > epsilon && t < max) {
+        return true;
+    }
+}
+
+
+bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned int nodeID) const {
+    const float* bounds = bvh.GetNodeBounds(nodeID);
+
+    if (!hitAABB(ray, bounds)) {
         return false;
     }
 
@@ -258,13 +298,15 @@ bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned 
                 baryCoords = tempBary;
             }
         }
+
 		if (!hit) return false;
 
-        TriFace textureFace = FT(closestFace);
-		TriFace normalFace = FN(closestFace);
+        TriFace const& textureFace = FT(closestFace);
+		TriFace const& normalFace = FN(closestFace);
 		float u = baryCoords.x;
 		float v = baryCoords.y;
 		float w = 1.0f - u - v;
+
         cyVec3f uvw = (vt[textureFace.v[0]] * w) + 
                       (vt[textureFace.v[1]] * u) + 
                       (vt[textureFace.v[2]] * v);
@@ -299,27 +341,22 @@ bool TriObj::TraceBVHNode(Ray const& ray, HitInfo& hInfo, int hitSide, unsigned 
 
 bool TriObj::TraceBVHNodeShadow(Ray const& ray, float t_max, unsigned int nodeID) const {
     float const* bounds = bvh.GetNodeBounds(nodeID);
-    cyVec3f boxMin(bounds[0], bounds[1], bounds[2]);
-    cyVec3f boxMax(bounds[3], bounds[4], bounds[5]);
-    if (!hitAABB(ray, boxMin, boxMax)) {
+
+    if (!hitAABB(ray, bounds)) {
         return false;
     }
     // Check if this is a leaf node
     if (bvh.IsLeafNode(nodeID)) {
         unsigned int elementCount = bvh.GetNodeElementCount(nodeID);
         unsigned int const* elements = bvh.GetNodeElements(nodeID);
-        HitInfo tempHit;
-        tempHit.Init();
-        cyVec2f tempBary;
+
         // Test ray against each triangle in this leaf node
         for (unsigned int i = 0; i < elementCount; i++)
         {
             unsigned int triangleIndex = elements[i];
-            if (IntersectTriangle(ray, tempHit, HIT_FRONT_AND_BACK, triangleIndex, tempBary))
+            if (IntersectTriangleShadow(ray, HIT_FRONT_AND_BACK, triangleIndex, t_max))
             {
-                if (tempHit.z < t_max) {
-                    return true;
-                }
+                return true;
             }
         }
         return false;
@@ -350,8 +387,11 @@ bool PointLight::IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide) const
     double discriminant = b * b - 4 * a * c;
     if (discriminant < 0) return false;
 
-    double t1 = (-b - sqrt(discriminant)) / (2 * a);
-    double t2 = (-b + sqrt(discriminant)) / (2 * a);
+
+    float sqrt_disc = sqrtf(discriminant);
+    float twoA = 2 * a;
+    double t1 = (-b - sqrt_disc) / (twoA);
+    double t2 = (-b + sqrt_disc) / (twoA);
 
     if (t1 > eps && hitSide & HIT_FRONT) {
         if (hInfo.z > t1) {
