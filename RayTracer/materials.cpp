@@ -72,14 +72,12 @@ Color PointLight::Illuminate(ShadeInfo const& sInfo, Vec3f& dir)  const
  * @param t_max Maximum distance to test (typically distance to the light).
  * @return 0.0 if the ray is occluded (in shadow), 1.0 if unoccluded (lit).
  */
-float ShadowInfo::TraceShadowRay(Ray const& ray, float t_max) const
+inline float ShadowInfo::TraceShadowRay(Ray const& ray, float t_max) const
 {
-	if (renderer->TraceShadowRay(ray, t_max)) return 0.0;
-
-	return 1.0;
+	return renderer->TraceShadowRay(ray, t_max) ? 0.0f : 1.0f;
 }
 
-bool ShadowInfo::CanBounce() const
+inline bool ShadowInfo::CanBounce() const
 {
 	return bounceC < renderer->bounceCount;
 }
@@ -88,6 +86,18 @@ Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist, bool reflection
 {
 	HitInfo hit;
 	hit.Init();
+	
+	if (reflection)
+	{
+		if (ray.dir.Dot(this->N()) < 0) {
+			ShadowInfo si = *this;
+			hit = hInfo;
+			si.SetHit(ray, hit);
+			si.bounceC++;
+			auto* mat = hit.node->GetMaterial();
+			return mat->Shade(si);
+		}
+	}
 
 	if (renderer->TraceRay(ray, hit, HIT_FRONT_AND_BACK))
 	{
@@ -117,6 +127,14 @@ Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist, bool reflection
 	return Color(0, 0, 0);
 }
 
+float ShadowInfo::GetHaltonPhi(int index) const {
+	return haltonPhi[index];
+}
+
+float ShadowInfo::GetHaltonTheta(int index) const {
+	return haltonTheta[index];
+}
+
 Color MtlPhong::Shade(ShadeInfo const& info) const
 {
 	return Color(255, 255, 255);
@@ -133,16 +151,36 @@ Color MtlPhong::Shade(ShadeInfo const& info) const
  * @param HitSide     Flags specifying which surface sides to consider.
  * @return Color contribution from the reflected ray.
 // */
-TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption)
+TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption, TexturedFloat glossiness)
 {
 	cyVec3f reflectView = info.V();
-	float dot = info.N().Dot(reflectView);
-	cyVec3f reflectionDir = (2 * dot) * info.N() - reflectView;
+	cyVec3f norm = info.N();
+
+	//Glossiness Sampling
+	float offsetPhi = info.RandomFloat();
+	float offsetTheta = info.RandomFloat();
+	float phi = 2.0f * M_PI * fmod(info.GetHaltonPhi(info.CurrentPixelSample()) + offsetPhi, 1.0f);
+	float cosTheta = pow(fmod(info.GetHaltonTheta(info.CurrentPixelSample()) + offsetTheta, 1.0f), 1.0f / (glossiness.GetValue() + 1.0f));
+	float sinTheta = sqrt(1.0f - (cosTheta * cosTheta));
+
+	float x = sinTheta * cos(phi);
+	float y = sinTheta * sin(phi);
+	float z = cosTheta;
+
+	Vec3f tangent, bitangent;
+	norm.GetOrthonormals(tangent, bitangent);
+
+	Vec3f HTransformed = (x * tangent) + (y * bitangent) + (z * norm);
+
+	//Find final direction
+	float dot = HTransformed.Dot(reflectView);
+	cyVec3f reflectionDir = (2 * dot) * HTransformed - reflectView;
 	reflectionDir.Normalize();
 
 	Ray reflect(info.P(), reflectionDir);
 	float dist;
 
+	//Reflect Ray
 	Color reflectCol = info.TraceSecondaryRay(reflect, dist, true);
 	if (dist > 0.0f && (absorption.r > 0.0f || absorption.g > 0.0f || absorption.b > 0.0f)) {
 		reflectCol.r *= expf(-absorption.r * dist);
@@ -162,7 +200,7 @@ TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption)
  * @param absorption  Absorption color.
  * @return Color contribution from the refracted (or reflected) ray.
  */
-TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption)
+TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption, TexturedFloat glossiness)
 {
 	cyVec3f refractView = info.V();
 	float eta;
@@ -171,13 +209,30 @@ TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption)
 	Ray refract;
 	float eps = 1e-4f;
 
+	//Glossiness Sampling
+	float offsetPhi = info.RandomFloat();
+	float offsetTheta = info.RandomFloat();
+	float phi = 2.0f * M_PI * fmod(info.GetHaltonPhi(info.CurrentPixelSample()) + offsetPhi, 1.0f);
+	float cosTheta = pow(fmod(info.GetHaltonTheta(info.CurrentPixelSample()) + offsetTheta, 1.0f), 1.0f / (glossiness.GetValue() + 1.0f));
+	float sinTheta = sqrt(1.0f - (cosTheta * cosTheta));
+
+	float x = sinTheta * cos(phi);
+	float y = sinTheta * sin(phi);
+	float z = cosTheta;
+
+	Vec3f tangent, bitangent;
+	info.N().GetOrthonormals(tangent, bitangent);
+
+	Vec3f HTransformed = (x * tangent) + (y * bitangent) + (z * info.N());
+	HTransformed.Normalize();
+
 	if (info.IsFront())
 	{
 		eta = 1 / ior;
 		float etaSq = eta * eta;
-		float NdotV = refractView.Dot(info.N());
+		float NdotV = refractView.Dot(HTransformed);
 		cosThetaT = sqrtf(1 - etaSq * (1 - NdotV * NdotV));
-		refractDir = -eta * refractView - (cosThetaT - eta * NdotV) * info.N();
+		refractDir = -eta * refractView - (cosThetaT - eta * NdotV) * HTransformed;
 		refract = Ray(info.P(), refractDir.GetNormalized());
 		float sign = refract.dir.Dot(info.N()) > 0.0f ? 1.0f : -1.0f;
 		refract.p += info.N() * (eps * sign);
@@ -185,18 +240,19 @@ TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption)
 	else
 	{
 		eta = ior;
+		cyVec3f H_back = -HTransformed;
 		cyVec3f negN = -info.N();
-		float NdotV = refractView.Dot(negN);
+		float NdotV = refractView.Dot(H_back);
 		float etaSq = eta * eta;
-		float cosThetaSquared = (1 - etaSq * (1 - NdotV * NdotV));
+		float cosThetaSquared = (1.0 - etaSq * (1 - NdotV * NdotV));
 
 		if (cosThetaSquared < 0.0f)
 		{
-			return ReflectRay(info, HIT_FRONT_AND_BACK, absorption);
+			return ReflectRay(info, HIT_FRONT_AND_BACK, absorption, glossiness);
 		}
 
 		cosThetaT = sqrtf(cosThetaSquared);
-		refractDir = -eta * refractView - (cosThetaT - eta * NdotV) * negN;
+		refractDir = -eta * refractView - (cosThetaT - eta * NdotV) * H_back;
 		refract = Ray(info.P(), refractDir.GetNormalized());
 		float sign = refract.dir.Dot(negN) > 0.0f ? 1.0f : -1.0f;
 		refract.p += negN * (eps * sign);
@@ -232,7 +288,6 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	Color kd = this->Diffuse().Eval(info.UVW());
 	Color ks = this->Specular().Eval(info.UVW());
 	float alpha = this->Glossiness().Eval(info.UVW());
-
 	
 	Color fullReflection = reflection;
 	float matior = this->ior;
@@ -241,7 +296,7 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 
 	if (needsRefraction)
 	{
-		refractCol = refraction * RefractRay(this->ior, info, this->absorption).Eval(info.UVW());
+		refractCol = refraction * RefractRay(this->ior, info, this->absorption, this->glossiness).Eval(info.UVW());
 
 		//Fresnel Effect
 		float iorRatio = (1.0f - matior) / (1.0f + matior);
@@ -252,7 +307,7 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 
 	if (fullReflection != Color(0,0,0) && info.CanBounce())
 	{
-		reflectCol = fullReflection * ReflectRay(info, HIT_FRONT_AND_BACK, this->absorption).Eval(info.UVW());
+		reflectCol = fullReflection * ReflectRay(info, HIT_FRONT_AND_BACK, this->absorption, this->glossiness).Eval(info.UVW());
 	}
 	
 	for (int i = 0; i < info.NumLights(); i++)

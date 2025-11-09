@@ -6,6 +6,7 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <vector>
 
 #define DEG2RAD(degrees) ((degrees) * M_PI / 180.0)
 
@@ -54,11 +55,12 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 				HaltonSeq<64> haltonDiscY(7);
 				RNG rng(index);
 				float randomOffset = rng.RandomFloat();
+				float randomOffsetY = rng.RandomFloat();
 				int totalSamples = 0;
 
 
 				//Adaptive Sampling loop
-				for(int i = 0; i < 64; i++)
+				for(int i = 0; i < 128; i++)
 				{
 					float haltonValueX = haltonX[i] + randomOffset;
 					if(haltonValueX > 1.0f)
@@ -75,7 +77,7 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 
 					//Depth of Field
 					float discX = haltonDiscX[i] + randomOffset;
-					float discY = haltonDiscY[i] + randomOffset;
+					float discY = haltonDiscY[i] + randomOffsetY;
 					if(discX > 1.0f)
 						discX -= 1.0f;
 					if (discY > 1.0f)
@@ -97,11 +99,11 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 					//Ray Generation 
 					Ray ray = Ray(offsetCamera, rayDir);
 
-					Color tempColor = SendRay(i, ray, scrPos);
+					Color tempColor = SendRay(i, ray, scrPos, rng);
 					sumColor += tempColor;
 					sumColorSquared += tempColor * tempColor;
 
-					if (i >= 4)
+					if (i >= 8)
 					{
 						//Adaptive Sampling Calculation
 						float n = (float)(i + 1);
@@ -121,7 +123,7 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 						}
 					}
 
-					if(i == 63)
+					if(i == 127)
 					{
 						totalSamples = i + 1;
 					}
@@ -137,7 +139,7 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 	}
 }
 
-Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos)
+Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos, RNG rng)
 {
 	HitInfo hit;
 	hit.Init();
@@ -145,8 +147,8 @@ Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos)
 
 	if (TraceRay(ray, hit, HIT_FRONT))
 	{
-		RNG rng(index);
 		ShadowInfo info = ShadowInfo(scene.lights, scene.environment, rng, this);
+		info.SetPixelSample(index);
 		info.SetHit(ray, hit);
 
 		if (!hit.light)

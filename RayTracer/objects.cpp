@@ -91,7 +91,6 @@ bool Sphere::ShadowRay(Ray const& ray, float t_max) const {
 #define FAST_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define FAST_MAX(a, b) ((a) > (b) ? (a) : (b))
 
-
 inline bool hitAABB(Ray ray, const float* bounds) {
     float b0 = bounds[0], b1 = bounds[1], b2 = bounds[2];
     float b3 = bounds[3], b4 = bounds[4], b5 = bounds[5];

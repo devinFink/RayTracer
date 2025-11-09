@@ -149,6 +149,11 @@ public:
 
     virtual float RandomFloat() const { return rng.RandomFloat(); }
 
+    virtual float GetPixelIndex() const { return pixelX + pixelY; }
+
+    virtual float GetHaltonPhi(int index) const { return 0; }
+    virtual float GetHaltonTheta(int index) const { return 0; }
+
     void SetPixel(int x, int y) { pixelX = x; pixelY = y; }
 
     void SetHit(Ray const& r, HitInfo const& h)
