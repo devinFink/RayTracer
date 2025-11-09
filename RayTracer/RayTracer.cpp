@@ -190,9 +190,9 @@ void RayTracer::BeginRender()
 	//	continue;
 	//}
 	//renderImage.ComputeZBufferImage();
-	//renderImage.SaveZImage("outputs/testZ.png");
-	//renderImage.SaveImage("outputs/minecraft2.png");
 	//renderImage.ComputeSampleCountImage();
+	//renderImage.SaveZImage("outputs/testZ.png");
+	//renderImage.SaveImage("outputs/gloss.png");
 	//renderImage.SaveSampleCountImage("outputs/sampleCount.png");
 }
 

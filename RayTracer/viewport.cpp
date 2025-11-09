@@ -3,8 +3,8 @@
 ///
 /// \file       viewport.cpp 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    10.0
-/// \date       September 24, 2025
+/// \version    11.0
+/// \date       October 5, 2025
 ///
 /// \brief Example source for CS 6620 - University of Utah.
 ///
@@ -62,6 +62,9 @@ static const char* uiControlsString =
 // OpenGL Extensions:
 #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
 # define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+#endif
+#ifndef GL_FRAMEBUFFER_SRGB
+# define GL_FRAMEBUFFER_SRGB 0x8DB9
 #endif
 //-------------------------------------------------------------------------------
 
@@ -253,6 +256,8 @@ void DrawScene(bool flipped = false)
     Scene& scene = theRenderer->GetScene();
     Camera& camera = theRenderer->GetCamera();
 
+    if (camera.sRGB) glEnable(GL_FRAMEBUFFER_SRGB);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     if (flipped) {
@@ -360,6 +365,8 @@ void DrawScene(bool flipped = false)
     }
 
     glDisable(GL_DEPTH_TEST);
+
+    if (camera.sRGB) glDisable(GL_FRAMEBUFFER_SRGB);
 }
 
 //-------------------------------------------------------------------------------
@@ -753,10 +760,18 @@ void GenLight::SetViewportParam(int lightID, ColorA const& ambient, ColorA const
     glLightfv(GL_LIGHT0 + lightID, GL_SPECULAR, &intensity.r);
     glLightfv(GL_LIGHT0 + lightID, GL_POSITION, &pos.x);
 }
+void PointLight::SetViewportLight(int lightID) const
+{
+    SetViewportParam(lightID, ColorA(0.0f), ColorA(intensity), Vec4f(position, 1.0f));
+    glLightf(GL_LIGHT0 + lightID, GL_CONSTANT_ATTENUATION, attenuation == 0 ? 1.0f : 0.0f);
+    glLightf(GL_LIGHT0 + lightID, GL_LINEAR_ATTENUATION, 0.0f);
+    glLightf(GL_LIGHT0 + lightID, GL_QUADRATIC_ATTENUATION, attenuation * attenuation);
+}
 void PointLight::ViewportDisplay(Material const* mtl) const
 {
     static GLUquadric* q = gluNewQuadric();
-    glColor3fv(&intensity.r);
+    Color rad = intensity / (Pi<float>() * size * size);
+    glColor3fv(&rad.r);
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
     gluSphere(q, size, 20, 20);
@@ -777,22 +792,26 @@ void SetDiffuseTextureMap(TextureMap const* dm)
 }
 void MtlPhong::SetViewportMaterial(int subMtlID) const
 {
-    ColorA d(diffuse.GetValue());
-    ColorA s(specular.GetValue());
     float g = glossiness.GetValue();
+    ColorA d(diffuse.GetValue() * (1 / Pi<float>()));
+    ColorA s(specular.GetValue() * ((g + 1) / (2 * Pi<float>())));
+    ColorA e(emission.GetValue());
     glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &d.r);
     glMaterialfv(GL_FRONT, GL_SPECULAR, &s.r);
     glMaterialf(GL_FRONT, GL_SHININESS, g * 2);
+    glMaterialfv(GL_FRONT, GL_EMISSION, &e.r);
     SetDiffuseTextureMap(diffuse.GetTexture());
 }
 void MtlBlinn::SetViewportMaterial(int subMtlID) const
 {
-    ColorA d(diffuse.GetValue());
-    ColorA s(specular.GetValue());
     float g = glossiness.GetValue();
+    ColorA d(diffuse.GetValue() * (1 / Pi<float>()));
+    ColorA s(specular.GetValue() * ((g + 2) / (8 * Pi<float>())));
+    ColorA e(emission.GetValue());
     glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &d.r);
     glMaterialfv(GL_FRONT, GL_SPECULAR, &s.r);
     glMaterialf(GL_FRONT, GL_SHININESS, g);
+    glMaterialfv(GL_FRONT, GL_EMISSION, &e.r);
     SetDiffuseTextureMap(diffuse.GetTexture());
 }
 void MtlMicrofacet::SetViewportMaterial(int subMtlID) const
@@ -809,9 +828,11 @@ void MtlMicrofacet::SetViewportMaterial(int subMtlID) const
     float t = a * (3 - 2 * rough);
     ColorA d(bc * ((1 - metal) * (1 - f0) + metal * t * 0.25f) / Pi<float>());
     ColorA s(f0 * D / 4);
+    ColorA e(emission.GetValue());
     glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, &d.r);
     glMaterialfv(GL_FRONT, GL_SPECULAR, &s.r);
     glMaterialf(GL_FRONT, GL_SHININESS, (1 - rough) * 128);
+    glMaterialfv(GL_FRONT, GL_EMISSION, &e.r);
     SetDiffuseTextureMap(baseColor.GetTexture());
 }
 bool TextureFile::SetViewportTexture() const

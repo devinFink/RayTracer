@@ -3,7 +3,7 @@
 ///
 /// \file       scene.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    10.0
+/// \version    11.0
 /// \date       October 25, 2025
 ///
 /// \brief Project source for CS 6620 - University of Utah.
@@ -58,7 +58,6 @@ struct Ray
     Ray(Vec3f const& _p, Vec3f const& _dir) : p(_p), dir(_dir) {
         invDir = { 1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z };
     }
-
 };
 
 //-------------------------------------------------------------------------------
@@ -207,7 +206,7 @@ class Object : public ItemBase
 {
 public:
     virtual bool IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT) const = 0;
-	virtual bool ShadowRay(Ray const& ray, float t_max) const { HitInfo hInfo; return IntersectRay(ray, hInfo) && hInfo.z < t_max; }
+    virtual bool ShadowRay(Ray const& ray, float t_max) const { HitInfo hInfo; return IntersectRay(ray, hInfo) && hInfo.z < t_max; };
     virtual Box  GetBoundBox() const = 0;
     virtual void ViewportDisplay(Material const* mtl) const {}    // used for OpenGL display
     virtual void Load(Loader const& loader) {}
@@ -414,6 +413,7 @@ public:
     Vec3f pos, dir, up;
     float fov, focaldist, dof;
     int imgWidth, imgHeight;
+    bool sRGB;
 
     void Init()
     {
@@ -425,6 +425,7 @@ public:
         dof = 0;
         imgWidth = 1920;
         imgHeight = 1080;
+        sRGB = false;
     }
 
     void Load(Loader const& loader);

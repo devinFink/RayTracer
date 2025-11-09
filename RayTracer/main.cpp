@@ -9,6 +9,6 @@
 int main()
 {
 	Renderer* theRenderer = new RayTracer();
-	theRenderer->LoadScene("scenes/soft_shadow_scene.xml");
+	theRenderer->LoadScene("scenes/cornellBox.xml");
     ShowViewport(theRenderer);
 }
