@@ -14,138 +14,6 @@
 #include "raytracer.h"
 #include "shadowInfo.h"
 
-
-Color PointLight::Illuminate(ShadeInfo const& sInfo, Vec3f& dir)  const
-{
-	Vec3f toShadingPoint = sInfo.P() - position;
-	toShadingPoint.Normalize();
-	HaltonSeq<128> haltonX(2);
-	HaltonSeq<128> haltonY(3);
-	float randXOffset = sInfo.RandomFloat();
-	float randYOffset = sInfo.RandomFloat();
-	int numSamples = 0;
-	const float twoPi = 2 * M_PI;
-
-	float summedLight = 0.0f;
-	Vec3f tangent, bitangent;
-	toShadingPoint.GetOrthonormals(tangent, bitangent);
-
-	for (int i = 0; i < maxSamples; i++)
-	{
-		float discX = haltonX[i] + randXOffset;
-		float discY = haltonY[i] + randYOffset;
-		discX -= (discX > 1.0f) ? 1.0f : 0.0f;
-		discY -= (discY > 1.0f) ? 1.0f : 0.0f;
-
-
-		float r = sqrt(discX) * size;
-		float angle = twoPi * discY;
-		float offsetU = r * cosf(angle);
-		float offsetV = r * sinf(angle);
-
-		Vec3f lightSamplePoint = position + (tangent * offsetU) + (bitangent * offsetV);
-
-		Vec3f toLight = lightSamplePoint - sInfo.P();
-		float dist = toLight.Length();
-		Vec3f shadowRayDir = toLight / dist;
-
-		summedLight += sInfo.TraceShadowRay(Ray(sInfo.P(), shadowRayDir), dist);
-		numSamples++;
-
-		if (numSamples == minSamples && summedLight == numSamples)
-		{
-			break;
-		}
-	}
-
-	//Attenuation
-	dir = position - sInfo.P();
-	float dist = dir.Length();
-	dir.Normalize();
-	summedLight /= (float)numSamples;
-	Color fullIntensity = intensity * summedLight;
-	if (attenuation)
-		return fullIntensity / (dist * dist);
-	else
-		return fullIntensity;
-}
-
-/**
- * Determines whether a point is shadowed along a given ray.
- * Casts a shadow ray and checks for intersections up to a maximum distance.
- *
- * @param ray   Shadow ray starting from the surface point toward the light.
- * @param t_max Maximum distance to test (typically distance to the light).
- * @return 0.0 if the ray is occluded (in shadow), 1.0 if unoccluded (lit).
- */
-inline float ShadowInfo::TraceShadowRay(Ray const& ray, float t_max) const
-{
-	return renderer->TraceShadowRay(ray, t_max) ? 0.0f : 1.0f;
-}
-
-inline bool ShadowInfo::CanBounce() const
-{
-	return bounceC < renderer->bounceCount;
-}
-
-inline bool ShadowInfo::CanMCBounce() const
-{
-	return bounceC < renderer->monteCarloBounces;
-}
-
-Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist, bool reflection) const
-{
-	HitInfo hit;
-	hit.Init();
-	
-	if (reflection)
-	{
-		if (ray.dir.Dot(this->N()) < 0) {
-			ShadowInfo si = *this;
-			hit = hInfo;
-			si.SetHit(ray, hit);
-			si.bounceC++;
-			auto* mat = hit.node->GetMaterial();
-			return mat->Shade(si);
-		}
-	}
-
-	if (renderer->TraceRay(ray, hit, HIT_FRONT_AND_BACK))
-	{
-		if (!hit.light) {
-			auto* mat = hit.node->GetMaterial();
-			if (mat)
-			{
-				ShadowInfo si = *this;
-				si.SetHit(ray, hit);
-				si.bounceC++;
-				si.IsFront() ? dist = si.Depth() : dist = 0;
-				return mat->Shade(si);
-			}
-		}
-		else {
-			dist = hit.z;
-			return Color::White();
-		}
-	}
-	else
-	{
-		Color color = this->EvalEnvironment(ray.dir);
-		return color;
-	}
-
-	dist = BIGFLOAT;
-	return Color(0, 0, 0);
-}
-
-float ShadowInfo::GetHaltonPhi(int index) const {
-	return haltonPhi[index];
-}
-
-float ShadowInfo::GetHaltonTheta(int index) const {
-	return haltonTheta[index];
-}
-
 /**
  * Traces a reflected ray from a surface using the reflection equation.
  * Handles recursive shading until the bounce limit is reached.
@@ -442,6 +310,18 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	finalColor += refractCol;
 	finalColor += emission;
 	return finalColor;
+}
+
+bool MtlPhong::GenerateSample(SamplerInfo const& sInfo, Vec3f& dir, Info& si) const {
+	return false;
+}
+
+bool MtlBlinn::GenerateSample(SamplerInfo const& sInfo, Vec3f& dir, Info& si) const {
+	return false;
+}
+
+bool MtlMicrofacet::GenerateSample(SamplerInfo const& sInfo, Vec3f& dir, Info& si) const {
+	return false;
 }
 
 Color MtlMicrofacet::Shade(ShadeInfo const &shade) const

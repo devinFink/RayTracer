@@ -3,8 +3,8 @@
 ///
 /// \file       lights.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    11.0
-/// \date       September 24, 2025
+/// \version    12.0
+/// \date       October 25, 2025
 ///
 /// \brief Example source for CS 6620 - University of Utah.
 ///
@@ -29,18 +29,7 @@ class AmbientLight : public GenLight
 {
 public:
     Color Illuminate(ShadeInfo const& sInfo, Vec3f& dir) const override { return intensity; }
-    bool  IsAmbient() const override { return true; }
-    void  SetViewportLight(int lightID) const override { SetViewportParam(lightID, ColorA(intensity), ColorA(0.0f), Vec4f(0, 0, 0, 1)); }
-    void  Load(Loader const& loader) override;
-protected:
-    Color intensity = Color(0, 0, 0);
-};
-
-
-class MonteCarloAmbient : public AmbientLight
-{
-public:
-    virtual Color Illuminate(ShadeInfo const& sInfo, Vec3f& dir) const override;
+    Color Intensity() const override { return intensity; }
     bool  IsAmbient() const override { return true; }
     void  SetViewportLight(int lightID) const override { SetViewportParam(lightID, ColorA(intensity), ColorA(0.0f), Vec4f(0, 0, 0, 1)); }
     void  Load(Loader const& loader) override;
@@ -54,6 +43,7 @@ class DirectLight : public GenLight
 {
 public:
     Color Illuminate(ShadeInfo const& sInfo, Vec3f& dir) const override { dir = -direction; return intensity * sInfo.TraceShadowRay(-direction); }
+    Color Intensity() const override { return intensity; }
     void  SetViewportLight(int lightID) const override { SetViewportParam(lightID, ColorA(0.0f), ColorA(intensity), Vec4f(-direction, 0.0f)); }
     void  Load(Loader const& loader) override;
 protected:
@@ -67,8 +57,11 @@ class PointLight : public GenLight
 {
 public:
     Color Illuminate(ShadeInfo const& sInfo, Vec3f& dir) const override;
-    Color Radiance(ShadeInfo const& sInfo) const override { return intensity / (Pi<float>() * size * size); }
+    Color Radiance(SamplerInfo const& sInfo) const override { return intensity / (Pi<float>() * size * size); }
+    Color Intensity() const override { return intensity; }
     bool  IsRenderable() const override { return size > 0.0f; }
+    bool  IsPhotonSource() const override { return true; }
+    void  RandomPhoton(RNG& rng, Ray& r, Color& c) const override;
     void  SetViewportLight(int lightID) const override;
     void  Load(Loader const& loader) override;
 
@@ -81,8 +74,6 @@ protected:
     Vec3f position = Vec3f(0, 0, 0);
     float size = 0.0f;
     float attenuation = 0.0f;   // Zero means no attenuation. If non-zero, light distance is scaled by attenuation.
-    float minSamples = 8;
-    float maxSamples = 64;
 };
 
 //-------------------------------------------------------------------------------

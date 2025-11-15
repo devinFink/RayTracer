@@ -3,7 +3,7 @@
 ///
 /// \file       scene.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    11.0
+/// \version    12.0
 /// \date       October 25, 2025
 ///
 /// \brief Project source for CS 6620 - University of Utah.
@@ -38,7 +38,9 @@ class Light;
 class Material;
 class Texture;
 class Node;
+class SamplerInfo;
 class ShadeInfo;
+class RNG;
 class Loader;
 
 template <class T> class ItemList;
@@ -206,10 +208,38 @@ class Object : public ItemBase
 {
 public:
     virtual bool IntersectRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT) const = 0;
-    virtual bool ShadowRay(Ray const& ray, float t_max) const { HitInfo hInfo; return IntersectRay(ray, hInfo) && hInfo.z < t_max; };
+    virtual bool ShadowRay(Ray const& ray, float t_max) const { return false; }
     virtual Box  GetBoundBox() const = 0;
     virtual void ViewportDisplay(Material const* mtl) const {}    // used for OpenGL display
     virtual void Load(Loader const& loader) {}
+};
+
+//-------------------------------------------------------------------------------
+
+// Direction sampler interface for lights and materials
+class DirSampler
+{
+public:
+    enum Lobe
+    {
+        NONE = 0,
+        DIFFUSE = 1,
+        SPECULAR = 2,
+        TRANSMISSION = 4,
+        ALL = 7
+    };
+
+    struct Info
+    {
+        Color mult; // BSDF times the geometry term for materials
+        float prob; // probability of generating the sample
+        Lobe  lobe; // the scattering lobe for materials
+
+        void SetVoid() { mult.SetBlack(); prob = 0.0f; lobe = Lobe::NONE; }
+    };
+
+    // Generates a new direction sample and sets the corresponding sample information. Returns true if a sample is generated.
+    virtual bool GenerateSample(SamplerInfo const& sInfo, Vec3f& dir, Info& si) const { return false; }
 };
 
 //-------------------------------------------------------------------------------
@@ -218,9 +248,12 @@ class Light : public Object
 {
 public:
     virtual Color Illuminate(ShadeInfo const& sInfo, Vec3f& dir) const = 0; // returns the light intensity and direction
-    virtual Color Radiance(ShadeInfo const& sInfo) const { return Color(0, 0, 0); }   // Used for shading a hit point on the light
+    virtual Color Radiance(SamplerInfo const& sInfo) const { return Color(0, 0, 0); }   // Used for shading a hit point on the light
+    virtual Color Intensity() const { return Color(0.0f); }    // Returns the total power of the light. It can be used for importance sampling lights.
     virtual bool  IsAmbient() const { return false; }
     virtual bool  IsRenderable() const { return false; }
+    virtual bool  IsPhotonSource() const { return false; }
+    virtual void  RandomPhoton(RNG& rng, Ray& r, Color& c) const {}
     virtual void  SetViewportLight(int lightID) const {}  // used for OpenGL display
     virtual void  Load(Loader const& loader) {}
 
@@ -231,12 +264,13 @@ public:
 
 //-------------------------------------------------------------------------------
 
-class Material : public ItemBase
+class Material : public ItemBase, public DirSampler
 {
 public:
     virtual Color Shade(ShadeInfo const& sInfo) const = 0;  // the main method that handles shading
     virtual Color Absorption(int mtlID = 0) const { return Color(0, 0, 0); } // returns the absorption of the material
     virtual float IOR(int mtlID = 0) const { return 1.0f; } // returns the refraction index of the material
+    virtual bool  IsPhotonSurface(int mtlID = 0) const { return true; } // if this method returns true, the photon will be stored
     virtual void  SetViewportMaterial(int mtlID = 0) const {}   // used for OpenGL display
     virtual void  Load(Loader const& loader, TextureFileList& textureFileList) {}
 };

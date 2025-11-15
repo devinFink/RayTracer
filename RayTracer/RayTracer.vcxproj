@@ -196,6 +196,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="denoiser.cpp" />
+    <ClCompile Include="lights.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="materials.cpp" />
@@ -212,6 +213,7 @@
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="materials.h" />
     <ClInclude Include="objects.h" />
+    <ClInclude Include="photonmap.h" />
     <ClInclude Include="raytracer.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="rng.h" />
