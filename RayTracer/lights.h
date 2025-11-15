@@ -36,6 +36,18 @@ protected:
     Color intensity = Color(0, 0, 0);
 };
 
+
+class MonteCarloAmbient : public AmbientLight
+{
+public:
+    virtual Color Illuminate(ShadeInfo const& sInfo, Vec3f& dir) const override;
+    bool  IsAmbient() const override { return true; }
+    void  SetViewportLight(int lightID) const override { SetViewportParam(lightID, ColorA(intensity), ColorA(0.0f), Vec4f(0, 0, 0, 1)); }
+    void  Load(Loader const& loader) override;
+protected:
+    Color intensity = Color(0, 0, 0);
+};
+
 //-------------------------------------------------------------------------------
 
 class DirectLight : public GenLight

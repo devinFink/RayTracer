@@ -42,6 +42,9 @@
     <ClCompile Include="texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="denoiser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lodepng.h">
@@ -75,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rng.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="denoiser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -122,6 +128,9 @@
       <Filter>Resource Files</Filter>
     </Xml>
     <Xml Include="scenes\weirdhorsething.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="scenes\cornellBox.xml">
       <Filter>Resource Files</Filter>
     </Xml>
   </ItemGroup>

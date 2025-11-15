@@ -3,6 +3,7 @@
 #include "raytracer.h"
 #include "objects.h"
 #include "shadowInfo.h"
+#include "denoiser.h"
 #include <iostream>
 #include <thread>
 #include <atomic>
@@ -49,10 +50,12 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 				int index = y * scrWidth + x;
 				Color sumColor(0, 0, 0);
 				Color sumColorSquared(0, 0, 0);
-				HaltonSeq<64> haltonX(2);
-				HaltonSeq<64> haltonY(3);
-				HaltonSeq<64> haltonDiscX(5);
-				HaltonSeq<64> haltonDiscY(7);
+
+				//Precompute halton sequences up to a decent number
+				HaltonSeq<128> haltonX(2);
+				HaltonSeq<128> haltonY(3);
+				HaltonSeq<128> haltonDiscX(5);
+				HaltonSeq<128> haltonDiscY(7);
 				RNG rng(index);
 				float randomOffset = rng.RandomFloat();
 				float randomOffsetY = rng.RandomFloat();
@@ -60,7 +63,7 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 
 
 				//Adaptive Sampling loop
-				for(int i = 0; i < 128; i++)
+				for(int i = 0; i < maxSamples; i++)
 				{
 					float haltonValueX = haltonX[i] + randomOffset;
 					if(haltonValueX > 1.0f)
@@ -70,7 +73,7 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 					if(haltonValueY > 1.0f)
 						haltonValueY -= 1.0f;
 
-
+					//Find pixel location in world space
 					float pixX = -(wrldImgWidth / 2.0f) + ((wrldImgWidth * (x + (1.0f / 2.0f)  + haltonValueX) / camWidthRes));
 					float pixY = (wrldImgHeight / 2.0f) - ((wrldImgHeight * (y + (1.0f / 2.0f) + haltonValueY) / camHeightRes));
 					cyVec3f pixelPos(pixX, pixY, -l);
@@ -83,6 +86,7 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 					if (discY > 1.0f)
 						discY -= 1.0f;
 
+					//Sample camera disc
 					float r = sqrt(discX);
 					float angle = 2.0f * M_PI * discY;
 					float lensU = r * camera.dof * cos(angle);
@@ -103,7 +107,7 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 					sumColor += tempColor;
 					sumColorSquared += tempColor * tempColor;
 
-					if (i >= 8)
+					if (i >= minSamples)
 					{
 						//Adaptive Sampling Calculation
 						float n = (float)(i + 1);
@@ -123,17 +127,28 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 						}
 					}
 
-					if(i == 127)
+					if(i == maxSamples)
 					{
 						totalSamples = i + 1;
 					}
 				}                                                                
 
+				Color finalColor = sumColor / (float)totalSamples;
 
-				renderImage.GetPixels()[index] = (Color24)(sumColor / (float)totalSamples);
+				if (camera.sRGB)
+				{
+					finalColor = finalColor.Linear2sRGB();
+				}
+
+				renderImage.GetPixels()[index] = Color24(finalColor);
 				renderImage.IncrementNumRenderPixel(1);
 				renderImage.GetZBuffer()[index] = 0;
 				renderImage.GetSampleCount()[index] = totalSamples;
+
+				if (renderImage.IsRenderDone())
+				{
+					StopRender();
+				}
 			}
 		}
 	}
@@ -153,11 +168,11 @@ Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos, RNG rng)
 
 		if (!hit.light)
 		{
-			return (Color)hit.node->GetMaterial()->Shade(info);
+			return Color(hit.node->GetMaterial()->Shade(info));
 		}
 		else
 		{
-			return Color(255, 255, 255);
+			return Color(1.0, 1.0, 1.0);
 		}
 	}
 	else
@@ -184,23 +199,46 @@ void RayTracer::BeginRender()
 	for (int t = 0; t < numThreads; t++)
 		threads.emplace_back([this, totalTiles, tilesX, tilesY]() { RunThread(this->nextTile, totalTiles, tilesX, tilesY); });
 	for (auto& th : threads) th.detach();
-
-	//while(!renderImage.IsRenderDone())
-	//{
-	//	continue;
-	//}
-	//renderImage.ComputeZBufferImage();
-	//renderImage.ComputeSampleCountImage();
-	//renderImage.SaveZImage("outputs/testZ.png");
-	//renderImage.SaveImage("outputs/gloss.png");
-	//renderImage.SaveSampleCountImage("outputs/sampleCount.png");
 }
 
 void RayTracer::StopRender() 
 {
+	while (!renderImage.IsRenderDone())
+	{
+		continue;
+	}
+
+	//Save Raw image for comparison
+	renderImage.SaveImage("outputs/rawImage.png");
+
+	// Denoise
+	Denoiser denoiser(camera.imgWidth, camera.imgHeight);
+
+	// Create output buffer
+	std::vector<Color> denoisedPixels(camera.imgWidth * camera.imgHeight);
+
+	// Convert Color24 to Color (float) for denoising
+	Color* inputPixels = new Color[camera.imgWidth * camera.imgHeight];
+	for (int i = 0; i < camera.imgWidth * camera.imgHeight; i++) {
+		Color24 pixel = renderImage.GetPixels()[i];
+		inputPixels[i] = Color(pixel);
+	}
+
+	// Denoise
+	denoiser.Denoise(inputPixels, denoisedPixels.data());
+
+	
+	// Convert back to Color24
+	for (int i = 0; i < camera.imgWidth * camera.imgHeight; i++) {
+		renderImage.GetPixels()[i] = Color24(denoisedPixels[i]);
+	}
+
+	delete[] inputPixels;
+
+	// Save images
 	renderImage.ComputeZBufferImage();
 	renderImage.SaveZImage("testZ.png");
-	renderImage.SaveImage("testSpace.png");
+	renderImage.SaveImage("outputs/singleBounceDenoise.png");
 }
 
 bool RayTracer::TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide) const

@@ -102,6 +102,8 @@ private:
 class ShadeInfo
 {
 public:
+    int     mcSamples = 1;
+
     ShadeInfo(std::vector<Light*> const& lightList, TexturedColor const& environment, RNG& r) : lights(lightList), env(environment), rng(r) {}
 
     virtual Vec3f P() const { return hInfo.p; }    // returns the shading position
@@ -136,6 +138,7 @@ public:
     virtual Light const* GetLight(int i) const { return lights[i]; }          // returns the i^th light
 
     virtual bool CanBounce() const { return false; }    // returns if an additional bounce is permitted
+    virtual bool CanMCBounce() const { return false; }
 
     // Traces a shadow ray and returns the visibility
     virtual float TraceShadowRay(Ray   const& ray, float t_max = BIGFLOAT) const { return 1.0f; }
@@ -150,6 +153,7 @@ public:
     virtual float RandomFloat() const { return rng.RandomFloat(); }
 
     virtual float GetPixelIndex() const { return pixelX + pixelY; }
+
 
     virtual float GetHaltonPhi(int index) const { return 0; }
     virtual float GetHaltonTheta(int index) const { return 0; }

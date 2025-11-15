@@ -7,6 +7,7 @@
 ///
 /// \brief PImplementation of Renderer Class
 
+#include <vector>
 #include "renderer.h"
 #include "rng.h"
 
@@ -14,6 +15,11 @@ class RayTracer : public Renderer
 {
 	public:
 		const int bounceCount = 5;
+		const int monteCarloBounces = 2;
+
+		const int maxSamples = 128;
+		const int minSamples = 16;
+
 		RayTracer() {}
 		~RayTracer() {}
 		void BeginRender() override;
@@ -28,6 +34,8 @@ class RayTracer : public Renderer
 
 	private:
 		const int tileSize = 32;
+		std::vector<float> albedoBuffer{};
+		std::vector<float> normalBuffer{};
 		std::atomic<int> nextTile{ 0 };
 		float tValues[71] = { 0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228,
 								   2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086,
