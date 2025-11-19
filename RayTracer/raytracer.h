@@ -18,13 +18,16 @@ class RayTracer : public Renderer
 		const int monteCarloBounces = 2;
 
 		const int maxSamples = 128;
-		const int minSamples = 16;
+		const int minSamples = 32;
+
+		const int numPhotons = 100000;
 
 		RayTracer() {}
 		~RayTracer() {}
 		void BeginRender() override;
 		void StopRender() override;
 
+		//Ray Tracing Methods
 		bool TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide = HIT_FRONT_AND_BACK) const override;
 		bool TraceShadowRay(Ray const& ray, float t_max, int hitSide = HIT_FRONT_AND_BACK) const override;
 		bool TraverseTree(const Ray& ray, const Node* node, HitInfo& hitInfo, int hitSide) const;
@@ -32,11 +35,18 @@ class RayTracer : public Renderer
 		void CreateCam2Wrld();
 		Color SendRay(int i, Ray ray, cyVec2f scrPos, RNG rng);
 
+		//Photon Map Methods
+		void GeneratePhotons(PhotonMap* map);
+		bool TracePhoton(Ray const& ray, HitInfo& hInfo);
+		PhotonMap const* GetPhotonMap() const override { return map; }
+
+
 	private:
 		const int tileSize = 32;
 		std::vector<float> albedoBuffer{};
 		std::vector<float> normalBuffer{};
 		std::atomic<int> nextTile{ 0 };
+		PhotonMap* map;
 		float tValues[71] = { 0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228,
 								   2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086,
 								   2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042,

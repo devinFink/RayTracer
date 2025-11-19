@@ -28,6 +28,7 @@
 //-------------------------------------------------------------------------------
 
 class PhotonMap;
+class Renderer;
 
 //-------------------------------------------------------------------------------
 
@@ -194,6 +195,8 @@ public:
     virtual float GetHaltonPhi(int index) const { return 0; }
     virtual float GetHaltonTheta(int index) const { return 0; }
     virtual bool CanMCBounce() const { return true; }
+
+    virtual Renderer* GetRenderer() const { return nullptr; }
 
 protected:
     std::vector<Light*> const& lights;    // lights

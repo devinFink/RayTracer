@@ -3,6 +3,7 @@
 #include "raytracer.h"
 #include "objects.h"
 #include "shadowInfo.h"
+#include "photonmap.h"
 #include "denoiser.h"
 #include <iostream>
 #include <thread>
@@ -18,6 +19,71 @@ void RayTracer::CreateCam2Wrld()
 	cyVec3f cam2WrldX = cam2WrldY.Cross(cam2WrldZ);
 
 	this->cam2Wrld = cyMatrix4f(cam2WrldX, cam2WrldY, cam2WrldZ, camera.pos);
+}
+
+void RayTracer::BeginRender()
+{
+	renderImage.ResetNumRenderedPixels();
+	CreateCam2Wrld();
+
+	PhotonMap* pMap = new PhotonMap;
+	pMap->Resize(numPhotons * scene.lights.size());
+
+	GeneratePhotons(pMap);
+
+	this->map = pMap;
+
+	//Multithreading
+	const int numThreads = std::thread::hardware_concurrency();
+	std::vector<std::thread> threads;
+	threads.reserve(numThreads);
+	const int tilesX = (camera.imgWidth + tileSize - 1) / tileSize;
+	const int tilesY = (camera.imgHeight + tileSize - 1) / tileSize;
+	const int totalTiles = tilesX * tilesY;
+
+	for (int t = 0; t < numThreads; t++)
+		threads.emplace_back([this, totalTiles, tilesX, tilesY]() { RunThread(this->nextTile, totalTiles, tilesX, tilesY); });
+	for (auto& th : threads) th.detach();
+}
+
+void RayTracer::StopRender()
+{
+	while (!renderImage.IsRenderDone())
+	{
+		continue;
+	}
+
+	//Save Raw image for comparison
+	renderImage.SaveImage("outputs/rawImage.png");
+
+	// Denoise
+	Denoiser denoiser(camera.imgWidth, camera.imgHeight);
+
+	// Create output buffer
+	std::vector<Color> denoisedPixels(camera.imgWidth * camera.imgHeight);
+
+	// Convert Color24 to Color (float) for denoising
+	Color* inputPixels = new Color[camera.imgWidth * camera.imgHeight];
+	for (int i = 0; i < camera.imgWidth * camera.imgHeight; i++) {
+		Color24 pixel = renderImage.GetPixels()[i];
+		inputPixels[i] = Color(pixel);
+	}
+
+	// Denoise
+	denoiser.Denoise(inputPixels, denoisedPixels.data());
+
+
+	// Convert back to Color24
+	for (int i = 0; i < camera.imgWidth * camera.imgHeight; i++) {
+		renderImage.GetPixels()[i] = Color24(denoisedPixels[i]);
+	}
+
+	delete[] inputPixels;
+
+	// Save images
+	renderImage.ComputeZBufferImage();
+	renderImage.SaveZImage("testZ.png");
+	renderImage.SaveImage("outputs/singleBounceDenoise.png");
 }
 
 void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX, int tilesY)
@@ -120,18 +186,18 @@ void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX
 						Color phi = t * (stdDev / sqrtf(n));
 						float threshold = 0.01f;
 
-						if(phi.r <= threshold && phi.g <= threshold && phi.b <= threshold)
+						if (phi.r <= threshold && phi.g <= threshold && phi.b <= threshold)
 						{
 							totalSamples = i + 1;
 							break;
 						}
 					}
 
-					if(i == maxSamples)
+					if (i == maxSamples)
 					{
 						totalSamples = i + 1;
 					}
-				}                                                                
+				}
 
 				Color finalColor = sumColor / (float)totalSamples;
 
@@ -183,62 +249,29 @@ Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos, RNG rng)
 	}
 }
 
-void RayTracer::BeginRender() 
-{
-	renderImage.ResetNumRenderedPixels();
-	CreateCam2Wrld();
-
-	//Multithreading
-	const int numThreads = std::thread::hardware_concurrency();
-	std::vector<std::thread> threads;
-	threads.reserve(numThreads);
-	const int tilesX = (camera.imgWidth + tileSize - 1) / tileSize;
-	const int tilesY = (camera.imgHeight + tileSize - 1) / tileSize;
-	const int totalTiles = tilesX * tilesY;
-
-	for (int t = 0; t < numThreads; t++)
-		threads.emplace_back([this, totalTiles, tilesX, tilesY]() { RunThread(this->nextTile, totalTiles, tilesX, tilesY); });
-	for (auto& th : threads) th.detach();
+bool RayTracer::TracePhoton(const Ray &ray, HitInfo& hInfo){
+	return TraverseTree(ray, &scene.rootNode, hInfo, HIT_FRONT);
 }
 
-void RayTracer::StopRender() 
-{
-	while (!renderImage.IsRenderDone())
-	{
-		continue;
+void RayTracer::GeneratePhotons(PhotonMap* map) {
+	RNG rng;
+	Ray ray;
+	Color c;
+
+	for (auto& light : scene.lights) {
+		for (int i = 0; i < numPhotons; i++) {
+			if (light->IsPhotonSource()) {
+				light->RandomPhoton(rng, ray, c);
+				HitInfo info;
+				if (TracePhoton(ray, info))
+					map->AddPhoton(info.p, ray.dir, c);
+				else i--;
+			}
+		}
 	}
 
-	//Save Raw image for comparison
-	renderImage.SaveImage("outputs/rawImage.png");
-
-	// Denoise
-	Denoiser denoiser(camera.imgWidth, camera.imgHeight);
-
-	// Create output buffer
-	std::vector<Color> denoisedPixels(camera.imgWidth * camera.imgHeight);
-
-	// Convert Color24 to Color (float) for denoising
-	Color* inputPixels = new Color[camera.imgWidth * camera.imgHeight];
-	for (int i = 0; i < camera.imgWidth * camera.imgHeight; i++) {
-		Color24 pixel = renderImage.GetPixels()[i];
-		inputPixels[i] = Color(pixel);
-	}
-
-	// Denoise
-	denoiser.Denoise(inputPixels, denoisedPixels.data());
-
-	
-	// Convert back to Color24
-	for (int i = 0; i < camera.imgWidth * camera.imgHeight; i++) {
-		renderImage.GetPixels()[i] = Color24(denoisedPixels[i]);
-	}
-
-	delete[] inputPixels;
-
-	// Save images
-	renderImage.ComputeZBufferImage();
-	renderImage.SaveZImage("testZ.png");
-	renderImage.SaveImage("outputs/singleBounceDenoise.png");
+	map->ScalePhotonPowers(1.0f / (float)numPhotons);
+	map->PrepareForIrradianceEstimation();
 }
 
 bool RayTracer::TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide) const

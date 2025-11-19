@@ -12,6 +12,7 @@
 #include "lights.h"
 #include "raytracer.h"
 #include "shadowInfo.h"
+#include "photonmap.h"
 
 
 
@@ -70,8 +71,41 @@ Color PointLight::Illuminate(ShadeInfo const& sInfo, Vec3f& dir)  const
 		return fullIntensity;
 }
 
-void  PointLight::RandomPhoton(RNG& rng, Ray& r, Color& c) const {
+void PointLight::RandomPhoton(RNG& rng, Ray& r, Color& c) const {
+	// Sample sphere surface
+	float u1  = rng.RandomFloat();
+	float u2  = rng.RandomFloat();
 
+	float phi = 2.0f * M_PI * u2;
+	float cosTheta = 1.0f - 2.0f * u1;
+	float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+
+	Vec3f spherePoint(
+		sinTheta * cos(phi),
+		sinTheta * sin(phi),
+		cosTheta
+	);
+
+	Vec3f photonOrigin = position + (spherePoint * size);
+	Vec3f surfaceNormal = spherePoint;
+
+	// Sample hemisphere (cosine-weighted)
+	float u3 = rng.RandomFloat();
+	float u4 = rng.RandomFloat();
+
+	float r_hemi = sqrt(u3);
+	float phi_hemi = 2.0f * M_PI * u4;
+
+	Vec3f tangent, bitangent;
+	surfaceNormal.GetOrthonormals(tangent, bitangent);
+
+	Vec3f photonDir = (r_hemi * cos(phi_hemi) * tangent) +
+					  (r_hemi * sin(phi_hemi) * bitangent) +
+					  (sqrt(1.0f - u3) * surfaceNormal);
+	photonDir.Normalize();
+
+	r = Ray(photonOrigin, photonDir);
+	c = intensity * 4 *  M_PI * size * size;
 }
 
 

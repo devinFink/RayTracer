@@ -13,6 +13,7 @@
 #include "lights.h"
 #include "raytracer.h"
 #include "shadowInfo.h"
+#include "photonmap.h"
 
 /**
  * Traces a reflected ray from a surface using the reflection equation.
@@ -237,7 +238,10 @@ Color SampleIndirectDiffuseCosin(ShadeInfo const& info)
 Color MtlBlinn::Shade(ShadeInfo const &info) const
 {
 	//Summation Colors
-	Color finalColor(0, 0, 0), ambientLight(0, 0, 0), reflectCol(0, 0, 0), refractCol(0, 0, 0), fresnel(0, 0, 0), indirect(0,0,0);
+	Color finalColor(0, 0, 0), ambientLight(0, 0, 0), reflectCol(0, 0, 0), refractCol(0, 0, 0),
+		  fresnel(0, 0, 0), indirect(0,0,0), irradiance(0,0,0);
+
+	cyVec3f photonDir(0, 0, 0);
 
 	//Material Colors
 	Color reflection = this->Reflection().Eval(info.UVW());
@@ -252,7 +256,6 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	float specScalar = (alpha + 2) / (8 * M_PI);
 	Color cKd = kd * diffScalar;
 	Color cKs = ks * specScalar;
-	
 	Color fullReflection = reflection;
 	float matior = this->ior;
 
@@ -299,16 +302,18 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	}
 
 	//Sum Monte Carlo Global Illumination
-	if (info.CanMCBounce()) {
-		indirect = SampleIndirectDiffuseCosin(info) * kd;
-	}
+	//if (info.CanMCBounce()) {
+	//	indirect = SampleIndirectDiffuseCosin(info) * kd;
+	//}
 
+	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<100>(irradiance, photonDir, 1.0f, info.P());
+	finalColor = (1.0f / M_PI) * kd * irradiance;
 
 	//Summing final components
-	finalColor += indirect;
+	//finalColor += indirect;
 	finalColor += reflectCol;
 	finalColor += refractCol;
-	finalColor += emission;
+	//finalColor += emission;
 	return finalColor;
 }
 
