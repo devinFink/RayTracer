@@ -249,29 +249,52 @@ Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos, RNG rng)
 	}
 }
 
-bool RayTracer::TracePhoton(const Ray &ray, HitInfo& hInfo){
-	return TraverseTree(ray, &scene.rootNode, hInfo, HIT_FRONT);
-}
 
-void RayTracer::GeneratePhotons(PhotonMap* map) {
+void RayTracer::GeneratePhotons(PhotonMap* pMap) {
 	RNG rng;
 	Ray ray;
 	Color c;
 
 	for (auto& light : scene.lights) {
-		for (int i = 0; i < numPhotons; i++) {
-			if (light->IsPhotonSource()) {
+		if (light->IsPhotonSource()) {
+			while (pMap->RemainingSpace() > 0) {
 				light->RandomPhoton(rng, ray, c);
 				HitInfo info;
-				if (TracePhoton(ray, info))
-					map->AddPhoton(info.p, ray.dir, c);
-				else i--;
+				TracePhoton(ray, info, c, pMap, true);
 			}
 		}
 	}
 
-	map->ScalePhotonPowers(1.0f / (float)numPhotons);
-	map->PrepareForIrradianceEstimation();
+	pMap->ScalePhotonPowers(1.0f / (float)numPhotons);
+	pMap->PrepareForIrradianceEstimation();
+}
+
+bool RayTracer::TracePhoton(const Ray &ray, HitInfo& hInfo, Color& c, PhotonMap* pMap, bool first){
+	RNG rng(pMap->NumPhotons());
+	if (TraverseTree(ray, &scene.rootNode, hInfo, HIT_FRONT)) {
+
+		if (hInfo.node) {
+			if(!first && hInfo.node->GetMaterial()->IsPhotonSurface())
+				pMap->AddPhoton(hInfo.p, ray.dir, c);
+
+			SamplerInfo sInfo(rng);
+			sInfo.SetHit(ray, hInfo);
+			Vec3f newDir;
+			DirSampler::Info si;
+
+			if (hInfo.node->GetMaterial()->GenerateSample(sInfo, newDir, si))
+			{
+				c *= si.mult / si.prob;
+				Ray photonRay(hInfo.p, newDir);
+				TracePhoton(photonRay, hInfo, c, pMap, false);
+			}
+
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool RayTracer::TraceRay(Ray const& ray, HitInfo& hInfo, int hitSide) const

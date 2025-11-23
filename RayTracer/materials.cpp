@@ -14,6 +14,7 @@
 #include "raytracer.h"
 #include "shadowInfo.h"
 #include "photonmap.h"
+#include <iostream>
 
 /**
  * Traces a reflected ray from a surface using the reflection equation.
@@ -26,7 +27,7 @@
  * @param HitSide     Flags specifying which surface sides to consider.
  * @return Color contribution from the reflected ray.
 // */
-TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption, TexturedFloat glossiness)
+Ray ReflectRay(SamplerInfo const& info, int HitSide, Color absorption, TexturedFloat glossiness)
 {
 	cyVec3f reflectView = info.V();
 	cyVec3f norm = info.N();
@@ -34,8 +35,8 @@ TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption, T
 	//Glossiness Sampling
 	float offsetPhi = info.RandomFloat();
 	float offsetTheta = info.RandomFloat();
-	float phi = 2.0f * M_PI * fmod(info.GetHaltonPhi(info.CurrentPixelSample()) + offsetPhi, 1.0f);
-	float cosTheta = pow(fmod(info.GetHaltonTheta(info.CurrentPixelSample()) + offsetTheta, 1.0f), 1.0f / (glossiness.GetValue() + 1.0f));
+	float phi = 2.0f * M_PI * fmod(Halton(info.CurrentPixelSample(), 2) + offsetPhi, 1.0f);
+	float cosTheta = pow(fmod(Halton(info.CurrentPixelSample(), 3) + offsetTheta, 1.0f), 1.0f / (glossiness.GetValue() + 1.0f));
 	float sinTheta = sqrt(1.0f - (cosTheta * cosTheta));
 
 	float x = sinTheta * cos(phi);
@@ -53,17 +54,8 @@ TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption, T
 	reflectionDir.Normalize();
 
 	Ray reflect(info.P(), reflectionDir);
-	float dist;
 
-	//Reflect Ray
-	Color reflectCol = info.TraceSecondaryRay(reflect, dist, true);
-	if (dist > 0.0f && (absorption.r > 0.0f || absorption.g > 0.0f || absorption.b > 0.0f)) {
-		reflectCol.r *= expf(-absorption.r * dist);
-		reflectCol.g *= expf(-absorption.g * dist);
-		reflectCol.b *= expf(-absorption.b * dist);
-	}
-
-	return reflectCol;
+	return reflect;
 }
 
 /**
@@ -75,7 +67,7 @@ TexturedColor ReflectRay(ShadeInfo const& info, int HitSide, Color absorption, T
  * @param absorption  Absorption color.
  * @return Color contribution from the refracted (or reflected) ray.
  */
-TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption, TexturedFloat glossiness)
+Ray RefractRay(float ior, SamplerInfo const& info, Color absorption, TexturedFloat glossiness)
 {
 	cyVec3f refractView = info.V();
 	float eta;
@@ -87,8 +79,8 @@ TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption, Tex
 	//Glossiness Sampling
 	float offsetPhi = info.RandomFloat();
 	float offsetTheta = info.RandomFloat();
-	float phi = 2.0f * M_PI * fmod(info.GetHaltonPhi(info.CurrentPixelSample()) + offsetPhi, 1.0f);
-	float cosTheta = pow(fmod(info.GetHaltonTheta(info.CurrentPixelSample()) + offsetTheta, 1.0f), 1.0f / (glossiness.GetValue() + 1.0f));
+	float phi = 2.0f * M_PI * fmod(Halton(info.CurrentPixelSample(), 2) + offsetPhi, 1.0f);
+	float cosTheta = pow(fmod(Halton(info.CurrentPixelSample(), 3) + offsetTheta, 1.0f), 1.0f / (glossiness.GetValue() + 1.0f));
 	float sinTheta = sqrt(1.0f - (cosTheta * cosTheta));
 
 	float x = sinTheta * cos(phi);
@@ -137,15 +129,7 @@ TexturedColor RefractRay(float ior, ShadeInfo const& info, Color absorption, Tex
 		refract.p += negN * (eps * sign);
 	}
 
-	float dist;
-	//Send refractive ray and calculate absorption
-	Color refractCol = info.TraceSecondaryRay(refract, dist, false);
-	if (dist > 0.0f && (absorption.r > 0.0f || absorption.g > 0.0f || absorption.b > 0.0f)) {
-		refractCol.r *= expf(-absorption.r * dist);
-		refractCol.g *= expf(-absorption.g * dist);
-		refractCol.b *= expf(-absorption.b * dist);
-	}
-	return refractCol;
+	return refract;
 }
 
 Color SampleIndirectDiffuseUnweighted(ShadeInfo const& info)
@@ -264,7 +248,18 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	//Sum Refraction Colors
 	if (needsRefraction)
 	{
-		refractCol = refraction * RefractRay(this->ior, info, this->absorption, this->glossiness).Eval(info.UVW());
+		float dist;
+		Ray refract = RefractRay(this->ior, info, this->absorption, this->glossiness);
+
+		refractCol = info.TraceSecondaryRay(refract, dist, false);
+		if (dist > 0.0f && (absorption.r > 0.0f || absorption.g > 0.0f || absorption.b > 0.0f)) {
+			refractCol.r *= expf(-absorption.r * dist);
+			refractCol.g *= expf(-absorption.g * dist);
+			refractCol.b *= expf(-absorption.b * dist);
+		}
+
+		TexturedColor texRefractCol = refractCol;
+		refractCol = refraction * texRefractCol.Eval(info.UVW());
 
 		//Fresnel Effect
 		float iorRatio = (1.0f - matior) / (1.0f + matior);
@@ -276,7 +271,17 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	//Sum Reflection colors
 	if (fullReflection != Color(0,0,0) && info.CanBounce())
 	{
-		reflectCol = fullReflection * ReflectRay(info, HIT_FRONT_AND_BACK, this->absorption, this->glossiness).Eval(info.UVW());
+		float dist;
+		Ray reflect = ReflectRay(info, HIT_FRONT_AND_BACK, this->absorption, this->glossiness);
+		reflectCol = info.TraceSecondaryRay(reflect, dist, true);
+		if (dist > 0.0f && (absorption.r > 0.0f || absorption.g > 0.0f || absorption.b > 0.0f)) {
+			reflectCol.r *= expf(-absorption.r * dist);
+			reflectCol.g *= expf(-absorption.g * dist);
+			reflectCol.b *= expf(-absorption.b * dist);
+		}
+
+		TexturedColor texReflectCol = reflectCol;
+		reflectCol = reflection * texReflectCol.Eval(info.UVW());
 	}
 	
 	//Sum Diffuse + Specular Colors
@@ -305,24 +310,80 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	//if (info.CanMCBounce()) {
 	//	indirect = SampleIndirectDiffuseCosin(info) * kd;
 	//}
+	//else
+	//{
+	//	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<128>(irradiance, photonDir, 3.0f, info.P(), info.N(), 1.0f);
+	//	indirect += (1.0f / M_PI) * kd * irradiance;
+	//}
 
-	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<100>(irradiance, photonDir, 1.0f, info.P());
-	finalColor = (1.0f / M_PI) * kd * irradiance;
+	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<128>(irradiance, photonDir, 3.0f, info.P(), info.N(), 1.0f);
+	indirect += (1.0f / M_PI) * kd * irradiance;
 
 	//Summing final components
-	//finalColor += indirect;
+	finalColor += indirect;
 	finalColor += reflectCol;
 	finalColor += refractCol;
-	//finalColor += emission;
+	finalColor += emission;
 	return finalColor;
 }
 
-bool MtlPhong::GenerateSample(SamplerInfo const& sInfo, Vec3f& dir, Info& si) const {
-	return false;
-}
+
 
 bool MtlBlinn::GenerateSample(SamplerInfo const& sInfo, Vec3f& dir, Info& si) const {
-	return false;
+	float random = sInfo.RandomFloat();
+	float diffuseProb(diffuse.GetValue().Gray());
+	float reflectProb(specular.GetValue().Gray());
+	float refractProb(refraction.GetValue().Gray());
+
+	//Go with Diffuse
+	if(random < diffuseProb) {
+		float u1 = sInfo.RandomFloat();
+		float u2 = sInfo.RandomFloat();
+
+		float phi = 2.0f * M_PI * u2;
+		float cosTheta = u1;
+		float sinTheta = sqrt(1.0f - u1 * u1);
+
+		float x = sinTheta * cos(phi);
+		float y = sinTheta * sin(phi);
+		float z = cosTheta;
+
+		// Build tangent frame around surface normal
+		Vec3f N = sInfo.N();
+		Vec3f tangent, bitangent;
+		N.GetOrthonormals(tangent, bitangent);
+
+		// Transform to world space
+		Vec3f direction = (x * tangent) + (y * bitangent) + (z * N);
+		direction.Normalize();
+		dir = direction;
+		si.mult = diffuse.GetValue();
+		si.prob = diffuseProb;
+		si.lobe = DIFFUSE;
+		return true;
+	}
+	//Reflect Photon
+	else if(random < diffuseProb + reflectProb) {
+		Ray reflect = ReflectRay(sInfo, HIT_FRONT_AND_BACK, absorption, glossiness);
+		dir = reflect.dir;
+		si.mult = specular.GetValue() * dir.Dot(sInfo.N());
+		si.lobe = SPECULAR;
+		si.prob = reflectProb;
+		return true;
+	}
+	//Refract Photon
+	else if(random < diffuseProb + reflectProb + refractProb) {
+		Ray refract = RefractRay(ior, sInfo, absorption, glossiness);
+		dir = refract.dir;
+		si.mult = refraction.GetValue() * std::abs(dir.Dot(sInfo.N()));
+		si.lobe = TRANSMISSION;
+		si.prob = refractProb;
+		return true;
+	}
+	//Destroy Photon
+	else {
+		return false;
+	}
 }
 
 bool MtlMicrofacet::GenerateSample(SamplerInfo const& sInfo, Vec3f& dir, Info& si) const {
@@ -334,6 +395,9 @@ Color MtlMicrofacet::Shade(ShadeInfo const &shade) const
 	return Color(1.0f, 1.0f, 1.0f);
 }
 
+bool MtlPhong::GenerateSample(SamplerInfo const& sInfo, Vec3f& dir, Info& si) const {
+	return false;
+}
 
 Color MtlPhong::Shade(ShadeInfo const& info) const
 {

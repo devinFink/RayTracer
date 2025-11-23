@@ -15,12 +15,12 @@ class RayTracer : public Renderer
 {
 	public:
 		const int bounceCount = 5;
-		const int monteCarloBounces = 2;
+		const int monteCarloBounces = 1;
 
 		const int maxSamples = 128;
 		const int minSamples = 32;
 
-		const int numPhotons = 100000;
+		const int numPhotons = 10000;
 
 		RayTracer() {}
 		~RayTracer() {}
@@ -37,7 +37,7 @@ class RayTracer : public Renderer
 
 		//Photon Map Methods
 		void GeneratePhotons(PhotonMap* map);
-		bool TracePhoton(Ray const& ray, HitInfo& hInfo);
+		bool TracePhoton(Ray const& ray, HitInfo& hInfo, Color& c, PhotonMap* map, bool first);
 		PhotonMap const* GetPhotonMap() const override { return map; }
 
 
