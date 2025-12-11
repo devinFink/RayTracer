@@ -29,29 +29,294 @@
 			</object>
 		</object>
 
-		<!-- Pedestal for the teapot -->
-		<object type="obj" name="scenes/cylinder.obj" material="smoothMarble">
-			<scale x="12" y="12" z="8"/>
-			<translate x="-9" y="-3" z="-32"/>
-		</object>
-
-		<!-- Main teapot - hero object -->
+		<!-- Floating teapot - tilted -->
 		<object type="obj" name="scenes/teapot.obj" material="porcelain">
-			<scale value="1.2"/>
-			<rotate angle="25" z="1"/>
-			<translate x="-9" y="-3" z="-18"/>
+			<scale value="1"/>
+			<rotate angle="15" x="1"/>
+			<rotate angle="-20" z="1"/>
+			<translate x="0" y="0" z="10"/>
 		</object>
 
-		<!-- Glass sphere for caustics -->
-		<object type="sphere" name="glassSphere" material="refractive">
-			<scale value="7"/>
-			<translate x="22" y="15" z="-26"/>
+		<!-- First ring - vertical north-south plane (YZ plane) -->
+		<object name="ring1">
+			<rotate angle="90" x="1"/>
+			<translate x="0" y="0" z="15"/>
+			<object type="sphere" name="orbitSphere1" material="refractive">
+				<scale value="2"/>
+				<translate x="18" y="0" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere2" material="refractive">
+				<scale value="2"/>
+				<translate x="15.588" y="9" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere3" material="refractive">
+				<scale value="2"/>
+				<translate x="12.728" y="12.728" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere4" material="refractive">
+				<scale value="2"/>
+				<translate x="9" y="15.588" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere5" material="refractive">
+				<scale value="2"/>
+				<translate x="0" y="18" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere6" material="refractive">
+				<scale value="2"/>
+				<translate x="-9" y="15.588" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere7" material="refractive">
+				<scale value="2"/>
+				<translate x="-12.728" y="12.728" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere8" material="refractive">
+				<scale value="2"/>
+				<translate x="-15.588" y="9" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere9" material="refractive">
+				<scale value="2"/>
+				<translate x="-18" y="0" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere10" material="refractive">
+				<scale value="2"/>
+				<translate x="-15.588" y="-9" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere11" material="refractive">
+				<scale value="2"/>
+				<translate x="-12.728" y="-12.728" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere12" material="refractive">
+				<scale value="2"/>
+				<translate x="-9" y="-15.588" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere13" material="refractive">
+				<scale value="2"/>
+				<translate x="0" y="-18" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere14" material="refractive">
+				<scale value="2"/>
+				<translate x="9" y="-15.588" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere15" material="refractive">
+				<scale value="2"/>
+				<translate x="12.728" y="-12.728" z="0"/>
+			</object>
+			<object type="sphere" name="orbitSphere16" material="refractive">
+				<scale value="2"/>
+				<translate x="15.588" y="-9" z="0"/>
+			</object>
 		</object>
 
-		<!-- Small accent sphere -->
-		<object type="sphere" name="metallicSphere" material="brushedMetal">
-			<scale value="5"/>
-			<translate x="18" y="-20" z="-30"/>
+		<!-- Second ring - vertical east-west plane (XZ plane) -->
+		<object name="ring2">
+			<rotate angle="90" y="1"/>
+			<translate x="0" y="0" z="15"/>
+			<object type="sphere" name="ring2Sphere1" material="refractive">
+				<scale value="2"/>
+				<translate x="18" y="0" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere2" material="refractive">
+				<scale value="2"/>
+				<translate x="15.588" y="9" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere3" material="refractive">
+				<scale value="2"/>
+				<translate x="12.728" y="12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere4" material="refractive">
+				<scale value="2"/>
+				<translate x="9" y="15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere5" material="refractive">
+				<scale value="2"/>
+				<translate x="0" y="18" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere6" material="refractive">
+				<scale value="2"/>
+				<translate x="-9" y="15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere7" material="refractive">
+				<scale value="2"/>
+				<translate x="-12.728" y="12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere8" material="refractive">
+				<scale value="2"/>
+				<translate x="-15.588" y="9" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere9" material="refractive">
+				<scale value="2"/>
+				<translate x="-18" y="0" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere10" material="refractive">
+				<scale value="2"/>
+				<translate x="-15.588" y="-9" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere11" material="refractive">
+				<scale value="2"/>
+				<translate x="-12.728" y="-12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere12" material="refractive">
+				<scale value="2"/>
+				<translate x="-9" y="-15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere13" material="refractive">
+				<scale value="2"/>
+				<translate x="0" y="-18" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere14" material="refractive">
+				<scale value="2"/>
+				<translate x="9" y="-15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere15" material="refractive">
+				<scale value="2"/>
+				<translate x="12.728" y="-12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring2Sphere16" material="refractive">
+				<scale value="2"/>
+				<translate x="15.588" y="-9" z="0"/>
+			</object>
+		</object>
+
+		<!-- Third ring - diagonal 45° -->
+		<object name="ring3">
+			<rotate angle="90" x="1"/>
+			<rotate angle="45" z="1"/>
+			<translate x="0" y="0" z="15"/>
+			<object type="sphere" name="ring3Sphere1" material="refractive">
+				<scale value="2"/>
+				<translate x="18" y="0" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere2" material="refractive">
+				<scale value="2"/>
+				<translate x="15.588" y="9" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere3" material="refractive">
+				<scale value="2"/>
+				<translate x="12.728" y="12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere4" material="refractive">
+				<scale value="2"/>
+				<translate x="9" y="15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere5" material="refractive">
+				<scale value="2"/>
+				<translate x="0" y="18" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere6" material="refractive">
+				<scale value="2"/>
+				<translate x="-9" y="15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere7" material="refractive">
+				<scale value="2"/>
+				<translate x="-12.728" y="12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere8" material="refractive">
+				<scale value="2"/>
+				<translate x="-15.588" y="9" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere9" material="refractive">
+				<scale value="2"/>
+				<translate x="-18" y="0" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere10" material="refractive">
+				<scale value="2"/>
+				<translate x="-15.588" y="-9" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere11" material="refractive">
+				<scale value="2"/>
+				<translate x="-12.728" y="-12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere12" material="refractive">
+				<scale value="2"/>
+				<translate x="-9" y="-15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere13" material="refractive">
+				<scale value="2"/>
+				<translate x="0" y="-18" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere14" material="refractive">
+				<scale value="2"/>
+				<translate x="9" y="-15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere15" material="refractive">
+				<scale value="2"/>
+				<translate x="12.728" y="-12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring3Sphere16" material="refractive">
+				<scale value="2"/>
+				<translate x="15.588" y="-9" z="0"/>
+			</object>
+		</object>
+
+		<!-- Fourth ring - diagonal -45° -->
+		<object name="ring4">
+			<rotate angle="90" x="1"/>
+			<rotate angle="-45" z="1"/>
+			<translate x="0" y="0" z="15"/>
+			<object type="sphere" name="ring4Sphere1" material="refractive">
+				<scale value="2"/>
+				<translate x="18" y="0" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere2" material="refractive">
+				<scale value="2"/>
+				<translate x="15.588" y="9" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere3" material="refractive">
+				<scale value="2"/>
+				<translate x="12.728" y="12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere4" material="refractive">
+				<scale value="2"/>
+				<translate x="9" y="15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere5" material="refractive">
+				<scale value="2"/>
+				<translate x="0" y="18" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere6" material="refractive">
+				<scale value="2"/>
+				<translate x="-9" y="15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere7" material="refractive">
+				<scale value="2"/>
+				<translate x="-12.728" y="12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere8" material="refractive">
+				<scale value="2"/>
+				<translate x="-15.588" y="9" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere9" material="refractive">
+				<scale value="2"/>
+				<translate x="-18" y="0" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere10" material="refractive">
+				<scale value="2"/>
+				<translate x="-15.588" y="-9" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere11" material="refractive">
+				<scale value="2"/>
+				<translate x="-12.728" y="-12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere12" material="refractive">
+				<scale value="2"/>
+				<translate x="-9" y="-15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere13" material="refractive">
+				<scale value="2"/>
+				<translate x="0" y="-18" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere14" material="refractive">
+				<scale value="2"/>
+				<translate x="9" y="-15.588" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere15" material="refractive">
+				<scale value="2"/>
+				<translate x="12.728" y="-12.728" z="0"/>
+			</object>
+			<object type="sphere" name="ring4Sphere16" material="refractive">
+				<scale value="2"/>
+				<translate x="15.588" y="-9" z="0"/>
+			</object>
 		</object>
 
 		<!-- Materials -->
@@ -70,12 +335,12 @@
 			<specular value="0"/>
 		</material>
 
-		<!-- Porcelain material for teapot - shows off your lighting -->
+		<!-- Porcelain material for teapot -->
 		<material type="blinn" name="porcelain">
 			<diffuse r="0.95" g="0.92" b="0.88" value="0.6"/>
 			<specular value="0.9"/>
 			<glossiness value="512"/>
-			<reflection value="0.2"/>
+			<reflection value="0.25"/>
 		</material>
 
 		<material type="blinn" name="brushedMetal">
@@ -99,37 +364,57 @@
 			<reflection value="0.15"/>
 		</material>
 
+		<!-- Colored materials for the crossing ring -->
+		<material type="blinn" name="coloredGlass1">
+			<diffuse r="0.3" g="0.6" b="0.9" value="0.1"/>
+			<specular value="0.2"/>
+			<glossiness value="1024"/>
+			<refraction value="0.92" index="1.52"/>
+		</material>
+
+		<material type="blinn" name="coloredGlass2">
+			<diffuse r="0.9" g="0.4" b="0.6" value="0.1"/>
+			<specular value="0.2"/>
+			<glossiness value="1024"/>
+			<refraction value="0.92" index="1.52"/>
+		</material>
+
+		<material type="blinn" name="coloredMetal1">
+			<diffuse r="0.2" g="0.5" b="0.8" value="0.2"/>
+			<specular value="0.9"/>
+			<glossiness value="384"/>
+			<reflection value="0.75"/>
+		</material>
+
+		<material type="blinn" name="coloredMetal2">
+			<diffuse r="0.8" g="0.3" b="0.5" value="0.2"/>
+			<specular value="0.9"/>
+			<glossiness value="384"/>
+			<reflection value="0.75"/>
+		</material>
+
 		<!-- Lights -->
-		<!-- Rim light for edge definition -->
+		<!-- Accent light from below for drama (under floor) -->
 		<light type="point" name="rimLight">
-			<intensity value="180"/>
+			<intensity value="50"/>
 			<color r="0.9" g="0.85" b="1.0"/>
-			<position x="25" y="20" z="25"/>
-			<size value="3"/>
+			<position x="40" y="50" z="25"/>
+			<size value="4"/>
 			<attenuation value=".12"/>
 		</light>
-
-		<!-- Fill light to soften shadows -->
-		<light type="point" name="fillLight">
-			<intensity value="120"/>
-			<color r="1.0" g="0.95" b="0.9"/>
-			<position x="-30" y="-40" z="0"/>
+		<light type="point" name="accentLight">
+			<intensity value="50"/>
+			<color r="0.7" g="0.8" b="1.0"/>
+			<position x="5" y="5" z="-40"/>
 			<size value="8"/>
-			<attenuation value=".15"/>
+			<attenuation value="1"/>
 		</light>
 
-		<!-- Accent light for caustics enhancement -->
-		<light type="point" name="causticLight">
-			<intensity value="250"/>
-			<position x="22" y="15" z="10"/>
-			<size value="1"/>
-			<attenuation value=".1"/>
-		</light>
 	</scene>
 
 	<camera gamma="sRGB">
-		<position x="0" y="-85" z="22"/>
-		<target x="-9" y="-3" z="-18"/>
+		<position x="-20" y="-85" z="22"/>
+		<target x="0" y="0" z="8"/>
 		<up x="0" y="0" z="1"/>
 		<fov value="48"/>
 		<width value="1920"/>

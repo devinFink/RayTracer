@@ -83,7 +83,7 @@ void RayTracer::StopRender()
 	// Save images
 	renderImage.ComputeZBufferImage();
 	renderImage.SaveZImage("testZ.png");
-	renderImage.SaveImage("outputs/singleBounceDenoise.png");
+	renderImage.SaveImage("outputs/denoised.png");
 }
 
 void RayTracer::RunThread(std::atomic<int>& nextTile, int totalTiles, int tilesX, int tilesY)
@@ -260,15 +260,26 @@ void RayTracer::GeneratePhotons(PhotonMap* pMap) {
 	Ray ray;
 	Color c;
 
+	std::vector<Light*> photonLights;
 	for (auto& light : scene.lights) {
 		if (light->IsPhotonSource()) {
-			while (pMap->RemainingSpace() > 0) {
-				light->RandomPhoton(rng, ray, c);
-				HitInfo info;
-				TracePhoton(ray, info, c, pMap, true);
-			}
+			photonLights.push_back(light);
 		}
 	}
+
+	size_t idx = 0;
+	const size_t n = photonLights.size();
+
+	while (pMap->RemainingSpace() > 0 && n > 0) {
+		Light* light = photonLights[idx];
+
+		light->RandomPhoton(rng, ray, c);
+		HitInfo info;
+		TracePhoton(ray, info, c, pMap, true);
+
+		idx = (idx + 1) % n;
+	}
+
 
 	pMap->ScalePhotonPowers(1.0f / (float)numPhotons);
 	pMap->PrepareForIrradianceEstimation();

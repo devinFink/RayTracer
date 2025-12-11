@@ -14,7 +14,7 @@
 class RayTracer : public Renderer
 {
 	public:
-		const int bounceCount = 3;
+		const int bounceCount = 10;
 		const int monteCarloBounces = 1;
 
 		const int maxSamples = 128;

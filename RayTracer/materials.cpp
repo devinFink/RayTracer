@@ -308,15 +308,15 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 
 	//Sum Monte Carlo Global Illumination
 	//if (info.CanMCBounce()) {
-	//	indirect = SampleIndirectDiffuseCosin(info) * kd;
+	//	indirect += SampleIndirectDiffuseCosin(info) * kd;
 	//}
 	//else
 	//{
-	//	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<128>(irradiance, photonDir, 3.0f, info.P(), info.N(), 1.0f);
+	//	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<128>(irradiance, photonDir, 5.0f, info.P(), info.N(), 1.0f);
 	//	indirect += (1.0f / M_PI) * kd * irradiance;
 	//}
 
-	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<128>(irradiance, photonDir, 3.0f, info.P(), info.N(), 1.0f);
+	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<128>(irradiance, photonDir, 5.0f, info.P(), info.N(), 1.0f);
 	indirect += (1.0f / M_PI) * kd * irradiance;
 
 	//Summing final components
