@@ -83,6 +83,7 @@ struct HitInfo
     int         mtlID;  // sub-material index
     bool        front;  // true if the ray hits the front side, false if the ray hits the back side
     bool        light;  // true if the ray hits a renderable light source
+    cyColor       radiance; //Set if light is hit
 
     HitInfo() { Init(); }
     void Init() { z = BIGFLOAT; node = nullptr; uvw.Set(0.5f); duvw[0].Zero(); duvw[1].Zero(); mtlID = 0; front = true; light = false; }

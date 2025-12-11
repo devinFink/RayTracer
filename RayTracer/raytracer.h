@@ -14,13 +14,13 @@
 class RayTracer : public Renderer
 {
 	public:
-		const int bounceCount = 5;
+		const int bounceCount = 3;
 		const int monteCarloBounces = 1;
 
 		const int maxSamples = 128;
 		const int minSamples = 32;
 
-		const int numPhotons = 10000;
+		const int numPhotons = 100000;
 
 		RayTracer() {}
 		~RayTracer() {}

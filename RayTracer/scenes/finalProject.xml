@@ -1,0 +1,138 @@
+<xml>
+	<scene>
+		<!-- Objects -->
+		<object name="box">
+			<translate x="0" y="0" z="12"/>
+			<object type="plane" name="WallBottom" material="wall">
+				<scale value="64"/>
+				<translate z="-36"/>
+			</object>
+			<object type="plane" name="WallTop" material="wall">
+				<scale value="64"/>
+				<rotate angle="180" x="1"/>
+				<translate z="36"/>
+			</object>
+			<object type="plane" name="WallBack" material="wall">
+				<scale value="64"/>
+				<rotate angle="90" x="1"/>
+				<translate y="60"/>
+			</object>
+			<object type="plane" name="WallLeft" material="wallWarm">
+				<scale value="64"/>
+				<rotate angle="90" y="1"/>
+				<translate x="-45"/>
+			</object>
+			<object type="plane" name="WallRight" material="wallCool">
+				<scale value="64"/>
+				<rotate angle="-90" y="1"/>
+				<translate x="45"/>
+			</object>
+		</object>
+
+		<!-- Pedestal for the teapot -->
+		<object type="obj" name="scenes/cylinder.obj" material="smoothMarble">
+			<scale x="12" y="12" z="8"/>
+			<translate x="-9" y="-3" z="-32"/>
+		</object>
+
+		<!-- Main teapot - hero object -->
+		<object type="obj" name="scenes/teapot.obj" material="porcelain">
+			<scale value="1.2"/>
+			<rotate angle="25" z="1"/>
+			<translate x="-9" y="-3" z="-18"/>
+		</object>
+
+		<!-- Glass sphere for caustics -->
+		<object type="sphere" name="glassSphere" material="refractive">
+			<scale value="7"/>
+			<translate x="22" y="15" z="-26"/>
+		</object>
+
+		<!-- Small accent sphere -->
+		<object type="sphere" name="metallicSphere" material="brushedMetal">
+			<scale value="5"/>
+			<translate x="18" y="-20" z="-30"/>
+		</object>
+
+		<!-- Materials -->
+		<material type="blinn" name="wall">
+			<diffuse r="0.95" g="0.95" b="0.95" value="0.8"/>
+			<specular value="0"/>
+		</material>
+
+		<material type="blinn" name="wallWarm">
+			<diffuse r="0.85" g="0.5" b="0.35" value="0.7"/>
+			<specular value="0"/>
+		</material>
+
+		<material type="blinn" name="wallCool">
+			<diffuse r="0.35" g="0.55" b="0.75" value="0.7"/>
+			<specular value="0"/>
+		</material>
+
+		<!-- Porcelain material for teapot - shows off your lighting -->
+		<material type="blinn" name="porcelain">
+			<diffuse r="0.95" g="0.92" b="0.88" value="0.6"/>
+			<specular value="0.9"/>
+			<glossiness value="512"/>
+			<reflection value="0.2"/>
+		</material>
+
+		<material type="blinn" name="brushedMetal">
+			<diffuse r="0.8" g="0.75" b="0.65" value="0.15"/>
+			<specular value="0.85"/>
+			<glossiness value="256"/>
+			<reflection value="0.7"/>
+		</material>
+
+		<material type="blinn" name="refractive">
+			<diffuse value="0"/>
+			<specular value="0.1"/>
+			<glossiness value="1024"/>
+			<refraction value="0.95" index="1.52"/>
+		</material>
+
+		<material type="blinn" name="smoothMarble">
+			<diffuse r="0.9" g="0.88" b="0.85" value="0.7"/>
+			<specular value="0.4"/>
+			<glossiness value="128"/>
+			<reflection value="0.15"/>
+		</material>
+
+		<!-- Lights -->
+		<!-- Rim light for edge definition -->
+		<light type="point" name="rimLight">
+			<intensity value="180"/>
+			<color r="0.9" g="0.85" b="1.0"/>
+			<position x="25" y="20" z="25"/>
+			<size value="3"/>
+			<attenuation value=".12"/>
+		</light>
+
+		<!-- Fill light to soften shadows -->
+		<light type="point" name="fillLight">
+			<intensity value="120"/>
+			<color r="1.0" g="0.95" b="0.9"/>
+			<position x="-30" y="-40" z="0"/>
+			<size value="8"/>
+			<attenuation value=".15"/>
+		</light>
+
+		<!-- Accent light for caustics enhancement -->
+		<light type="point" name="causticLight">
+			<intensity value="250"/>
+			<position x="22" y="15" z="10"/>
+			<size value="1"/>
+			<attenuation value=".1"/>
+		</light>
+	</scene>
+
+	<camera gamma="sRGB">
+		<position x="0" y="-85" z="22"/>
+		<target x="-9" y="-3" z="-18"/>
+		<up x="0" y="0" z="1"/>
+		<fov value="48"/>
+		<width value="1920"/>
+		<height value="1080"/>
+	</camera>
+</xml>

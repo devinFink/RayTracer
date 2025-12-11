@@ -236,9 +236,14 @@ Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos, RNG rng)
 		{
 			return Color(hit.node->GetMaterial()->Shade(info));
 		}
-		else
-		{
-			return Color(1.0, 1.0, 1.0);
+		else {
+			for (const auto& light : scene.lights)
+			{
+				if (light->IsRenderable() && light->IntersectRay(ray, hit, HIT_FRONT_AND_BACK))
+				{
+					return light->Radiance(info);
+				}
+			}
 		}
 	}
 	else

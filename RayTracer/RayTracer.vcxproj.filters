@@ -139,5 +139,8 @@
     <Xml Include="scenes\cornellBox.xml">
       <Filter>Resource Files</Filter>
     </Xml>
+    <Xml Include="scenes\finalProject.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

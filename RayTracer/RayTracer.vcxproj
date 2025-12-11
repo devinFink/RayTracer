@@ -225,6 +225,7 @@
   <ItemGroup>
     <Xml Include="scenes\cornellBox.xml" />
     <Xml Include="scenes\custom.xml" />
+    <Xml Include="scenes\finalProject.xml" />
     <Xml Include="scenes\havingFun.xml" />
     <Xml Include="scenes\mc.xml" />
     <Xml Include="scenes\project_1_scene.xml" />
