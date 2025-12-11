@@ -177,6 +177,7 @@ Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist, bool reflection
 			si.SetHit(ray, hit);
 			si.bounceC++;
 			auto* mat = hit.node->GetMaterial();
+			si.isSecondary = true;
 			return mat->Shade(si);
 		}
 	}
@@ -191,6 +192,7 @@ Color ShadowInfo::TraceSecondaryRay(Ray const& ray, float& dist, bool reflection
 				si.SetHit(ray, hit);
 				si.bounceC++;
 				si.IsFront() ? dist = si.Depth() : dist = 0;
+				si.isSecondary = true;
 				return mat->Shade(si);
 			}
 		}

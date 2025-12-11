@@ -27,11 +27,15 @@ void RayTracer::BeginRender()
 	CreateCam2Wrld();
 
 	PhotonMap* pMap = new PhotonMap;
-	pMap->Resize(numPhotons * scene.lights.size());
+	pMap->Resize(numPhotons);
 
-	GeneratePhotons(pMap);
+	PhotonMap* cMap = new PhotonMap;
+	cMap->Resize(numPhotons);
+
+	GeneratePhotons(pMap, cMap);
 
 	this->map = pMap;
+	this->caustics = cMap;
 
 	//Multithreading
 	const int numThreads = std::thread::hardware_concurrency();
@@ -255,7 +259,7 @@ Color RayTracer::SendRay(int index, Ray ray, cyVec2f scrPos, RNG rng)
 }
 
 
-void RayTracer::GeneratePhotons(PhotonMap* pMap) {
+void RayTracer::GeneratePhotons(PhotonMap* pMap, PhotonMap* cMap) {
 	RNG rng;
 	Ray ray;
 	Color c;
@@ -270,12 +274,14 @@ void RayTracer::GeneratePhotons(PhotonMap* pMap) {
 	size_t idx = 0;
 	const size_t n = photonLights.size();
 
-	while (pMap->RemainingSpace() > 0 && n > 0) {
+	while ((pMap->RemainingSpace() > 0 || cMap->RemainingSpace() > 0) && n > 0) {
 		Light* light = photonLights[idx];
 
 		light->RandomPhoton(rng, ray, c);
 		HitInfo info;
-		TracePhoton(ray, info, c, pMap, true);
+		DirSampler::Info si;
+		si.lobe = DirSampler::Lobe::NONE;
+		TracePhoton(ray, info, c, pMap, cMap, si);
 
 		idx = (idx + 1) % n;
 	}
@@ -283,26 +289,40 @@ void RayTracer::GeneratePhotons(PhotonMap* pMap) {
 
 	pMap->ScalePhotonPowers(1.0f / (float)numPhotons);
 	pMap->PrepareForIrradianceEstimation();
+	cMap->ScalePhotonPowers(1.0f / (float)numPhotons);
+	cMap->PrepareForIrradianceEstimation();
 }
 
-bool RayTracer::TracePhoton(const Ray &ray, HitInfo& hInfo, Color& c, PhotonMap* pMap, bool first){
-	RNG rng(pMap->NumPhotons());
+bool RayTracer::TracePhoton(const Ray &ray, HitInfo& hInfo, Color& c, PhotonMap* pMap, PhotonMap* cMap, DirSampler::Info si){
 	if (TraverseTree(ray, &scene.rootNode, hInfo, HIT_FRONT)) {
-
+		RNG rng(rand());
 		if (hInfo.node) {
-			if(!first && hInfo.node->GetMaterial()->IsPhotonSurface())
-				pMap->AddPhoton(hInfo.p, ray.dir, c);
+
+			DirSampler::Lobe prevLobe = si.lobe;
+			
 
 			SamplerInfo sInfo(rng);
 			sInfo.SetHit(ray, hInfo);
 			Vec3f newDir;
-			DirSampler::Info si;
 
 			if (hInfo.node->GetMaterial()->GenerateSample(sInfo, newDir, si))
 			{
-				c *= si.mult / si.prob;
+				Color newC = c * si.mult / si.prob;
 				Ray photonRay(hInfo.p, newDir);
-				TracePhoton(photonRay, hInfo, c, pMap, false);
+
+				if (si.lobe & DirSampler::Lobe::DIFFUSE) {
+					if ((prevLobe & DirSampler::Lobe::TRANSMISSION) || (prevLobe & DirSampler::Lobe::SPECULAR)) {
+						if (cMap->RemainingSpace() > 0)
+							cMap->AddPhoton(sInfo.P(), -photonRay.dir, newC);
+					}
+					else {
+						if (pMap->RemainingSpace() > 0)
+							pMap->AddPhoton(sInfo.P(), -photonRay.dir, newC);
+					}
+				}
+
+				HitInfo newHInfo;
+				TracePhoton(photonRay, newHInfo, newC, pMap, cMap, si);
 			}
 
 

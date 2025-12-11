@@ -223,7 +223,7 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 {
 	//Summation Colors
 	Color finalColor(0, 0, 0), ambientLight(0, 0, 0), reflectCol(0, 0, 0), refractCol(0, 0, 0),
-		  fresnel(0, 0, 0), indirect(0,0,0), irradiance(0,0,0);
+		  fresnel(0, 0, 0), indirect(0,0,0), irradiance(0,0,0), irradianceCaustic(0,0,0);
 
 	cyVec3f photonDir(0, 0, 0);
 
@@ -312,12 +312,15 @@ Color MtlBlinn::Shade(ShadeInfo const &info) const
 	//}
 	//else
 	//{
-	//	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<128>(irradiance, photonDir, 5.0f, info.P(), info.N(), 1.0f);
-	//	indirect += (1.0f / M_PI) * kd * irradiance;
+		if (info.isSecondary) {
+			info.GetRenderer()->GetCausticsMap()->EstimateIrradiance<128>(irradianceCaustic, photonDir, 3.0f, info.P(), info.N(), 0.25f);
+			indirect += (1.0f / M_PI) * kd * irradianceCaustic;
+		}
+		else {
+			info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<128>(irradiance, photonDir, 3.0f, info.P(), info.N(), 1.0f);
+			indirect += (1.0f / M_PI) * kd * irradiance;
+		}
 	//}
-
-	info.GetRenderer()->GetPhotonMap()->EstimateIrradiance<128>(irradiance, photonDir, 5.0f, info.P(), info.N(), 1.0f);
-	indirect += (1.0f / M_PI) * kd * irradiance;
 
 	//Summing final components
 	finalColor += indirect;

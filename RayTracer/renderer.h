@@ -172,6 +172,7 @@ public:
     int     mcSamples = 1;
     int     maxShadowSamples = 128;
     int     minShadowSamples = 16;
+    bool    isSecondary = false;
 
     virtual int          NumLights()       const { return (int)lights.size(); } // returns the number of lights to be used during shading
     virtual Light const* GetLight(int i) const { return lights[i]; }          // returns the i^th light
